@@ -3,7 +3,7 @@ add_executable(phylourny
 )
 
 set_target_properties(phylourny PROPERTIES
-    CXX_STANDARD 11
+    CXX_STANDARD 17
     CXX_STANDARD_REQUIRED YES
 )
 
