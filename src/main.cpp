@@ -3,7 +3,7 @@
 #include <string>
 #include <unordered_set>
 #include <iostream>
-#include <json/json.hpp>
+#include <json.hpp>
 
 #include "cli.hpp"
 #include "debug.h"

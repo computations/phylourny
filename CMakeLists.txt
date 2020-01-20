@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.00)
-project(root_digger)
+project(phylourny)
 
 find_package(Git)
 if(GIT_FOUND)
@@ -22,6 +22,7 @@ string(TIMESTAMP BUILD_DATE "%Y-%m-%d %H:%M:%S")
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/../bin)
 include_directories(lib)
+include_directories(lib/json/single_include/nlohmann)
 add_subdirectory(src)
 
 find_library(ASAN_FOUND asan)
