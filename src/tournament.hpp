@@ -8,13 +8,18 @@
 
 class tournament_node_t;
 
-class tournament_node_ptr_t {
+class tournament_edge_t {
 public:
-  tournament_node_ptr_t() : _node{nullptr}, _win{true} {}
-  tournament_node_ptr_t(std::shared_ptr<tournament_node_t> node, bool win)
-      : _node{node}, _win{win} {}
-  tournament_node_ptr_t(tournament_node_t *node, bool win)
-      : _node{node}, _win{win} {}
+  enum edge_type_t {
+    win,
+    loss,
+  };
+  tournament_edge_t() : _node{nullptr}, _edge_type{edge_type_t::win} {}
+  tournament_edge_t(std::shared_ptr<tournament_node_t> node,
+                    edge_type_t edge_type)
+      : _node{node}, _edge_type{edge_type} {}
+  tournament_edge_t(tournament_node_t *node, edge_type_t edge_type)
+      : _node{node}, _edge_type{edge_type} {}
 
   tournament_node_t &operator*() { return *_node; }
   const tournament_node_t *operator->() const { return _node.get(); }
@@ -25,16 +30,18 @@ public:
 
 private:
   std::shared_ptr<tournament_node_t> _node;
-  bool _win;
+  edge_type_t _edge_type;
 };
 
 class tournament_node_t {
 public:
   tournament_node_t() : _lnode{}, _rnode{} {}
-  tournament_node_t(std::shared_ptr<tournament_node_t> lnode, bool lwin,
-                    std::shared_ptr<tournament_node_t> rnode, bool rwin)
+  tournament_node_t(std::shared_ptr<tournament_node_t> lnode,
+                    tournament_edge_t::edge_type_t lwin,
+                    std::shared_ptr<tournament_node_t> rnode,
+                    tournament_edge_t::edge_type_t rwin)
       : _lnode{lnode, lwin}, _rnode{rnode, rwin} {}
-  tournament_node_t(tournament_node_ptr_t lnode, tournament_node_ptr_t rnode)
+  tournament_node_t(tournament_edge_t lnode, tournament_edge_t rnode)
       : _lnode{lnode}, _rnode{rnode} {}
 
   size_t tip_count() const {
@@ -61,8 +68,8 @@ private:
   bool is_tip() const { return !(_lnode && _rnode); }
 
   /* data members */
-  tournament_node_ptr_t _lnode;
-  tournament_node_ptr_t _rnode;
+  tournament_edge_t _lnode;
+  tournament_edge_t _rnode;
   size_t _index;
   // Eigen::VectorXd _wpv;
 };
@@ -70,8 +77,8 @@ private:
 class tournament_t {
 public:
   tournament_t()
-      : _head{{new tournament_node_t{}, true},
-              {new tournament_node_t{}, true}} {}
+      : _head{{new tournament_node_t{}, tournament_edge_t::edge_type_t::win},
+              {new tournament_node_t{}, tournament_edge_t::edge_type_t::win}} {}
 
   size_t tip_count() const { return _head.tip_count(); }
 

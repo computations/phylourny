@@ -11,12 +11,15 @@ TEST_CASE("tournament_node_t basic tests: 4 teamn single elim",
   std::shared_ptr<tournament_node_t> team_d{new tournament_node_t};
 
   std::shared_ptr<tournament_node_t> n1{
-      new tournament_node_t{team_a, true, team_b, true}};
+      new tournament_node_t{team_a, tournament_edge_t::edge_type_t::win, team_b,
+                            tournament_edge_t::edge_type_t::win}};
   std::shared_ptr<tournament_node_t> n2{
-      new tournament_node_t{team_a, true, team_b, true}};
+      new tournament_node_t{team_a, tournament_edge_t::edge_type_t::win, team_b,
+                            tournament_edge_t::edge_type_t::win}};
 
   std::shared_ptr<tournament_node_t> peak{
-      new tournament_node_t{n1, true, n2, true}};
+      new tournament_node_t{n1, tournament_edge_t::edge_type_t::win, n2,
+                            tournament_edge_t::edge_type_t::win}};
 
   SECTION("count nodes") { CHECK(peak->tip_count() == 4); }
 }
