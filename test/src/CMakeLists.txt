@@ -4,7 +4,9 @@ add_executable(phylourny_test
     tournament.cpp
 )
 
-set(TEST_LINK_LIBS Catch2::Catch2 asan)
+find_package (Eigen3 3.3 REQUIRED NO_MODULE)
+
+set(TEST_LINK_LIBS Catch2::Catch2 asan Eigen3::Eigen)
 target_compile_options(phylourny_test PRIVATE -Wall -Wextra -pedantic
     -fno-omit-frame-pointer
     -fsanitize=address)
