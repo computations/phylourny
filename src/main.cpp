@@ -19,7 +19,6 @@ int __VERBOSE__ = EMIT_LEVEL_PROGRESS;
 typedef std::chrono::time_point<std::chrono::high_resolution_clock> timepoint_t;
 typedef std::chrono::duration<double> duration_t;
 
-
 void print_version() {
   debug_string(EMIT_LEVEL_IMPORTANT, "Running Phylourny");
   debug_print(EMIT_LEVEL_IMPORTANT, "Version: %s", GIT_REV_STRING);
@@ -44,7 +43,7 @@ int main(int argc, char **argv) {
 
   tournament_t t;
 
-  debug_print(EMIT_LEVEL_IMPORTANT, "Tip Count: %lu", t.tip_count());
+  //debug_print(EMIT_LEVEL_IMPORTANT, "Tip Count: %lu", t.tip_count());
 
   auto end_time = std::chrono::high_resolution_clock::now();
   print_end_time(start_time, end_time);
