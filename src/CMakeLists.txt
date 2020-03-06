@@ -7,9 +7,7 @@ set_target_properties(phylourny PROPERTIES
     CXX_STANDARD_REQUIRED YES
 )
 
-find_package (Eigen3 3.3 REQUIRED NO_MODULE)
-
-target_link_libraries(phylourny ${LINK_LIBS} Eigen3::Eigen)
+target_link_libraries(phylourny ${LINK_LIBS})
 target_compile_options(phylourny PRIVATE -Wall -Wextra -Wshadow
     -Wdouble-promotion -Wmissing-include-dirs -Wtrampolines
     -Wmisleading-indentation -pedantic)

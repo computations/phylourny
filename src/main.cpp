@@ -1,6 +1,8 @@
+#include <algorithm>
 #include <chrono>
 #include <iostream>
 #include <json.hpp>
+#include <memory>
 #include <optional>
 #include <string>
 #include <unordered_set>
@@ -38,12 +40,40 @@ int main(int argc, char **argv) {
   print_version();
   cli_options_t cli_options{argc, argv};
 
-  std::shared_ptr<tournament_node_t> n1{new tournament_node_t};
-  std::shared_ptr<tournament_node_t> n2{new tournament_node_t};
+  std::unique_ptr<tournament_node_t> n1{new tournament_node_t};
+  std::unique_ptr<tournament_node_t> n2{new tournament_node_t};
 
-  tournament_t t;
+  std::unique_ptr<tournament_node_t> p1{
+      new tournament_node_t{std::move(n1), std::move(n2)}};
 
-  //debug_print(EMIT_LEVEL_IMPORTANT, "Tip Count: %lu", t.tip_count());
+  std::unique_ptr<tournament_node_t> n3{new tournament_node_t};
+  std::unique_ptr<tournament_node_t> n4{new tournament_node_t};
+
+  std::unique_ptr<tournament_node_t> p2{
+      new tournament_node_t{std::move(n3), std::move(n4)}};
+
+  tournament_t t{tournament_node_t{std::move(p1), std::move(p2)}};
+  std::vector<std::vector<double>> win_probs{
+      {0.00, 0.75, 0.75, 0.75},
+      {0.25, 0.00, 0.75, 0.75},
+      {0.25, 0.25, 0.00, 0.75},
+      {0.25, 0.25, 0.25, 0.00},
+  };
+
+  debug_print(EMIT_LEVEL_IMPORTANT, "win_probs:\n%s",
+              to_string(win_probs).c_str());
+
+  t.relabel_indicies();
+  t.reset_win_probs(win_probs);
+
+  auto wp = t.eval();
+  debug_print(EMIT_LEVEL_IMPORTANT, "eval(): %s", to_string(wp).c_str());
+  double sum = 0.0;
+  for (auto f : wp) {
+    sum += f;
+  }
+
+  debug_print(EMIT_LEVEL_IMPORTANT, "sum: %f", sum);
 
   auto end_time = std::chrono::high_resolution_clock::now();
   print_end_time(start_time, end_time);

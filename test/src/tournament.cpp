@@ -1,4 +1,3 @@
-#include <Eigen/Dense>
 #include <catch2/catch.hpp>
 #include <debug.h>
 #include <tournament.hpp>
@@ -74,10 +73,10 @@ TEST_CASE("tournament_t default case", "[tournament_t]") {
   }
 
   SECTION("reset win probs") {
-    const Eigen::MatrixXd wps1(2, 2);
+    const matrix_t wps1{{0.0, 0.5}, {0.5, 0.0}};
     REQUIRE_NOTHROW(tournament.reset_win_probs(wps1));
 
-    const Eigen::MatrixXd wps2(3, 3);
+    const matrix_t wps2{{0.0, 0.5, 0.5}, {0.5, 0.0, 0.5}, {0.5, 0.5, 0.0}};
     REQUIRE_THROWS(tournament.reset_win_probs(wps2));
   }
 }

@@ -1,13 +1,45 @@
 #ifndef __TOURNAMENT_HPP__
 #define __TOURNAMENT_HPP__
-#include <Eigen/Dense>
-#include <Eigen/src/Core/Matrix.h>
+#include "debug.h"
+#include <cstddef>
 #include <exception>
+#include <iostream>
 #include <limits>
 #include <memory>
+#include <sstream>
 #include <stdexcept>
 #include <variant>
 #include <vector>
+
+typedef std::vector<std::vector<double>> matrix_t;
+typedef std::vector<double> vector_t;
+
+inline std::string to_string(const matrix_t &m) {
+  std::stringstream out;
+  for (auto &i : m) {
+    out << "[";
+    for (auto &j : i) {
+      out << j << " ";
+    }
+    out.seekp(-1, out.cur);
+    out << "]\n";
+  }
+  out.seekp(-1, out.cur);
+  auto ret_str = out.str();
+  ret_str.resize(ret_str.size() - 1);
+  return ret_str;
+}
+
+inline std::string to_string(const vector_t &m) {
+  std::stringstream out;
+  out << "[";
+  for (auto &i : m) {
+    out << i << " ";
+  }
+  out.seekp(-1, out.cur);
+  out << "]";
+  return out.str();
+}
 
 class tournament_node_t;
 
@@ -121,6 +153,64 @@ public:
     children().right->relabel_tips(labels);
   }
 
+  bool is_member(size_t index) const {
+    if (is_tip()) {
+      return team().index == index;
+    }
+    return children().left->is_member(index) ||
+           children().right->is_member(index);
+  }
+
+  vector_t eval(const matrix_t &pmatrix, size_t tip_count) const {
+
+    vector_t wpv(tip_count);
+
+    if (is_tip()) {
+      debug_print(EMIT_LEVEL_IMPORTANT, "team index: %lu", team().index);
+      wpv[team().index] = 1.0;
+      return wpv;
+    }
+
+    debug_string(EMIT_LEVEL_IMPORTANT, "Evaluating children");
+    auto left_wpv = children().left->eval(pmatrix, tip_count);
+    auto right_wpv = children().right->eval(pmatrix, tip_count);
+    debug_string(EMIT_LEVEL_IMPORTANT, "Evaluating current node");
+
+    debug_print(EMIT_LEVEL_IMPORTANT, "left child wpv: %s",
+                to_string(left_wpv).c_str());
+    debug_print(EMIT_LEVEL_IMPORTANT, "right child wpv: %s",
+                to_string(right_wpv).c_str());
+
+    auto fold_a = fold(left_wpv, right_wpv, pmatrix);
+    auto fold_b = fold(right_wpv, left_wpv, pmatrix);
+    for (size_t i = 0; i < wpv.size(); ++i) {
+      wpv[i] = fold_a[i] + fold_b[i];
+    }
+    return wpv;
+  }
+
+  inline vector_t fold(vector_t wpv1, vector_t wpv2, matrix_t pmatrix) const {
+    vector_t cur_wpv(wpv1.size());
+    for (size_t i = 0; i < pmatrix.size(); ++i) {
+      if (!is_member(i)) {
+        continue;
+      }
+      for (size_t j = 0; j < pmatrix[i].size(); ++j) {
+        if (!is_member(j)) {
+          continue;
+        }
+        debug_print(EMIT_LEVEL_IMPORTANT,
+                    "i: %lu, j: %lu, left_wpv[i]: %f, right_wpv[j]: %f, "
+                    "pmatrix[i][j]: %f, eval[i]: %f",
+                    i, j, wpv1[i], wpv2[j], pmatrix[i][j],
+                    wpv1[i] * wpv2[j] * pmatrix[i][j]);
+
+        cur_wpv[i] += wpv1[i] * wpv2[j] * pmatrix[i][j];
+      }
+    }
+    return cur_wpv;
+  }
+
 private:
   inline const tournament_children_t &children() const {
     return std::get<tournament_children_t>(_children);
@@ -144,11 +234,13 @@ public:
     relabel_indicies();
   }
 
-  size_t tip_count() const { return _head.tip_count(); }
-  void reset_win_probs(const Eigen::MatrixXd wp) {
-    auto tipc = static_cast<long int>(tip_count());
+  tournament_t(tournament_node_t &&head) : _head{std::move(head)} {}
 
-    if (tipc == wp.rows() && tipc == wp.cols()) {
+  tournament_t(const tournament_node_t &) = delete;
+
+  size_t tip_count() const { return _head.tip_count(); }
+  void reset_win_probs(const matrix_t wp) {
+    if (check_matrix_size(wp)) {
       _win_probs = wp;
     } else {
       throw std::runtime_error("Matrix is the wrong size for the tournament");
@@ -170,9 +262,21 @@ public:
     return lm;
   }
 
+  vector_t eval() const {
+    if (!check_matrix_size(_win_probs)) {
+      throw std::runtime_error("Initialize the win probs before calling eval");
+    }
+    return _head.eval(_win_probs, tip_count());
+  }
+
 private:
+  bool check_matrix_size(const matrix_t &wp) const {
+    auto tipc = tip_count();
+    return tipc == wp.size();
+  }
+
   tournament_node_t _head;
-  Eigen::MatrixXd _win_probs;
+  matrix_t _win_probs;
 };
 
 #endif
