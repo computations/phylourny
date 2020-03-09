@@ -8,11 +8,27 @@
 #include <memory>
 #include <sstream>
 #include <stdexcept>
+#include <utility>
 #include <variant>
 #include <vector>
 
 typedef std::vector<std::vector<double>> matrix_t;
 typedef std::vector<double> vector_t;
+
+matrix_t uniform_matirx_factory(size_t n) {
+  matrix_t matrix;
+  for (size_t i = 0; i < n; ++i) {
+    matrix.emplace_back(n);
+    for (size_t j = 0; j < n; ++j) {
+      if (i == j) {
+        matrix[i][j] = 0.0;
+      } else {
+        matrix[i][j] = 0.5;
+      }
+    }
+  }
+  return matrix;
+}
 
 inline std::string to_string(const matrix_t &m) {
   std::stringstream out;
@@ -161,53 +177,65 @@ public:
            children().right->is_member(index);
   }
 
+  inline std::vector<bool> get_members(size_t node_count) const {
+    std::vector<bool> members(node_count);
+    for (size_t i = 0; i < node_count; ++i) {
+      members[i] = is_member(i);
+    }
+    return members;
+  }
+
+  inline std::vector<size_t> members(size_t node_count) const {
+    std::vector<size_t> members;
+    members.reserve(node_count);
+    size_t total_members = 0;
+    for (size_t i = 0; i < node_count; ++i) {
+      if (is_member(i)) {
+        members.push_back(i);
+        total_members++;
+      }
+    }
+    members.resize(total_members);
+    return members;
+  }
+
   vector_t eval(const matrix_t &pmatrix, size_t tip_count) const {
 
-    vector_t wpv(tip_count);
-
     if (is_tip()) {
-      debug_print(EMIT_LEVEL_IMPORTANT, "team index: %lu", team().index);
+      vector_t wpv(tip_count);
+      debug_print(EMIT_LEVEL_DEBUG, "team index: %lu", team().index);
       wpv[team().index] = 1.0;
       return wpv;
     }
 
-    debug_string(EMIT_LEVEL_IMPORTANT, "Evaluating children");
+    debug_string(EMIT_LEVEL_DEBUG, "Evaluating children");
     auto left_wpv = children().left->eval(pmatrix, tip_count);
     auto right_wpv = children().right->eval(pmatrix, tip_count);
-    debug_string(EMIT_LEVEL_IMPORTANT, "Evaluating current node");
+    debug_string(EMIT_LEVEL_DEBUG, "Evaluating current node");
 
-    debug_print(EMIT_LEVEL_IMPORTANT, "left child wpv: %s",
+    debug_print(EMIT_LEVEL_DEBUG, "left child wpv: %s",
                 to_string(left_wpv).c_str());
-    debug_print(EMIT_LEVEL_IMPORTANT, "right child wpv: %s",
+    debug_print(EMIT_LEVEL_DEBUG, "right child wpv: %s",
                 to_string(right_wpv).c_str());
 
     auto fold_a = fold(left_wpv, right_wpv, pmatrix);
     auto fold_b = fold(right_wpv, left_wpv, pmatrix);
-    for (size_t i = 0; i < wpv.size(); ++i) {
-      wpv[i] = fold_a[i] + fold_b[i];
+    for (size_t i = 0; i < fold_a.size(); ++i) {
+      fold_a[i] += fold_b[i];
     }
-    return wpv;
+    return fold_a;
   }
 
   inline vector_t fold(vector_t wpv1, vector_t wpv2, matrix_t pmatrix) const {
     vector_t cur_wpv(wpv1.size());
-    for (size_t i = 0; i < pmatrix.size(); ++i) {
-      if (!is_member(i)) {
-        continue;
-      }
-      for (size_t j = 0; j < pmatrix[i].size(); ++j) {
-        if (!is_member(j)) {
-          continue;
-        }
-        debug_print(EMIT_LEVEL_IMPORTANT,
-                    "i: %lu, j: %lu, left_wpv[i]: %f, right_wpv[j]: %f, "
-                    "pmatrix[i][j]: %f, eval[i]: %f",
-                    i, j, wpv1[i], wpv2[j], pmatrix[i][j],
-                    wpv1[i] * wpv2[j] * pmatrix[i][j]);
+    auto local_members = members(pmatrix.size());
 
-        cur_wpv[i] += wpv1[i] * wpv2[j] * pmatrix[i][j];
+    for (auto m1 : local_members) {
+      for (auto m2 : local_members) {
+        cur_wpv[m1] += wpv1[m1] * wpv2[m2] * pmatrix[m1][m2];
       }
     }
+
     return cur_wpv;
   }
 
@@ -278,5 +306,31 @@ private:
   tournament_node_t _head;
   matrix_t _win_probs;
 };
+
+tournament_t tournament_factory(size_t tourny_size) {
+  if (tourny_size % 2 != 0) {
+    throw std::runtime_error("Tournament factory only accepts powers of 2");
+  }
+  std::vector<std::unique_ptr<tournament_node_t>> nodes;
+  nodes.reserve(tourny_size);
+  for (size_t i = 0; i < tourny_size; ++i) {
+    nodes.emplace_back(new tournament_node_t{});
+  }
+
+  while (nodes.size() != 2) {
+    size_t cur_size = nodes.size() / 2;
+    std::vector<std::unique_ptr<tournament_node_t>> tmp_nodes;
+    tmp_nodes.reserve(cur_size);
+    for (size_t i = 0, j = 1; j < nodes.size(); i += 2, j += 2) {
+      tmp_nodes.emplace_back(
+          new tournament_node_t{std::move(nodes[i]), std::move(nodes[j])});
+    }
+    std::swap(tmp_nodes, nodes);
+  }
+
+  tournament_t t{tournament_node_t{std::move(nodes[0]), std::move(nodes[1])}};
+  t.relabel_indicies();
+  return t;
+}
 
 #endif

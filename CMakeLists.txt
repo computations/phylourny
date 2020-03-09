@@ -27,6 +27,9 @@ endif()
 
 string(TIMESTAMP BUILD_DATE "%Y-%m-%d %H:%M:%S")
 
+set(CMAKE_CXX_FLAGS_RELEASE "-fno-omit-frame-pointer" CACHE INTERNAL "")
+set(CMAKE_C_FLAGS_RELEASE "-fno-omit-frame-pointer" CACHE INTERNAL "")
+
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/../bin)
 include_directories(lib)
 include_directories(lib/json/single_include/nlohmann)
@@ -36,3 +39,6 @@ find_library(ASAN_FOUND asan)
 if(ASAN_FOUND)
     add_subdirectory(test)
 endif()
+
+find_package(benchmark REQUIRED)
+add_subdirectory(bench)

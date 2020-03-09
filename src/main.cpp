@@ -53,6 +53,7 @@ int main(int argc, char **argv) {
       new tournament_node_t{std::move(n3), std::move(n4)}};
 
   tournament_t t{tournament_node_t{std::move(p1), std::move(p2)}};
+
   std::vector<std::vector<double>> win_probs{
       {0.00, 0.75, 0.75, 0.75},
       {0.25, 0.00, 0.75, 0.75},
@@ -74,6 +75,13 @@ int main(int argc, char **argv) {
   }
 
   debug_print(EMIT_LEVEL_IMPORTANT, "sum: %f", sum);
+
+  auto t2 = tournament_factory(32);
+  debug_print(EMIT_LEVEL_IMPORTANT, "t2 tip count: %lu", t2.tip_count());
+  auto m2 = uniform_matirx_factory(32);
+  debug_print(EMIT_LEVEL_IMPORTANT, "m2:\n%s", to_string(m2).c_str());
+  t2.reset_win_probs(m2);
+  debug_print(EMIT_LEVEL_IMPORTANT, "t2 eval(): %s", to_string(t2.eval()).c_str());
 
   auto end_time = std::chrono::high_resolution_clock::now();
   print_end_time(start_time, end_time);
