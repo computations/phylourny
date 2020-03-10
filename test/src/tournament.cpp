@@ -101,7 +101,7 @@ TEST_CASE("tournament_t larger cases", "[tournament_t]") {
   SECTION("sized 16") { 
     size_t tsize = 16;
     auto t = tournament_factory(tsize); 
-    auto m = uniform_matirx_factory(tsize);
+    auto m = uniform_matrix_factory(tsize);
     t.reset_win_probs(m);
     auto r = t.eval();
     double sum = 0.0;
@@ -117,7 +117,7 @@ TEST_CASE("tournament_t larger cases", "[tournament_t]") {
   SECTION("sized 32"){
     size_t tsize = 32;
     auto t = tournament_factory(tsize); 
-    auto m = uniform_matirx_factory(tsize);
+    auto m = uniform_matrix_factory(tsize);
     t.reset_win_probs(m);
     auto r = t.eval();
     double sum = 0.0;

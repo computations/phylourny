@@ -12,7 +12,7 @@ BENCHMARK(BM_tournament_factory)->Range(1<<2, 1<<10);
 
 static void BM_tourney_eval(benchmark::State &state){
   auto t = tournament_factory(state.range(0));
-  auto m = uniform_matirx_factory(state.range(0));
+  auto m = uniform_matrix_factory(state.range(0));
   t.reset_win_probs(m);
   t.relabel_indicies();
   for(auto _: state){

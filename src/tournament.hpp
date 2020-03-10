@@ -16,7 +16,7 @@
 typedef std::vector<std::vector<double>> matrix_t;
 typedef std::vector<double> vector_t;
 
-matrix_t uniform_matirx_factory(size_t n) {
+matrix_t uniform_matrix_factory(size_t n) {
   matrix_t matrix;
   for (size_t i = 0; i < n; ++i) {
     matrix.emplace_back(n);

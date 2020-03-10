@@ -78,7 +78,7 @@ int main(int argc, char **argv) {
 
   auto t2 = tournament_factory(32);
   debug_print(EMIT_LEVEL_IMPORTANT, "t2 tip count: %lu", t2.tip_count());
-  auto m2 = uniform_matirx_factory(32);
+  auto m2 = uniform_matrix_factory(32);
   debug_print(EMIT_LEVEL_IMPORTANT, "m2:\n%s", to_string(m2).c_str());
   t2.reset_win_probs(m2);
   debug_print(EMIT_LEVEL_IMPORTANT, "t2 eval(): %s", to_string(t2.eval()).c_str());
