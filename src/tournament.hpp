@@ -3,6 +3,7 @@
 #include "debug.h"
 #include <cstddef>
 #include <exception>
+#include <iomanip>
 #include <iostream>
 #include <limits>
 #include <memory>
@@ -32,10 +33,12 @@ matrix_t uniform_matirx_factory(size_t n) {
 
 inline std::string to_string(const matrix_t &m) {
   std::stringstream out;
+  out << std::setprecision(3);
   for (auto &i : m) {
     out << "[";
     for (auto &j : i) {
-      out << j << " ";
+      out << std::setw(3);
+      out << std::fixed << j << " ";
     }
     out.seekp(-1, out.cur);
     out << "]\n";
@@ -48,9 +51,11 @@ inline std::string to_string(const matrix_t &m) {
 
 inline std::string to_string(const vector_t &m) {
   std::stringstream out;
+  out << std::setprecision(3);
   out << "[";
   for (auto &i : m) {
-    out << i << " ";
+    out << std::setw(3);
+    out << std::fixed << i << " ";
   }
   out.seekp(-1, out.cur);
   out << "]";

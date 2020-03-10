@@ -1,3 +1,4 @@
+#define CATCH_CONFIG_ENABLE_BENCHMARKING
 #include <catch2/catch.hpp>
 #include <debug.h>
 #include <tournament.hpp>
@@ -78,5 +79,55 @@ TEST_CASE("tournament_t default case", "[tournament_t]") {
 
     const matrix_t wps2{{0.0, 0.5, 0.5}, {0.5, 0.0, 0.5}, {0.5, 0.5, 0.0}};
     REQUIRE_THROWS(tournament.reset_win_probs(wps2));
+  }
+}
+
+TEST_CASE("tournament_factory", "[tournament_t]") {
+  SECTION("sized 16"){
+    auto t = tournament_factory(16);
+    // Check for segfaults, and that the label map is well formed
+    SECTION("Check the label map") {
+      auto lm = t.label_map();
+      CHECK(lm.size() == 16);
+    }
+    REQUIRE_THROWS(t.eval());
+  }
+  SECTION("sized 15, not a power of 2"){
+    REQUIRE_THROWS(tournament_factory(15));
+  }
+}
+
+TEST_CASE("tournament_t larger cases", "[tournament_t]") {
+  SECTION("sized 16") { 
+    size_t tsize = 16;
+    auto t = tournament_factory(tsize); 
+    auto m = uniform_matirx_factory(tsize);
+    t.reset_win_probs(m);
+    auto r = t.eval();
+    double sum = 0.0;
+    for (auto f : r){
+      CHECK(f == Approx(1.0/static_cast<double>(tsize)));
+      sum += f;
+    }
+    CHECK(sum == Approx(1.0));
+    BENCHMARK("eval()"){
+      return t.eval();
+    };
+  }
+  SECTION("sized 32"){
+    size_t tsize = 32;
+    auto t = tournament_factory(tsize); 
+    auto m = uniform_matirx_factory(tsize);
+    t.reset_win_probs(m);
+    auto r = t.eval();
+    double sum = 0.0;
+    for (auto f : r){
+      CHECK(f == Approx(1.0/static_cast<double>(tsize)));
+      sum += f;
+    }
+    CHECK(sum == Approx(1.0));
+    BENCHMARK("eval()"){
+      return t.eval();
+    };
   }
 }
