@@ -81,7 +81,16 @@ int main(int argc, char **argv) {
   auto m2 = uniform_matrix_factory(32);
   debug_print(EMIT_LEVEL_IMPORTANT, "m2:\n%s", to_string(m2).c_str());
   t2.reset_win_probs(m2);
-  debug_print(EMIT_LEVEL_IMPORTANT, "t2 eval(): %s", to_string(t2.eval()).c_str());
+  debug_print(EMIT_LEVEL_IMPORTANT, "t2 uniform eval(): %s",
+              to_string(t2.eval()).c_str());
+  auto m3 = random_matrix_factory(32, 23141532);
+  debug_print(EMIT_LEVEL_IMPORTANT, "m3:\n%s", to_string(m3).c_str());
+  t2.reset_win_probs(m3);
+  auto r3 = t2.eval();
+  debug_print(EMIT_LEVEL_IMPORTANT, "t2 random eval(): %s",
+              to_string(r3).c_str());
+  debug_print(EMIT_LEVEL_IMPORTANT, "t2 random perplexity: %f",
+              compute_perplexity(r3));
 
   auto end_time = std::chrono::high_resolution_clock::now();
   print_end_time(start_time, end_time);

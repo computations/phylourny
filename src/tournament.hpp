@@ -7,6 +7,7 @@
 #include <iostream>
 #include <limits>
 #include <memory>
+#include <random>
 #include <sstream>
 #include <stdexcept>
 #include <utility>
@@ -29,6 +30,39 @@ matrix_t uniform_matrix_factory(size_t n) {
     }
   }
   return matrix;
+}
+
+matrix_t random_matrix_factory(size_t n, uint64_t seed) {
+  matrix_t matrix;
+  std::mt19937_64 rng(seed);
+  std::uniform_real_distribution<> dist;
+  for (size_t i = 0; i < n; ++i) {
+    matrix.emplace_back(n);
+  }
+  for (size_t i = 0; i < n; ++i) {
+    for (size_t j = i; j < n; ++j) {
+      if (i == j) {
+        matrix[i][j] = 0.0;
+      } else {
+        matrix[i][j] = dist(rng);
+        matrix[j][i] = 1 - matrix[i][j];
+      }
+    }
+  }
+  return matrix;
+}
+
+double compute_entropy(const vector_t &v) {
+  double ent = 0.0;
+  for (auto f : v) {
+    ent += -f * log2(f);
+  }
+  return ent;
+}
+
+double compute_perplexity(const vector_t & v){
+  double ent = compute_entropy(v);
+  return pow(2.0, ent);
 }
 
 inline std::string to_string(const matrix_t &m) {

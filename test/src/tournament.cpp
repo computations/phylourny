@@ -83,7 +83,7 @@ TEST_CASE("tournament_t default case", "[tournament_t]") {
 }
 
 TEST_CASE("tournament_factory", "[tournament_t]") {
-  SECTION("sized 16"){
+  SECTION("sized 16") {
     auto t = tournament_factory(16);
     // Check for segfaults, and that the label map is well formed
     SECTION("Check the label map") {
@@ -92,42 +92,60 @@ TEST_CASE("tournament_factory", "[tournament_t]") {
     }
     REQUIRE_THROWS(t.eval());
   }
-  SECTION("sized 15, not a power of 2"){
+  SECTION("sized 15, not a power of 2") {
     REQUIRE_THROWS(tournament_factory(15));
   }
 }
 
 TEST_CASE("tournament_t larger cases", "[tournament_t]") {
-  SECTION("sized 16") { 
+  SECTION("sized 16") {
     size_t tsize = 16;
-    auto t = tournament_factory(tsize); 
-    auto m = uniform_matrix_factory(tsize);
-    t.reset_win_probs(m);
-    auto r = t.eval();
-    double sum = 0.0;
-    for (auto f : r){
-      CHECK(f == Approx(1.0/static_cast<double>(tsize)));
-      sum += f;
+    auto t = tournament_factory(tsize);
+    SECTION("Uniform win probs") {
+      auto m = uniform_matrix_factory(tsize);
+      t.reset_win_probs(m);
+      auto r = t.eval();
+      double sum = 0.0;
+      for (auto f : r) {
+        CHECK(f == Approx(1.0 / static_cast<double>(tsize)));
+        sum += f;
+      }
+      CHECK(sum == Approx(1.0));
     }
-    CHECK(sum == Approx(1.0));
-    BENCHMARK("eval()"){
-      return t.eval();
-    };
+    SECTION("Random win probs") {
+      auto m = random_matrix_factory(tsize, rand());
+      t.reset_win_probs(m);
+      auto r = t.eval();
+      double sum = 0.0;
+      for (auto f : r) {
+        sum += f;
+      }
+      CHECK(sum == Approx(1.0));
+    }
   }
-  SECTION("sized 32"){
+  SECTION("sized 32") {
     size_t tsize = 32;
-    auto t = tournament_factory(tsize); 
-    auto m = uniform_matrix_factory(tsize);
-    t.reset_win_probs(m);
-    auto r = t.eval();
-    double sum = 0.0;
-    for (auto f : r){
-      CHECK(f == Approx(1.0/static_cast<double>(tsize)));
-      sum += f;
+    auto t = tournament_factory(tsize);
+    SECTION("Uniform win probs") {
+      auto m = uniform_matrix_factory(tsize);
+      t.reset_win_probs(m);
+      auto r = t.eval();
+      double sum = 0.0;
+      for (auto f : r) {
+        CHECK(f == Approx(1.0 / static_cast<double>(tsize)));
+        sum += f;
+      }
+      CHECK(sum == Approx(1.0));
     }
-    CHECK(sum == Approx(1.0));
-    BENCHMARK("eval()"){
-      return t.eval();
-    };
+    SECTION("Random win probs") {
+      auto m = random_matrix_factory(tsize, rand());
+      t.reset_win_probs(m);
+      auto r = t.eval();
+      double sum = 0.0;
+      for (auto f : r) {
+        sum += f;
+      }
+      CHECK(sum == Approx(1.0));
+    }
   }
 }
