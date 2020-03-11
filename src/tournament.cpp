@@ -1,0 +1,227 @@
+#include "tournament.hpp"
+tournament_t tournament_factory(size_t tourny_size) {
+  if (tourny_size % 2 != 0) {
+    throw std::runtime_error("Tournament factory only accepts powers of 2");
+  }
+  std::vector<std::unique_ptr<tournament_node_t>> nodes;
+  nodes.reserve(tourny_size);
+  for (size_t i = 0; i < tourny_size; ++i) {
+    nodes.emplace_back(new tournament_node_t{});
+  }
+
+  while (nodes.size() != 2) {
+    size_t cur_size = nodes.size() / 2;
+    std::vector<std::unique_ptr<tournament_node_t>> tmp_nodes;
+    tmp_nodes.reserve(cur_size);
+    for (size_t i = 0, j = 1; j < nodes.size(); i += 2, j += 2) {
+      tmp_nodes.emplace_back(
+          new tournament_node_t{std::move(nodes[i]), std::move(nodes[j])});
+    }
+    std::swap(tmp_nodes, nodes);
+  }
+
+  tournament_t t{tournament_node_t{std::move(nodes[0]), std::move(nodes[1])}};
+  t.relabel_indicies();
+  return t;
+}
+
+matrix_t uniform_matrix_factory(size_t n) {
+  matrix_t matrix;
+  for (size_t i = 0; i < n; ++i) {
+    matrix.emplace_back(n);
+    for (size_t j = 0; j < n; ++j) {
+      if (i == j) {
+        matrix[i][j] = 0.0;
+      } else {
+        matrix[i][j] = 0.5;
+      }
+    }
+  }
+  return matrix;
+}
+
+matrix_t random_matrix_factory(size_t n, uint64_t seed) {
+  matrix_t matrix;
+  std::mt19937_64 rng(seed);
+  std::uniform_real_distribution<> dist;
+  for (size_t i = 0; i < n; ++i) {
+    matrix.emplace_back(n);
+  }
+  for (size_t i = 0; i < n; ++i) {
+    for (size_t j = i; j < n; ++j) {
+      if (i == j) {
+        matrix[i][j] = 0.0;
+      } else {
+        matrix[i][j] = dist(rng);
+        matrix[j][i] = 1 - matrix[i][j];
+      }
+    }
+  }
+  return matrix;
+}
+
+double compute_entropy(const vector_t &v) {
+  double ent = 0.0;
+  for (auto f : v) {
+    ent += -f * log2(f);
+  }
+  return ent;
+}
+
+double compute_perplexity(const vector_t &v) {
+  double ent = compute_entropy(v);
+  return pow(2.0, ent);
+}
+
+std::string to_string(const matrix_t &m) {
+  std::stringstream out;
+  out << std::setprecision(3);
+  for (auto &i : m) {
+    out << "[";
+    for (auto &j : i) {
+      out << std::setw(3);
+      out << std::fixed << j << " ";
+    }
+    out.seekp(-1, out.cur);
+    out << "]\n";
+  }
+  out.seekp(-1, out.cur);
+  auto ret_str = out.str();
+  ret_str.resize(ret_str.size() - 1);
+  return ret_str;
+}
+
+inline std::string to_string(const vector_t &m) {
+  std::stringstream out;
+  out << std::setprecision(3);
+  out << "[";
+  for (auto &i : m) {
+    out << std::setw(3);
+    out << std::fixed << i << " ";
+  }
+  out.seekp(-1, out.cur);
+  out << "]";
+  return out.str();
+}
+
+bool tournament_node_t::is_tip() const {
+  return std::holds_alternative<team_t>(_children);
+}
+
+size_t tournament_node_t::tip_count() const {
+  if (is_tip())
+    return 1;
+  auto &children = std::get<tournament_children_t>(_children);
+  return children.left->tip_count() + children.right->tip_count();
+}
+
+size_t tournament_node_t::relabel_indicies(size_t index) {
+  if (is_tip()) {
+    team().index = index;
+    return index + 1;
+  }
+  if (children().left.is_win()) {
+    index = children().left->relabel_indicies(index);
+  }
+  if (children().right.is_win()) {
+    index = children().right->relabel_indicies(index);
+  }
+  return index;
+}
+
+void tournament_node_t::label_map(
+    std::vector<std::pair<std::string, size_t>> &lm) const {
+  if (is_tip()) {
+    lm.emplace_back(team().label, team().index);
+    return;
+  }
+  children().left->label_map(lm);
+  children().right->label_map(lm);
+}
+
+void tournament_node_t::relabel_tips(const std::vector<std::string> labels) {
+  if (is_tip()) {
+    team().label = labels[team().index];
+    return;
+  }
+  if (children().left.is_win()) {
+    children().left->relabel_tips(labels);
+  }
+  if (children().right.is_win()) {
+    children().right->relabel_tips(labels);
+  }
+}
+
+bool tournament_node_t::is_member(size_t index) const {
+  if (is_tip()) {
+    return team().index == index;
+  }
+  return children().left->is_member(index) ||
+         children().right->is_member(index);
+}
+
+std::vector<size_t> tournament_node_t::members(size_t node_count) const {
+  std::vector<size_t> members;
+  members.reserve(node_count);
+  size_t total_members = 0;
+  for (size_t i = 0; i < node_count; ++i) {
+    if (is_member(i)) {
+      members.push_back(i);
+      total_members++;
+    }
+  }
+  members.resize(total_members);
+  return members;
+}
+vector_t tournament_node_t::eval(const matrix_t &pmatrix,
+                                 size_t tip_count) const {
+
+  if (is_tip()) {
+    vector_t wpv(tip_count);
+    debug_print(EMIT_LEVEL_DEBUG, "team index: %lu", team().index);
+    wpv[team().index] = 1.0;
+    return wpv;
+  }
+
+  debug_string(EMIT_LEVEL_DEBUG, "Evaluating children");
+  auto left_wpv = children().left.eval(pmatrix, tip_count);
+  auto right_wpv = children().right.eval(pmatrix, tip_count);
+  debug_string(EMIT_LEVEL_DEBUG, "Evaluating current node");
+
+  debug_print(EMIT_LEVEL_DEBUG, "left child wpv: %s",
+              to_string(left_wpv).c_str());
+  debug_print(EMIT_LEVEL_DEBUG, "right child wpv: %s",
+              to_string(right_wpv).c_str());
+
+  auto fold_a = fold(left_wpv, right_wpv, pmatrix);
+  auto fold_b = fold(right_wpv, left_wpv, pmatrix);
+  for (size_t i = 0; i < fold_a.size(); ++i) {
+    fold_a[i] += fold_b[i];
+  }
+  return fold_a;
+}
+
+vector_t tournament_node_t::fold(vector_t wpv1, vector_t wpv2,
+                                 matrix_t pmatrix) const {
+  vector_t cur_wpv(wpv1.size());
+  auto local_members = members(pmatrix.size());
+
+  for (auto m1 : local_members) {
+    for (auto m2 : local_members) {
+      cur_wpv[m1] += wpv1[m1] * wpv2[m2] * pmatrix[m1][m2];
+    }
+  }
+
+  return cur_wpv;
+}
+
+vector_t tournament_edge_t::eval(const matrix_t &pmatrix, size_t tip_count) const {
+  vector_t r = (*_node).eval(pmatrix, tip_count);
+  if (is_win()) {
+    return r;
+  }
+  for (auto &f : r) {
+    f = 1 - f;
+  }
+  return r;
+}

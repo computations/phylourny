@@ -40,57 +40,89 @@ int main(int argc, char **argv) {
   print_version();
   cli_options_t cli_options{argc, argv};
 
-  std::unique_ptr<tournament_node_t> n1{new tournament_node_t};
-  std::unique_ptr<tournament_node_t> n2{new tournament_node_t};
+  std::shared_ptr<tournament_node_t> n1{new tournament_node_t{"a"}};
+  std::shared_ptr<tournament_node_t> n2{new tournament_node_t{"b"}};
+  std::shared_ptr<tournament_node_t> n3{new tournament_node_t{"c"}};
+  std::shared_ptr<tournament_node_t> n4{new tournament_node_t{"d"}};
 
-  std::unique_ptr<tournament_node_t> p1{
-      new tournament_node_t{std::move(n1), std::move(n2)}};
-
-  std::unique_ptr<tournament_node_t> n3{new tournament_node_t};
-  std::unique_ptr<tournament_node_t> n4{new tournament_node_t};
-
-  std::unique_ptr<tournament_node_t> p2{
-      new tournament_node_t{std::move(n3), std::move(n4)}};
-
-  tournament_t t{tournament_node_t{std::move(p1), std::move(p2)}};
-
-  std::vector<std::vector<double>> win_probs{
-      {0.00, 0.75, 0.75, 0.75},
-      {0.25, 0.00, 0.75, 0.75},
-      {0.25, 0.25, 0.00, 0.75},
-      {0.25, 0.25, 0.25, 0.00},
+  std::shared_ptr<tournament_node_t> l1{
+      new tournament_node_t{
+          n1,
+          tournament_edge_t::edge_type_t::loss,
+          n2,
+          tournament_edge_t::edge_type_t::loss,
+      },
   };
 
-  debug_print(EMIT_LEVEL_IMPORTANT, "win_probs:\n%s",
-              to_string(win_probs).c_str());
+  std::shared_ptr<tournament_node_t> l2{
+      new tournament_node_t{
+          std::move(n3),
+          tournament_edge_t::edge_type_t::loss,
+          std::move(n4),
+          tournament_edge_t::edge_type_t::loss,
+      },
+  };
+
+  std::shared_ptr<tournament_node_t> w1{
+      new tournament_node_t{
+          std::move(n1),
+          tournament_edge_t::edge_type_t::win,
+          std::move(n2),
+          tournament_edge_t::edge_type_t::win,
+      },
+  };
+
+  std::shared_ptr<tournament_node_t> w2{
+      new tournament_node_t{
+          std::move(n3),
+          tournament_edge_t::edge_type_t::win,
+          std::move(n4),
+          tournament_edge_t::edge_type_t::win,
+      },
+  };
+
+  std::shared_ptr<tournament_node_t> w3{
+      new tournament_node_t{
+          std::move(w1),
+          tournament_edge_t::edge_type_t::win,
+          std::move(w2),
+          tournament_edge_t::edge_type_t::win,
+      },
+  };
+
+  std::shared_ptr<tournament_node_t> l3{
+      new tournament_node_t{
+          std::move(w1),
+          tournament_edge_t::edge_type_t::loss,
+          std::move(w2),
+          tournament_edge_t::edge_type_t::loss,
+      },
+  };
+
+  std::shared_ptr<tournament_node_t> l4{
+      new tournament_node_t{
+          std::move(l1),
+          tournament_edge_t::edge_type_t::win,
+          std::move(l2),
+          tournament_edge_t::edge_type_t::win,
+      },
+  };
+
+  std::shared_ptr<tournament_node_t> l5{
+      new tournament_node_t{
+          std::move(l3),
+          tournament_edge_t::edge_type_t::win,
+          std::move(l4),
+          tournament_edge_t::edge_type_t::win,
+      },
+  };
+
+  tournament_t t{tournament_node_t{
+      std::move(l5),
+      std::move(w3),
+  }};
 
   t.relabel_indicies();
-  t.reset_win_probs(win_probs);
-
-  auto wp = t.eval();
-  debug_print(EMIT_LEVEL_IMPORTANT, "eval(): %s", to_string(wp).c_str());
-  double sum = 0.0;
-  for (auto f : wp) {
-    sum += f;
-  }
-
-  debug_print(EMIT_LEVEL_IMPORTANT, "sum: %f", sum);
-
-  auto t2 = tournament_factory(32);
-  debug_print(EMIT_LEVEL_IMPORTANT, "t2 tip count: %lu", t2.tip_count());
-  auto m2 = uniform_matrix_factory(32);
-  debug_print(EMIT_LEVEL_IMPORTANT, "m2:\n%s", to_string(m2).c_str());
-  t2.reset_win_probs(m2);
-  debug_print(EMIT_LEVEL_IMPORTANT, "t2 uniform eval(): %s",
-              to_string(t2.eval()).c_str());
-  auto m3 = random_matrix_factory(32, 23141532);
-  debug_print(EMIT_LEVEL_IMPORTANT, "m3:\n%s", to_string(m3).c_str());
-  t2.reset_win_probs(m3);
-  auto r3 = t2.eval();
-  debug_print(EMIT_LEVEL_IMPORTANT, "t2 random eval(): %s",
-              to_string(r3).c_str());
-  debug_print(EMIT_LEVEL_IMPORTANT, "t2 random perplexity: %f",
-              compute_perplexity(r3));
 
   auto end_time = std::chrono::high_resolution_clock::now();
   print_end_time(start_time, end_time);

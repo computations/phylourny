@@ -18,4 +18,4 @@ target_compile_options(phylourny_test PRIVATE -Wall -Wextra -pedantic
 target_include_directories(phylourny_test PRIVATE ${CMAKE_SOURCE_DIR}/src)
 target_include_directories(phylourny_test PRIVATE
     ${CMAKE_SOURCE_DIR}/test/lib/)
-target_link_libraries(phylourny_test ${TEST_LINK_LIBS})
+target_link_libraries(phylourny_test phylourny_lib ${TEST_LINK_LIBS})

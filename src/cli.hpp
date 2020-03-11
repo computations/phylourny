@@ -94,7 +94,7 @@ public:
       cur_arg = cur_arg + 2;
       bool found = false;
       for (size_t k = 0; k < _option_count; ++k) {
-        if (!strcmp(cur_arg, args[k].name()) == 0) {
+        if (strcmp(cur_arg, args[k].name()) != 0) {
           continue;
         }
         found = true;

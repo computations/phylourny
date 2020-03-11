@@ -12,4 +12,4 @@ set_target_properties(phylourny_bench PROPERTIES
 set(TEST_LINK_LIBS benchmark)
 target_compile_options(phylourny_bench PRIVATE -Wall -Wextra -pedantic)
 target_include_directories(phylourny_bench PRIVATE ${CMAKE_SOURCE_DIR}/src)
-target_link_libraries(phylourny_bench ${TEST_LINK_LIBS})
+target_link_libraries(phylourny_bench phylourny_lib ${TEST_LINK_LIBS})

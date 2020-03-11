@@ -1,5 +1,14 @@
+add_library(phylourny_lib
+    STATIC
+    tournament.cpp
+)
 add_executable(phylourny
     main.cpp
+)
+
+set_target_properties(phylourny_lib PROPERTIES
+    CXX_STANDARD 17
+    CXX_STANDARD_REQUIRED YES
 )
 
 set_target_properties(phylourny PROPERTIES
@@ -7,7 +16,7 @@ set_target_properties(phylourny PROPERTIES
     CXX_STANDARD_REQUIRED YES
 )
 
-target_link_libraries(phylourny ${LINK_LIBS})
+target_link_libraries(phylourny ${LINK_LIBS} phylourny_lib)
 target_compile_options(phylourny PRIVATE -Wall -Wextra -Wshadow
     -Wdouble-promotion -Wmissing-include-dirs -Wtrampolines
     -Wmisleading-indentation -pedantic)
