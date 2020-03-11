@@ -104,7 +104,9 @@ public:
   inline std::vector<size_t> members(size_t node_count) const;
 
   vector_t eval(const matrix_t &pmatrix, size_t tip_count) const;
-  vector_t fold(vector_t wpv1, vector_t wpv2, matrix_t pmatrix) const;
+  vector_t fold(const vector_t &wpv, const matrix_t &pmatrix) const;
+  vector_t fold(const vector_t &wpv1, const vector_t &wpv2,
+                const matrix_t &pmatrix) const;
 
 private:
   inline const tournament_children_t &children() const {

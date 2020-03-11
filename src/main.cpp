@@ -45,84 +45,80 @@ int main(int argc, char **argv) {
   std::shared_ptr<tournament_node_t> n3{new tournament_node_t{"c"}};
   std::shared_ptr<tournament_node_t> n4{new tournament_node_t{"d"}};
 
-  std::shared_ptr<tournament_node_t> l1{
-      new tournament_node_t{
-          n1,
-          tournament_edge_t::edge_type_t::loss,
-          n2,
-          tournament_edge_t::edge_type_t::loss,
-      },
-  };
-
-  std::shared_ptr<tournament_node_t> l2{
-      new tournament_node_t{
-          std::move(n3),
-          tournament_edge_t::edge_type_t::loss,
-          std::move(n4),
-          tournament_edge_t::edge_type_t::loss,
-      },
-  };
-
+  /*
   std::shared_ptr<tournament_node_t> w1{
       new tournament_node_t{
-          std::move(n1),
-          tournament_edge_t::edge_type_t::win,
-          std::move(n2),
-          tournament_edge_t::edge_type_t::win,
-      },
-  };
-
-  std::shared_ptr<tournament_node_t> w2{
-      new tournament_node_t{
-          std::move(n3),
-          tournament_edge_t::edge_type_t::win,
-          std::move(n4),
-          tournament_edge_t::edge_type_t::win,
-      },
-  };
-
-  std::shared_ptr<tournament_node_t> w3{
-      new tournament_node_t{
-          std::move(w1),
-          tournament_edge_t::edge_type_t::win,
-          std::move(w2),
-          tournament_edge_t::edge_type_t::win,
-      },
-  };
-
-  std::shared_ptr<tournament_node_t> l3{
-      new tournament_node_t{
-          std::move(w1),
-          tournament_edge_t::edge_type_t::loss,
-          std::move(w2),
-          tournament_edge_t::edge_type_t::loss,
-      },
-  };
-
-  std::shared_ptr<tournament_node_t> l4{
-      new tournament_node_t{
-          std::move(l1),
-          tournament_edge_t::edge_type_t::win,
-          std::move(l2),
-          tournament_edge_t::edge_type_t::win,
-      },
-  };
-
-  std::shared_ptr<tournament_node_t> l5{
-      new tournament_node_t{
-          std::move(l3),
-          tournament_edge_t::edge_type_t::win,
-          std::move(l4),
-          tournament_edge_t::edge_type_t::win,
+          n1,
+          n2,
       },
   };
 
   tournament_t t{tournament_node_t{
-      std::move(l5),
-      std::move(w3),
+      w1,
+      tournament_edge_t::win,
+      w1,
+      tournament_edge_t::loss,
   }};
+ */
+
+ std::shared_ptr<tournament_node_t> w1{
+     new tournament_node_t{
+         (n1),
+         tournament_edge_t::edge_type_t::win,
+         (n2),
+         tournament_edge_t::edge_type_t::win,
+     },
+ };
+
+ std::shared_ptr<tournament_node_t> w2{
+     new tournament_node_t{
+         (n3),
+         tournament_edge_t::edge_type_t::win,
+         (n4),
+         tournament_edge_t::edge_type_t::win,
+     },
+ };
+
+ std::shared_ptr<tournament_node_t> w3{
+     new tournament_node_t{
+         (w1),
+         tournament_edge_t::edge_type_t::win,
+         (w2),
+         tournament_edge_t::edge_type_t::win,
+     },
+ };
+
+ std::shared_ptr<tournament_node_t> l3{
+     new tournament_node_t{
+         (w1),
+         tournament_edge_t::edge_type_t::loss,
+         (w2),
+         tournament_edge_t::edge_type_t::loss,
+     },
+ };
+
+ std::shared_ptr<tournament_node_t> l4{
+     new tournament_node_t{
+         w3,
+         tournament_edge_t::edge_type_t::loss,
+         l3,
+         tournament_edge_t::edge_type_t::win,
+     },
+ };
+
+ tournament_t t{tournament_node_t{
+     l4,
+     w3,
+ }};
 
   t.relabel_indicies();
+  size_t tip_count = t.tip_count();
+  debug_print(EMIT_LEVEL_IMPORTANT, "tip_count: %lu", tip_count);
+  auto m = uniform_matrix_factory(tip_count);
+  t.reset_win_probs(m);
+
+  auto r = t.eval();
+  debug_print(EMIT_LEVEL_IMPORTANT, "eval(): %s", to_string(r).c_str());
 
   auto end_time = std::chrono::high_resolution_clock::now();
   print_end_time(start_time, end_time);
