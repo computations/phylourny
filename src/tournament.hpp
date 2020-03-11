@@ -177,5 +177,9 @@ private:
 };
 
 tournament_t tournament_factory(size_t tourny_size);
+tournament_t tournament_factory(size_t tourny_size_l, size_t tourny_size_r);
+
+std::shared_ptr<tournament_node_t>
+tournament_node_factory(size_t sub_tourny_size);
 
 #endif

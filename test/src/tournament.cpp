@@ -149,3 +149,65 @@ TEST_CASE("tournament_t larger cases", "[tournament_t]") {
     }
   }
 }
+
+TEST_CASE("tournament_t, unbalanced", "[tournament_t]") {
+  SECTION("left sized 16, right sized 8") {
+    size_t left_size = 16, right_size = 8;
+    size_t total_size = left_size + right_size;
+    auto t1 = tournament_factory(left_size, right_size);
+
+    CHECK(t1.tip_count() == (total_size));
+
+    SECTION("uniform rate matrix") {
+      auto m1 = uniform_matrix_factory((total_size));
+      t1.reset_win_probs(m1);
+      auto r1 = t1.eval();
+      double sum = 0.0;
+      for (auto f : r1) {
+        sum += f;
+      }
+      CHECK(sum == Approx(1.0));
+    }
+
+    SECTION("random rate matrix") {
+      auto m1 = random_matrix_factory((total_size), rand());
+      t1.reset_win_probs(m1);
+      auto r1 = t1.eval();
+      double sum = 0.0;
+      for (auto f : r1) {
+        sum += f;
+      }
+      CHECK(sum == Approx(1.0));
+    }
+  }
+
+  SECTION("left sized 8, right size 16") {
+    size_t left_size = 8, right_size = 16;
+    size_t total_size = left_size + right_size;
+    auto t1 = tournament_factory(left_size, right_size);
+
+    CHECK(t1.tip_count() == (total_size));
+
+    SECTION("uniform rate matrix") {
+      auto m1 = uniform_matrix_factory((total_size));
+      t1.reset_win_probs(m1);
+      auto r1 = t1.eval();
+      double sum = 0.0;
+      for (auto f : r1) {
+        sum += f;
+      }
+      CHECK(sum == Approx(1.0));
+    }
+
+    SECTION("random rate matrix") {
+      auto m1 = random_matrix_factory((total_size), rand());
+      t1.reset_win_probs(m1);
+      auto r1 = t1.eval();
+      double sum = 0.0;
+      for (auto f : r1) {
+        sum += f;
+      }
+      CHECK(sum == Approx(1.0));
+    }
+  }
+}
