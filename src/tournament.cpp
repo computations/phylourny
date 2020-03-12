@@ -117,7 +117,7 @@ std::string to_string(const matrix_t &m) {
   return ret_str;
 }
 
-inline std::string to_string(const vector_t &m) {
+std::string to_string(const vector_t &m) {
   std::stringstream out;
   out << std::setprecision(3);
   out << "[";
@@ -130,7 +130,7 @@ inline std::string to_string(const vector_t &m) {
   return out.str();
 }
 
-inline std::string to_string(const std::vector<size_t> &m) {
+std::string to_string(const std::vector<size_t> &m) {
   std::stringstream out;
   out << "[";
   for (auto &i : m) {
@@ -216,105 +216,50 @@ std::vector<size_t> tournament_node_t::members(size_t node_count) const {
     }
   }
   members.resize(total_members);
-  debug_print(EMIT_LEVEL_IMPORTANT, "members: %s", to_string(members).c_str());
   return members;
 }
 
-vector_t tournament_node_t::eval_loser(const matrix_t &pmatrix,
-                                       size_t tip_count) const {
-
-  if (is_tip()) {
-    vector_t wpv(tip_count);
-    debug_print(EMIT_LEVEL_IMPORTANT, "team   index:   %lu", team().index);
-    wpv[team().index] = 1.0;
-    return wpv;
-  }
-
-  debug_string(EMIT_LEVEL_IMPORTANT, "Evaluating children");
-  auto left_wpv = children().left.eval(pmatrix, tip_count);
-  debug_print(EMIT_LEVEL_IMPORTANT, "left child wpv: %s",
-              to_string(left_wpv).c_str());
-  auto right_wpv = children().right.eval(pmatrix, tip_count);
-  debug_print(EMIT_LEVEL_IMPORTANT, "right child wpv: %s",
-              to_string(right_wpv).c_str());
-
-  // debug_string(EMIT_LEVEL_IMPORTANT, "Evaluating current node");
-  auto fold_a = fold(left_wpv, right_wpv, pmatrix);
-  auto fold_b = fold(right_wpv, left_wpv, pmatrix);
-  debug_print(EMIT_LEVEL_IMPORTANT, "fold_a:  %s", to_string(fold_a).c_str());
-  debug_print(EMIT_LEVEL_IMPORTANT, "fold_b:  %s", to_string(fold_b).c_str());
-  for (size_t i = 0; i < fold_a.size(); ++i) {
-    fold_a[i] += fold_b[i];
-  }
-  return fold_a;
-}
 vector_t tournament_node_t::eval(const matrix_t &pmatrix,
                                  size_t tip_count) const {
 
   if (is_tip()) {
     vector_t wpv(tip_count);
-    debug_print(EMIT_LEVEL_IMPORTANT, "team   index:   %lu", team().index);
     wpv[team().index] = 1.0;
     return wpv;
   }
 
-  debug_string(EMIT_LEVEL_IMPORTANT, "Evaluating children");
-  auto left_wpv = children().left.eval(pmatrix, tip_count);
-  debug_print(EMIT_LEVEL_IMPORTANT, "left child wpv: %s",
-              to_string(left_wpv).c_str());
-  auto right_wpv = children().right.eval(pmatrix, tip_count);
-  debug_print(EMIT_LEVEL_IMPORTANT, "right child wpv: %s",
-              to_string(right_wpv).c_str());
+  auto l_wpv = children().left.eval(pmatrix, tip_count);
+  auto r_wpv = children().right.eval(pmatrix, tip_count);
 
-  // debug_string(EMIT_LEVEL_IMPORTANT, "Evaluating current node");
-  auto fold_a = fold(left_wpv, right_wpv, pmatrix);
-  auto fold_b = fold(right_wpv, left_wpv, pmatrix);
-  debug_print(EMIT_LEVEL_IMPORTANT, "fold_a:  %s", to_string(fold_a).c_str());
-  debug_print(EMIT_LEVEL_IMPORTANT, "fold_b:  %s", to_string(fold_b).c_str());
+  auto fold_a = fold(l_wpv, r_wpv, pmatrix);
+  debug_print(EMIT_LEVEL_IMPORTANT, "fold_a: %s", to_string(fold_a).c_str());
+  auto fold_b = fold(r_wpv, l_wpv, pmatrix);
+  debug_print(EMIT_LEVEL_IMPORTANT, "fold_b: %s", to_string(fold_b).c_str());
   for (size_t i = 0; i < fold_a.size(); ++i) {
     fold_a[i] += fold_b[i];
   }
+  debug_print(EMIT_LEVEL_IMPORTANT, "eval result: %s", to_string(fold_a).c_str());
   return fold_a;
 }
 
-vector_t tournament_node_t::fold(const vector_t &wpv1, const vector_t &wpv2,
-                                 const matrix_t &pmatrix) const {
-  vector_t cur_wpv(wpv1.size());
-  auto local_members = members(pmatrix.size());
-
-  for (auto m1 : local_members) {
-    for (auto m2 : local_members) {
-      cur_wpv[m1] += wpv1[m1] * wpv2[m2] * pmatrix[m1][m2];
+vector_t tournament_node_t::fold(const vector_t &w, const vector_t &y,
+                                 const matrix_t &p) const {
+  vector_t r(w.size());
+  for (size_t m1 = 0; m1 < w.size(); ++m1) {
+    if(w[m1] == 0.0){
+      continue;
     }
-  }
-
-  return cur_wpv;
-}
-
-vector_t tournament_node_t::fold_loser(const vector_t &wpv1,
-                                       const vector_t &wpv2,
-                                       const matrix_t &pmatrix) const {
-  vector_t cur_wpv(wpv1.size());
-  auto local_members = members(pmatrix.size());
-
-  for (auto m1 : local_members) {
-    for (auto m2 : local_members) {
-      cur_wpv[m1] += wpv1[m1] * wpv2[m2] * pmatrix[m2][m1];
+    for (size_t m2 = 0; m2 < y.size(); ++m2) {
+      r[m1] += p[m1][m2] * y[m2];
     }
+    r[m1] *= w[m1] / (1.0 - y[m1]);
   }
-
-  return cur_wpv;
+  return r;
 }
 
 vector_t tournament_edge_t::eval(const matrix_t &pmatrix,
                                  size_t tip_count) const {
-  if (is_win()) {
 
-    auto r = _node->eval(pmatrix, tip_count);
-    debug_print(EMIT_LEVEL_IMPORTANT, "eval winner: %s", to_string(r).c_str());
-    return r;
-  }
-  auto r = _node->eval_loser(pmatrix, tip_count);
-  debug_print(EMIT_LEVEL_IMPORTANT, "eval loser: %s", to_string(r).c_str());
+  auto r = _node->eval(pmatrix, tip_count);
   return r;
 }

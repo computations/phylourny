@@ -25,8 +25,8 @@ double compute_entropy(const vector_t &v);
 double compute_perplexity(const vector_t &v);
 
 std::string to_string(const matrix_t &m);
-
-inline std::string to_string(const vector_t &m);
+std::string to_string(const vector_t &m);
+std::string to_string(const std::vector<size_t> &m);
 
 struct team_t {
   std::string label;
@@ -106,9 +106,6 @@ public:
   vector_t eval(const matrix_t &pmatrix, size_t tip_count) const;
   vector_t fold(const vector_t &wpv1, const vector_t &wpv2,
                 const matrix_t &pmatrix) const;
-  vector_t eval_loser(const matrix_t &pmatrix, size_t tip_count) const;
-  vector_t fold_loser(const vector_t &wpv1, const vector_t &wpv2,
-                      const matrix_t &pmatrix) const;
 
 private:
   inline const tournament_children_t &children() const {
