@@ -211,3 +211,113 @@ TEST_CASE("tournament_t, unbalanced", "[tournament_t]") {
     }
   }
 }
+
+TEST_CASE("4 team tournament with losers bracket") {
+  std::shared_ptr<tournament_node_t> n1{new tournament_node_t{"a"}};
+  std::shared_ptr<tournament_node_t> n2{new tournament_node_t{"b"}};
+  std::shared_ptr<tournament_node_t> n3{new tournament_node_t{"c"}};
+  std::shared_ptr<tournament_node_t> n4{new tournament_node_t{"d"}};
+
+  std::shared_ptr<tournament_node_t> w1{
+      new tournament_node_t{
+          (n1),
+          tournament_edge_t::edge_type_t::win,
+          (n2),
+          tournament_edge_t::edge_type_t::win,
+      },
+  };
+
+  std::shared_ptr<tournament_node_t> w2{
+      new tournament_node_t{
+          (n3),
+          tournament_edge_t::edge_type_t::win,
+          (n4),
+          tournament_edge_t::edge_type_t::win,
+      },
+  };
+
+  std::shared_ptr<tournament_node_t> w3{
+      new tournament_node_t{
+          (w1),
+          tournament_edge_t::edge_type_t::win,
+          (w2),
+          tournament_edge_t::edge_type_t::win,
+      },
+  };
+
+  std::shared_ptr<tournament_node_t> l3{
+      new tournament_node_t{
+          (w1),
+          tournament_edge_t::edge_type_t::loss,
+          (w2),
+          tournament_edge_t::edge_type_t::loss,
+      },
+  };
+
+  std::shared_ptr<tournament_node_t> l4{
+      new tournament_node_t{
+          w3,
+          tournament_edge_t::edge_type_t::loss,
+          l3,
+          tournament_edge_t::edge_type_t::win,
+      },
+  };
+
+  tournament_t t{tournament_node_t{
+      l4,
+      w3,
+  }};
+
+  t.relabel_indicies();
+  size_t tip_count = t.tip_count();
+  auto m = uniform_matrix_factory(tip_count);
+  t.reset_win_probs(m);
+
+  auto r = t.eval();
+  double sum = 0.0;
+  for (auto f : r) {
+    sum += f;
+    CHECK(f == Approx(1.0 / tip_count));
+  }
+  CHECK(sum == Approx(1.0));
+}
+
+TEST_CASE("Best tests", "[bestof_n]") {
+  SECTION("Best ofs with equal probs") {
+    CHECK(bestof_n(0.5, 0.5, 1) == 0.5);
+    CHECK(bestof_n(0.5, 0.5, 3) == 0.5);
+    CHECK(bestof_n(0.5, 0.5, 5) == 0.5);
+  }
+
+  SECTION("Best ofs with 0.25, 0.75 probs") {
+    CHECK(bestof_n(0.25, 0.75, 1) == Approx(0.25));
+    CHECK(bestof_n(0.25, 0.75, 3) == Approx(0.15625));
+    CHECK(bestof_n(0.25, 0.75, 5) == Approx(0.103515625));
+  }
+
+  SECTION("Best ofs with 0.25, 0.75 probs") {
+    CHECK(bestof_n(0.75, 0.25, 1) == Approx(0.75));
+    CHECK(bestof_n(0.75, 0.25, 3) == Approx(0.84375));
+    CHECK(bestof_n(0.75, 0.25, 5) == Approx(0.896484375));
+  }
+
+  SECTION("Grid search for inverse complimentarity") {
+    for (size_t i = 1; i < 16; ++i) {
+      for (size_t j = 1; j < 16; ++j) {
+        double p = static_cast<double>(i) / static_cast<double>(j);
+        for (size_t n = 1; n < 16; ++n) {
+          CHECK(bestof_n(p, 1 - p, n) == Approx(1 - bestof_n(1 - p, p, n)));
+        }
+      }
+    }
+  }
+
+  SECTION("Fuzzed tests") {
+    for (size_t i = 0; i < 1e4; ++i) {
+      double p = rand();
+      for (size_t n = 1; n < 16; ++n) {
+        CHECK(bestof_n(p, 1 - p, n) == Approx(1 - bestof_n(1 - p, p, n)));
+      }
+    }
+  }
+}

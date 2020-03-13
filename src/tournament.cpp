@@ -4,41 +4,6 @@
 #include <bits/stdint-uintn.h>
 #include <stdint.h>
 
-constexpr double factorial_table[] = {
-    1, 1, 2, 6, 24, 120, 720, 5040, 40320, 362880, 3628800,
-};
-
-constexpr size_t factorial_table_size =
-    sizeof(factorial_table) / sizeof(double);
-
-constexpr inline double factorial(uint64_t i) {
-  if (i < factorial_table_size) {
-    return factorial_table[i];
-  }
-  return factorial(i - 1) * i;
-}
-
-constexpr inline double combinations(uint64_t n, uint64_t i) {
-  return factorial(n) / (factorial(i) * factorial(n - i));
-}
-
-constexpr inline double int_pow(double base, uint64_t k){
-    double wpp1 = base;
-    for(size_t i = 1; i < k; ++i){
-      wpp1 *= base;
-    }
-    return wpp1;
-}
-
-constexpr inline double bestof_n(double wp1, double wp2, uint64_t n) {
-  uint64_t k = (n + 1) / 2;
-  double sum = 0.0;
-  double wpp1 = int_pow(wp1, k);
-  for (size_t i = 0; i < k; ++i) {
-    sum += int_pow(wp2, i) * combinations(k + i - 1, i);
-  }
-  return sum * wpp1;
-}
 
 std::shared_ptr<tournament_node_t>
 tournament_node_factory(size_t sub_tourny_size) {

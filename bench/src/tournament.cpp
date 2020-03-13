@@ -23,13 +23,6 @@ static void BM_tourney_eval(benchmark::State &state) {
 
 BENCHMARK(BM_tourney_eval)->RangeMultiplier(2)->Range(1 << 2, 1 << 7);
 
-constexpr double factorial_table[] = {
-    1, 1, 2, 6, 24, 120, 720, 5040, 40320, 362880, 3628800,
-};
-
-constexpr size_t factorial_table_size =
-    sizeof(factorial_table) / sizeof(double);
-
 constexpr inline double factorial1(uint64_t i) {
   if (i < factorial_table_size) {
     return factorial_table[i];
@@ -80,10 +73,6 @@ BENCHMARK(BM_factorial1)->DenseRange(1, 20, 5);
 BENCHMARK(BM_factorial2)->DenseRange(1, 20, 5);
 BENCHMARK(BM_factorial3)->DenseRange(1, 20, 5);
 
-constexpr inline double combinations(uint64_t n, uint64_t i) {
-  return factorial1(n) / (factorial1(i) * factorial1(n - i));
-}
-
 constexpr inline double bestof_n1(double wp1, double wp2, uint64_t n) {
   uint64_t k = (n + 1) / 2;
   double sum = 0.0;
@@ -127,6 +116,15 @@ constexpr inline double bestof_n3(double wp1, double wp2, uint64_t n) {
   return sum * wpp1;
 }
 
+constexpr inline double bestof_n4(double wp1, double wp2, uint64_t n) {
+  uint64_t k = (n + 1) / 2;
+  double sum = 0.0;
+  for (size_t i = 0; i < k; ++i) {
+    sum += int_pow(wp2, i) * combinations(k + i - 1, i);
+  }
+  return sum * int_pow(wp1, k);
+}
+
 static void BM_bestof_n1(benchmark::State &state) {
   uint64_t n = state.range(0);
   for (auto _ : state) {
@@ -148,6 +146,50 @@ static void BM_bestof_n3(benchmark::State &state) {
   }
 }
 
+static void BM_bestof_n4(benchmark::State &state) {
+  uint64_t n = state.range(0);
+  for (auto _ : state) {
+    benchmark::DoNotOptimize(bestof_n4(0.5, 0.5, n));
+  }
+}
+
 BENCHMARK(BM_bestof_n1)->DenseRange(1, 11, 2);
 BENCHMARK(BM_bestof_n2)->DenseRange(1, 11, 2);
 BENCHMARK(BM_bestof_n3)->DenseRange(1, 11, 2);
+BENCHMARK(BM_bestof_n4)->DenseRange(1, 11, 2);
+
+constexpr inline double int_pow1(double base, uint64_t k) {
+  if (k == 0) {
+    return 1.0;
+  }
+  double wpp1 = base;
+  for (size_t i = 1; i < k; ++i) {
+    wpp1 *= base;
+  }
+  return wpp1;
+}
+
+constexpr inline double int_pow2(double base, uint64_t k) {
+  double wpp1 = 1.0;
+  for (size_t i = 0; i < k; ++i) {
+    wpp1 *= base;
+  }
+  return wpp1;
+}
+
+static void BM_int_pow1(benchmark::State &state) {
+  uint64_t n = state.range(0);
+  for (auto _ : state) {
+    benchmark::DoNotOptimize(int_pow1(0.5, n));
+  }
+}
+
+static void BM_int_pow2(benchmark::State &state) {
+  uint64_t n = state.range(0);
+  for (auto _ : state) {
+    benchmark::DoNotOptimize(int_pow2(0.5, n));
+  }
+}
+
+BENCHMARK(BM_int_pow1)->DenseRange(1, 11, 2);
+BENCHMARK(BM_int_pow2)->DenseRange(1, 11, 2);

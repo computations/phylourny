@@ -1,7 +1,6 @@
 #ifndef __TOURNAMENT_HPP__
 #define __TOURNAMENT_HPP__
 #include "debug.h"
-#include <stdint.h>
 #include <cstddef>
 #include <exception>
 #include <iomanip>
@@ -11,6 +10,7 @@
 #include <random>
 #include <sstream>
 #include <stdexcept>
+#include <stdint.h>
 #include <utility>
 #include <variant>
 #include <vector>
@@ -28,6 +28,45 @@ double compute_perplexity(const vector_t &v);
 std::string to_string(const matrix_t &m);
 std::string to_string(const vector_t &m);
 std::string to_string(const std::vector<size_t> &m);
+
+constexpr double factorial_table[] = {
+    1, 1, 2, 6, 24, 120, 720, 5040, 40320, 362880, 3628800,
+};
+
+constexpr size_t factorial_table_size =
+    sizeof(factorial_table) / sizeof(double);
+
+constexpr inline double factorial(uint64_t i) {
+  if (i < factorial_table_size) {
+    return factorial_table[i];
+  }
+  return factorial(i - 1) * i;
+}
+
+constexpr inline double combinations(uint64_t n, uint64_t i) {
+  return factorial(n) / (factorial(i) * factorial(n - i));
+}
+
+constexpr inline double int_pow(double base, uint64_t k) {
+  if (k == 0) {
+    return 1.0;
+  }
+  double wpp1 = base;
+  for (size_t i = 1; i < k; ++i) {
+    wpp1 *= base;
+  }
+  return wpp1;
+}
+
+constexpr inline double bestof_n(double wp1, double wp2, uint64_t n) {
+  uint64_t k = (n + 1) / 2;
+  double sum = 0.0;
+  double wpp1 = int_pow(wp1, k);
+  for (size_t i = 0; i < k; ++i) {
+    sum += int_pow(wp2, i) * combinations(k + i - 1, i);
+  }
+  return sum * wpp1;
+}
 
 struct team_t {
   std::string label;
