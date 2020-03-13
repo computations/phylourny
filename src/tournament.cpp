@@ -1,6 +1,44 @@
 #include "debug.h"
 #include "tournament.hpp"
 #include <algorithm>
+#include <bits/stdint-uintn.h>
+#include <stdint.h>
+
+constexpr double factorial_table[] = {
+    1, 1, 2, 6, 24, 120, 720, 5040, 40320, 362880, 3628800,
+};
+
+constexpr size_t factorial_table_size =
+    sizeof(factorial_table) / sizeof(double);
+
+constexpr inline double factorial(uint64_t i) {
+  if (i < factorial_table_size) {
+    return factorial_table[i];
+  }
+  return factorial(i - 1) * i;
+}
+
+constexpr inline double combinations(uint64_t n, uint64_t i) {
+  return factorial(n) / (factorial(i) * factorial(n - i));
+}
+
+constexpr inline double int_pow(double base, uint64_t k){
+    double wpp1 = base;
+    for(size_t i = 1; i < k; ++i){
+      wpp1 *= base;
+    }
+    return wpp1;
+}
+
+constexpr inline double bestof_n(double wp1, double wp2, uint64_t n) {
+  uint64_t k = (n + 1) / 2;
+  double sum = 0.0;
+  double wpp1 = int_pow(wp1, k);
+  for (size_t i = 0; i < k; ++i) {
+    sum += int_pow(wp2, i) * combinations(k + i - 1, i);
+  }
+  return sum * wpp1;
+}
 
 std::shared_ptr<tournament_node_t>
 tournament_node_factory(size_t sub_tourny_size) {
@@ -230,27 +268,29 @@ vector_t tournament_node_t::eval(const matrix_t &pmatrix,
 
   auto l_wpv = children().left.eval(pmatrix, tip_count);
   auto r_wpv = children().right.eval(pmatrix, tip_count);
+  auto bestof = children().bestof;
 
-  auto fold_a = fold(l_wpv, r_wpv, pmatrix);
+  auto fold_a = fold(l_wpv, r_wpv, bestof, pmatrix);
   debug_print(EMIT_LEVEL_IMPORTANT, "fold_a: %s", to_string(fold_a).c_str());
-  auto fold_b = fold(r_wpv, l_wpv, pmatrix);
+  auto fold_b = fold(r_wpv, l_wpv, bestof, pmatrix);
   debug_print(EMIT_LEVEL_IMPORTANT, "fold_b: %s", to_string(fold_b).c_str());
   for (size_t i = 0; i < fold_a.size(); ++i) {
     fold_a[i] += fold_b[i];
   }
-  debug_print(EMIT_LEVEL_IMPORTANT, "eval result: %s", to_string(fold_a).c_str());
+  debug_print(EMIT_LEVEL_IMPORTANT, "eval result: %s",
+              to_string(fold_a).c_str());
   return fold_a;
 }
 
 vector_t tournament_node_t::fold(const vector_t &w, const vector_t &y,
-                                 const matrix_t &p) const {
+                                 uint64_t bestof, const matrix_t &p) const {
   vector_t r(w.size());
   for (size_t m1 = 0; m1 < w.size(); ++m1) {
-    if(w[m1] == 0.0){
+    if (w[m1] == 0.0) {
       continue;
     }
     for (size_t m2 = 0; m2 < y.size(); ++m2) {
-      r[m1] += p[m1][m2] * y[m2];
+      r[m1] += bestof_n(p[m1][m2], p[m2][m1], bestof) * y[m2];
     }
     r[m1] *= w[m1] / (1.0 - y[m1]);
   }

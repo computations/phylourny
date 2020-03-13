@@ -1,6 +1,7 @@
 #ifndef __TOURNAMENT_HPP__
 #define __TOURNAMENT_HPP__
 #include "debug.h"
+#include <stdint.h>
 #include <cstddef>
 #include <exception>
 #include <iomanip>
@@ -72,6 +73,7 @@ private:
 struct tournament_children_t {
   tournament_edge_t left;
   tournament_edge_t right;
+  uint64_t bestof = 1;
 };
 
 class tournament_node_t {
@@ -104,7 +106,7 @@ public:
   inline std::vector<size_t> members(size_t node_count) const;
 
   vector_t eval(const matrix_t &pmatrix, size_t tip_count) const;
-  vector_t fold(const vector_t &wpv1, const vector_t &wpv2,
+  vector_t fold(const vector_t &wpv1, const vector_t &wpv2, uint64_t bestof,
                 const matrix_t &pmatrix) const;
 
 private:
