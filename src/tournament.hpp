@@ -40,7 +40,11 @@ constexpr inline double factorial(uint64_t i) {
   if (i < factorial_table_size) {
     return factorial_table[i];
   }
-  return factorial(i - 1) * i;
+  double f = factorial_table[factorial_table_size - 1];
+  for (size_t k = factorial_table_size; k <= i; ++k) {
+    f *= k;
+  }
+  return f;
 }
 
 constexpr inline double combinations(uint64_t n, uint64_t i) {

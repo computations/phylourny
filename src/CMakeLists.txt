@@ -18,8 +18,7 @@ set_target_properties(phylourny PROPERTIES
 
 target_link_libraries(phylourny ${LINK_LIBS} phylourny_lib)
 target_compile_options(phylourny PRIVATE -Wall -Wextra -Wshadow
-    -Wdouble-promotion -Wmissing-include-dirs -Wtrampolines
-    -Wmisleading-indentation -pedantic)
+    -Wdouble-promotion -Wmissing-include-dirs -pedantic)
 target_compile_definitions(phylourny PRIVATE
     GIT_REV=${BUILD_VERSION}
     GIT_COMMIT=${BUILD_COMMIT}

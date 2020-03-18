@@ -48,6 +48,17 @@ constexpr inline uint64_t factorial3(uint64_t i) {
   return factorial3(i - 1) * i;
 }
 
+constexpr inline uint64_t factorial4(uint64_t i) {
+  if (i < factorial_table_size) {
+    return factorial_table[i];
+  }
+  uint64_t f = factorial_table[factorial_table_size - 1];
+  for (size_t k = factorial_table_size; k <= i; ++k) {
+    f *= k;
+  }
+  return f;
+}
+
 static void BM_factorial1(benchmark::State &state) {
   uint64_t n = state.range(0);
   for (auto _ : state) {
@@ -69,9 +80,17 @@ static void BM_factorial3(benchmark::State &state) {
   }
 }
 
+static void BM_factorial4(benchmark::State &state) {
+  uint64_t n = state.range(0);
+  for (auto _ : state) {
+    benchmark::DoNotOptimize(factorial4(n));
+  }
+}
+
 BENCHMARK(BM_factorial1)->DenseRange(1, 20, 5);
 BENCHMARK(BM_factorial2)->DenseRange(1, 20, 5);
 BENCHMARK(BM_factorial3)->DenseRange(1, 20, 5);
+BENCHMARK(BM_factorial4)->DenseRange(1, 20, 5);
 
 constexpr inline double bestof_n1(double wp1, double wp2, uint64_t n) {
   uint64_t k = (n + 1) / 2;
