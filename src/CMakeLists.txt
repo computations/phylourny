@@ -14,6 +14,7 @@ set_target_properties(phylourny_lib PROPERTIES
 set_target_properties(phylourny PROPERTIES
     CXX_STANDARD 17
     CXX_STANDARD_REQUIRED YES
+    INTERPROCEDURAL_OPTIMIZATION TRUE
 )
 
 target_link_libraries(phylourny ${LINK_LIBS} phylourny_lib)

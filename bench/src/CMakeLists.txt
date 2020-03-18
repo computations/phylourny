@@ -7,6 +7,7 @@ add_executable(phylourny_bench
 set_target_properties(phylourny_bench PROPERTIES
     CXX_STANDARD 17
     CXX_STANDARD_REQUIRED YES
+    INTERPROCEDURAL_OPTIMIZATION TRUE
 )
 
 set(TEST_LINK_LIBS benchmark)
