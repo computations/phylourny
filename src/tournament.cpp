@@ -4,9 +4,11 @@
 #include <bits/stdint-uintn.h>
 #include <stdint.h>
 
-
 std::shared_ptr<tournament_node_t>
 tournament_node_factory(size_t sub_tourny_size) {
+  if (sub_tourny_size == 1) {
+    return std::shared_ptr<tournament_node_t>{new tournament_node_t{}};
+  }
   if (sub_tourny_size % 2 != 0) {
     throw std::runtime_error(
         "Tournament node factory only accepts powers of 2");

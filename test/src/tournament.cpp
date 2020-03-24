@@ -1,4 +1,3 @@
-#define CATCH_CONFIG_ENABLE_BENCHMARKING
 #include <catch2/catch.hpp>
 #include <debug.h>
 #include <tournament.hpp>
@@ -83,6 +82,36 @@ TEST_CASE("tournament_t default case", "[tournament_t]") {
 }
 
 TEST_CASE("tournament_factory", "[tournament_t]") {
+  SECTION("sized 2") {
+    auto t = tournament_factory(2);
+    // Check for segfaults, and that the label map is well formed
+    SECTION("Check the label map") {
+      auto lm = t.label_map();
+      CHECK(lm.size() == 2);
+    }
+    REQUIRE_THROWS(t.eval());
+  }
+
+  SECTION("sized 4") {
+    auto t = tournament_factory(4);
+    // Check for segfaults, and that the label map is well formed
+    SECTION("Check the label map") {
+      auto lm = t.label_map();
+      CHECK(lm.size() == 4);
+    }
+    REQUIRE_THROWS(t.eval());
+  }
+
+  SECTION("sized 8") {
+    auto t = tournament_factory(8);
+    // Check for segfaults, and that the label map is well formed
+    SECTION("Check the label map") {
+      auto lm = t.label_map();
+      CHECK(lm.size() == 8);
+    }
+    REQUIRE_THROWS(t.eval());
+  }
+
   SECTION("sized 16") {
     auto t = tournament_factory(16);
     // Check for segfaults, and that the label map is well formed

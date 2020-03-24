@@ -2,6 +2,8 @@ set(CMAKE_BUILD_TYPE Debug)
 add_executable(phylourny_test
     main.cpp
     tournament.cpp
+    dataset.cpp
+    sampler.cpp
 )
 
 set_target_properties(phylourny_test PROPERTIES

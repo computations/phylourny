@@ -1,6 +1,8 @@
 add_library(phylourny_lib
     STATIC
     tournament.cpp
+    dataset.cpp
+    sampler.cpp
 )
 add_executable(phylourny
     main.cpp
