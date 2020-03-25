@@ -1,14 +1,18 @@
 #include <algorithm>
 #include <chrono>
+#include <fstream>
 #include <iostream>
 #include <json.hpp>
 #include <memory>
 #include <optional>
+#include <random>
 #include <string>
 #include <unordered_set>
 
 #include "cli.hpp"
 #include "debug.h"
+#include "sampler.hpp"
+#include "summary.hpp"
 #include "tournament.hpp"
 int __VERBOSE__ = EMIT_LEVEL_PROGRESS;
 
@@ -35,74 +39,41 @@ void print_end_time(timepoint_t start_time, timepoint_t end_time) {
 }
 
 int main(int argc, char **argv) {
-  __VERBOSE__ = EMIT_LEVEL_PROGRESS;
+  //__VERBOSE__ = EMIT_LEVEL_PROGRESS1;
   auto start_time = std::chrono::high_resolution_clock::now();
   print_version();
   cli_options_t cli_options{argc, argv};
+  size_t teams = 16;
 
-  std::shared_ptr<tournament_node_t> n1{new tournament_node_t{"a"}};
-  std::shared_ptr<tournament_node_t> n2{new tournament_node_t{"b"}};
-  std::shared_ptr<tournament_node_t> n3{new tournament_node_t{"c"}};
-  std::shared_ptr<tournament_node_t> n4{new tournament_node_t{"d"}};
+  std::vector<match_t> matches;
+  std::random_device rd;
+  std::mt19937_64 gen(rd());
+  std::uniform_real_distribution<> coin(0.0, 1.0);
+  std::uniform_int_distribution team(0, 15);
 
-  std::shared_ptr<tournament_node_t> w1{
-      new tournament_node_t{
-          (n1),
-          tournament_edge_t::edge_type_t::win,
-          (n2),
-          tournament_edge_t::edge_type_t::win,
-      },
-  };
+  std::vector<double> params(teams);
+  for (auto &p : params) {
+    p = coin(gen);
+  }
 
-  std::shared_ptr<tournament_node_t> w2{
-      new tournament_node_t{
-          (n3),
-          tournament_edge_t::edge_type_t::win,
-          (n4),
-          tournament_edge_t::edge_type_t::win,
-      },
-  };
+  for (size_t i = 0; i < 40; ++i) {
+    size_t t1 = team(gen);
+    size_t t2 = t1;
+    while (t2 == t1) {
+      t2 = team(gen);
+    }
+    double prob = params[t1] / (params[t1] + params[t2]);
+    matches.push_back({t1, t2, coin(gen) < prob});
+  }
 
-  std::shared_ptr<tournament_node_t> w3{
-      new tournament_node_t{
-          (w1),
-          tournament_edge_t::edge_type_t::win,
-          (w2),
-          tournament_edge_t::edge_type_t::win,
-      },
-  };
+  dataset_t ds{matches};
+  sampler_t sampler{ds, tournament_factory(teams)};
 
-  std::shared_ptr<tournament_node_t> l3{
-      new tournament_node_t{
-          (w1),
-          tournament_edge_t::edge_type_t::loss,
-          (w2),
-          tournament_edge_t::edge_type_t::loss,
-      },
-  };
+  sampler.run_chain(10000, rd());
+  auto summary = sampler.summary();
 
-  std::shared_ptr<tournament_node_t> l4{
-      new tournament_node_t{
-          w3,
-          tournament_edge_t::edge_type_t::loss,
-          l3,
-          tournament_edge_t::edge_type_t::win,
-      },
-  };
-
-  tournament_t t{tournament_node_t{
-      l4,
-      w3,
-  }};
-
-  t.relabel_indicies();
-  size_t tip_count = t.tip_count();
-  debug_print(EMIT_LEVEL_IMPORTANT, "tip_count: %lu", tip_count);
-  auto m = uniform_matrix_factory(tip_count);
-  t.reset_win_probs(m);
-
-  auto r = t.eval();
-  debug_print(EMIT_LEVEL_IMPORTANT, "eval(): %s", to_string(r).c_str());
+  std::ofstream outfile("summary.json");
+  summary.write(outfile, 0, 1);
 
   auto end_time = std::chrono::high_resolution_clock::now();
   print_end_time(start_time, end_time);

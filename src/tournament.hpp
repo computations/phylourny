@@ -25,6 +25,10 @@ double compute_entropy(const vector_t &v);
 
 double compute_perplexity(const vector_t &v);
 
+std::string to_json(const matrix_t &m);
+std::string to_json(const vector_t &m);
+std::string to_json(const std::vector<size_t> &m);
+
 std::string to_string(const matrix_t &m);
 std::string to_string(const vector_t &m);
 std::string to_string(const std::vector<size_t> &m);

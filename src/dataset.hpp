@@ -1,6 +1,7 @@
 #ifndef DATASET_HPP
 #define DATASET_HPP
 
+#include "debug.h"
 #include "tournament.hpp"
 #include <random>
 #include <vector>
@@ -34,11 +35,16 @@ public:
 
   double likelihood(const params_t &team_win_probs) const {
     double lh = 1.0;
+    debug_print(EMIT_LEVEL_DEBUG, "team_win_probs: %s",
+                to_string(team_win_probs).c_str());
     for (size_t i = 0; i < _win_matrix.size(); ++i) {
       for (size_t j = i + 1; j < _win_matrix.size(); ++j) {
         double l_wp =
             team_win_probs[i] / (team_win_probs[i] + team_win_probs[j]);
         double r_wp = 1 - l_wp;
+        debug_print(EMIT_LEVEL_DEBUG,
+                    "twp[i]: %f, twp[j]: %f, l_wp: %f, r_wp: %f",
+                    team_win_probs[i], team_win_probs[j], l_wp, r_wp);
         lh *= int_pow(l_wp, _win_matrix[i][j]) *
               int_pow(r_wp, _win_matrix[j][i]) *
               combinations(_win_matrix[i][j] + _win_matrix[j][i],

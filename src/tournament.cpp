@@ -104,6 +104,54 @@ double compute_perplexity(const vector_t &v) {
   return pow(2.0, ent);
 }
 
+std::string to_json(const matrix_t &m) {
+  std::stringstream out;
+  out << std::setprecision(3);
+  for (auto &i : m) {
+    out << "[";
+    for (auto &j : i) {
+      out << std::setw(3);
+      out << std::fixed << j << ", ";
+    }
+    out.seekp(-1, out.cur);
+    out << "],\n";
+  }
+  out.seekp(-2, out.cur);
+  out << "\n";
+  auto ret_str = out.str();
+  ret_str.resize(ret_str.size() - 1);
+  return ret_str;
+}
+
+std::string to_json(const vector_t &m) {
+  std::stringstream out;
+  out << std::setprecision(3);
+  out << "[";
+  for (auto &i : m) {
+    out << std::setw(3);
+    out << std::fixed << i << ", ";
+  }
+  out.seekp(-2, out.cur);
+  out << "]";
+  auto tmp = out.str();
+  tmp.resize(tmp.size() - 1);
+  return tmp;
+}
+
+std::string to_json(const std::vector<size_t> &m) {
+  std::stringstream out;
+  out << "[";
+  for (auto &i : m) {
+    out << std::setw(3);
+    out << std::fixed << i << ", ";
+  }
+  out.seekp(-2, out.cur);
+  out << "]";
+  auto tmp = out.str();
+  tmp.resize(tmp.size() - 1);
+  return tmp;
+}
+
 std::string to_string(const matrix_t &m) {
   std::stringstream out;
   out << std::setprecision(3);
@@ -238,14 +286,13 @@ vector_t tournament_node_t::eval(const matrix_t &pmatrix,
   auto bestof = children().bestof;
 
   auto fold_a = fold(l_wpv, r_wpv, bestof, pmatrix);
-  debug_print(EMIT_LEVEL_IMPORTANT, "fold_a: %s", to_string(fold_a).c_str());
+  debug_print(EMIT_LEVEL_DEBUG, "fold_a: %s", to_string(fold_a).c_str());
   auto fold_b = fold(r_wpv, l_wpv, bestof, pmatrix);
-  debug_print(EMIT_LEVEL_IMPORTANT, "fold_b: %s", to_string(fold_b).c_str());
+  debug_print(EMIT_LEVEL_DEBUG, "fold_b: %s", to_string(fold_b).c_str());
   for (size_t i = 0; i < fold_a.size(); ++i) {
     fold_a[i] += fold_b[i];
   }
-  debug_print(EMIT_LEVEL_IMPORTANT, "eval result: %s",
-              to_string(fold_a).c_str());
+  debug_print(EMIT_LEVEL_DEBUG, "eval result: %s", to_string(fold_a).c_str());
   return fold_a;
 }
 

@@ -3,6 +3,7 @@ add_library(phylourny_lib
     tournament.cpp
     dataset.cpp
     sampler.cpp
+    summary.cpp
 )
 add_executable(phylourny
     main.cpp

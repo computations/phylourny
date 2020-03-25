@@ -3,6 +3,7 @@
 
 #include "dataset.hpp"
 #include "debug.h"
+#include "summary.hpp"
 #include "tournament.hpp"
 #include <random>
 #include <utility>
@@ -14,7 +15,7 @@ public:
   beta_distribution(result_type alpha, result_type beta,
                     result_type theta = 1.0)
       : g1{alpha, theta}, g2{beta, theta} {}
-  template <class generator_type> result_type operator()(generator_type& gen) {
+  template <class generator_type> result_type operator()(generator_type &gen) {
     result_type x = g1(gen);
     result_type y = g2(gen);
     return x / (x + y);
@@ -30,12 +31,6 @@ constexpr inline std::pair<double, double> make_ab(double median, double k) {
   double b = k - a;
   return std::make_pair(a, b);
 }
-
-struct result_t {
-  vector_t win_prob;
-  params_t params;
-  double lh;
-};
 
 class sampler_t {
 public:
@@ -74,6 +69,9 @@ public:
       debug_print(EMIT_LEVEL_DEBUG,
                   "next_lh : %f, cur_lh:%f, acceptance ratio: %f", next_lh,
                   cur_lh, next_lh / cur_lh);
+      if(std::isnan(next_lh)){
+        throw std::runtime_error("next_lh is nan");
+      }
       if (coin(gen) < (next_lh / cur_lh)) {
         record_sample(temp_params, next_lh);
         std::swap(next_lh, cur_lh);
@@ -83,6 +81,8 @@ public:
   }
 
   std::vector<result_t> report() const { return _samples; }
+
+  summary_t summary() const { return summary_t{_samples}; }
 
 private:
   matrix_t normalize_params(const params_t &params) {
