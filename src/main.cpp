@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <chrono>
+#include <cstdint>
 #include <fstream>
 #include <iostream>
 #include <json.hpp>
@@ -38,20 +39,14 @@ void print_end_time(timepoint_t start_time, timepoint_t end_time) {
               duration.count());
 }
 
-int main(int argc, char **argv) {
-  //__VERBOSE__ = EMIT_LEVEL_PROGRESS1;
-  auto start_time = std::chrono::high_resolution_clock::now();
-  print_version();
-  cli_options_t cli_options{argc, argv};
-  size_t teams = 16;
-
+std::vector<match_t> make_dummy_data(size_t team_count) {
   std::vector<match_t> matches;
   std::random_device rd;
   std::mt19937_64 gen(rd());
   std::uniform_real_distribution<> coin(0.0, 1.0);
-  std::uniform_int_distribution team(0, 15);
+  std::uniform_int_distribution team(0, static_cast<int>(team_count) - 1);
 
-  std::vector<double> params(teams);
+  std::vector<double> params(team_count);
   for (auto &p : params) {
     p = coin(gen);
   }
@@ -66,14 +61,57 @@ int main(int argc, char **argv) {
     matches.push_back({t1, t2, coin(gen) < prob});
   }
 
+  return matches;
+}
+
+int main(int argc, char **argv) {
+  __VERBOSE__ = EMIT_LEVEL_PROGRESS;
+  auto start_time = std::chrono::high_resolution_clock::now();
+  print_version();
+  cli_options_t cli_options{argc, argv};
+
+  if (cli_options["debug"].value<bool>(false)) {
+    __VERBOSE__ = EMIT_LEVEL_DEBUG;
+  }
+
+  std::vector<std::string> teams;
+
+  {
+    std::ifstream teams_file(cli_options["teams"].value<std::string>());
+    std::string tmp;
+    while (teams_file >> tmp) {
+      teams.push_back(tmp);
+    }
+  }
+
+  std::vector<match_t> matches;
+  if (cli_options["dummy"].value<bool>(false)) {
+    debug_string(EMIT_LEVEL_IMPORTANT, "Making dummy data");
+    matches = make_dummy_data(teams.size());
+  }
+
+  uint64_t seed;
+  if (cli_options["seed"].initialized()) {
+    seed = cli_options["seed"].value<uint64_t>();
+  } else {
+    std::random_device rd;
+    seed = rd();
+  }
+
   dataset_t ds{matches};
   sampler_t sampler{ds, tournament_factory(teams)};
 
-  sampler.run_chain(10000, rd());
+  sampler.run_chain(10000, seed);
   auto summary = sampler.summary();
 
-  std::ofstream outfile("summary.json");
-  summary.write(outfile, 0, 1);
+  std::ofstream outfile(cli_options["output"].value<std::string>());
+  summary.write_samples(outfile, 0, 1);
+
+  std::ofstream mpp_outfile("test_mpp");
+  summary.write_mpp(mpp_outfile);
+
+  std::ofstream mmpp_outfile("test_mmpp");
+  summary.write_mmpp(mmpp_outfile);
 
   auto end_time = std::chrono::high_resolution_clock::now();
   print_end_time(start_time, end_time);

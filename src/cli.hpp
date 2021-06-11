@@ -4,6 +4,7 @@
 #include "debug.h"
 #include <any>
 #include <functional>
+#include <stdexcept>
 #include <string>
 #include <unordered_map>
 
@@ -34,9 +35,22 @@ public:
 
   void flag() { _opt_val = true; }
 
-  bool initialized() { return _opt_val.has_value(); }
+  bool initialized() const { return _opt_val.has_value(); }
 
-  template <typename T> T value() { return std::any_cast<T>(_opt_val); }
+  template <typename T> T value() {
+    if (!initialized()) {
+      throw std::runtime_error{std::string("Did not find a value for ") +
+                               _name};
+    }
+    return std::any_cast<T>(_opt_val);
+  }
+
+  template <typename T> T value(const T &default_value) {
+    if (!initialized()) {
+      return default_value;
+    }
+    return std::any_cast<T>(_opt_val);
+  }
 
 private:
   const char *_name;
@@ -66,6 +80,12 @@ cli_option_t option_with_argument<double>(const char *name, const char *desc) {
                       [](const char *o) -> double { return std::stod(o); }};
 }
 
+template <>
+cli_option_t option_with_argument<size_t>(const char *name, const char *desc) {
+  return cli_option_t{name, desc, true,
+                      [](const char *o) -> size_t { return std::stoull(o); }};
+}
+
 cli_option_t option_flag(const char *name, const char *desc) {
   return cli_option_t{
       name,
@@ -75,9 +95,12 @@ cli_option_t option_flag(const char *name, const char *desc) {
 }
 
 cli_option_t args[] = {
-    option_with_argument<std::string>("json", "json file").required(),
-    option_with_argument<double>("baz", "json file"),
-    option_flag("bar", "a flag"),
+    option_with_argument<std::string>("teams", "File with the team names")
+        .required(),
+    option_with_argument<std::string>("output", "Output json file").required(),
+    option_with_argument<uint64_t>("seed", "Random engine seed"),
+    option_flag("dummy", "Make dummy data"),
+    option_flag("debug", "Enable debug output"),
 };
 
 class cli_options_t {
@@ -101,9 +124,9 @@ public:
         if (args[k].has_argument()) {
           if (i + 1 >= argc) {
             throw std::runtime_error{
-                std::string{"Did not find an arguement to option "} + argv[i]};
+                std::string{"Did not find an argument to option "} + argv[i]};
           }
-          args[k].consume(argv[i++]);
+          args[k].consume(argv[++i]);
           break;
         } else {
           args[k].flag();

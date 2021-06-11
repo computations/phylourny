@@ -19,6 +19,29 @@ std::vector<match_t> generate_bootstrap(const std::vector<match_t> &matches,
 
 class dataset_t {
 public:
+  double likelihood(const params_t &team_win_probs) const {
+    double lh = 1.0;
+    debug_print(EMIT_LEVEL_DEBUG, "team_win_probs: %s",
+                to_string(team_win_probs).c_str());
+    debug_print(EMIT_LEVEL_DEBUG, "win matrix size: %lu", _win_matrix.size());
+    for (size_t i = 0; i < _win_matrix.size(); ++i) {
+      for (size_t j = i + 1; j < _win_matrix.size(); ++j) {
+        double l_wp =
+            team_win_probs[i] / (team_win_probs[i] + team_win_probs[j]);
+        double r_wp = 1 - l_wp;
+        debug_print(EMIT_LEVEL_DEBUG,
+                    "twp[i]: %f, twp[j]: %f, l_wp: %f, r_wp: %f i: %lu, j: %lu",
+                    team_win_probs[i], team_win_probs[j], l_wp, r_wp, i, j);
+        lh *= int_pow(l_wp, _win_matrix[i][j]) *
+              int_pow(r_wp, _win_matrix[j][i]) *
+              combinations(_win_matrix[i][j] + _win_matrix[j][i],
+                           _win_matrix[i][j]);
+      }
+    }
+    debug_print(EMIT_LEVEL_DEBUG, "computed lh: %f", lh);
+    return lh;
+  }
+
   dataset_t(const std::vector<match_t> &matches) {
     size_t team_count = count_teams(matches);
     _win_matrix.reserve(team_count);
@@ -33,25 +56,8 @@ public:
     }
   }
 
-  double likelihood(const params_t &team_win_probs) const {
-    double lh = 1.0;
-    debug_print(EMIT_LEVEL_DEBUG, "team_win_probs: %s",
-                to_string(team_win_probs).c_str());
-    for (size_t i = 0; i < _win_matrix.size(); ++i) {
-      for (size_t j = i + 1; j < _win_matrix.size(); ++j) {
-        double l_wp =
-            team_win_probs[i] / (team_win_probs[i] + team_win_probs[j]);
-        double r_wp = 1 - l_wp;
-        debug_print(EMIT_LEVEL_DEBUG,
-                    "twp[i]: %f, twp[j]: %f, l_wp: %f, r_wp: %f",
-                    team_win_probs[i], team_win_probs[j], l_wp, r_wp);
-        lh *= int_pow(l_wp, _win_matrix[i][j]) *
-              int_pow(r_wp, _win_matrix[j][i]) *
-              combinations(_win_matrix[i][j] + _win_matrix[j][i],
-                           _win_matrix[i][j]);
-      }
-    }
-    return lh;
+  double log_likelihood(const params_t &p) const {
+    return std::log(likelihood(p));
   }
 
 private:
@@ -61,6 +67,7 @@ private:
       cur_max = std::max(cur_max, m.l_team);
       cur_max = std::max(cur_max, m.r_team);
     }
+    debug_print(EMIT_LEVEL_DEBUG, "found %lu teams", cur_max);
     return cur_max + 1;
   }
   std::vector<std::vector<unsigned int>> _win_matrix;

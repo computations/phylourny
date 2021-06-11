@@ -53,7 +53,7 @@ public:
       }
     }
 
-    double cur_lh = _dataset.likelihood(params);
+    double cur_lh = _dataset.log_likelihood(params);
     for (size_t i = 0; i < iters; ++i) {
       for (size_t j = 0; j < params.size(); ++j) {
         auto [a, b] = make_ab(params[j], 5);
@@ -63,16 +63,16 @@ public:
                     temp_params[j]);
       }
 
-      double next_lh = _dataset.likelihood(temp_params);
+      double next_lh = _dataset.log_likelihood(temp_params);
       debug_print(EMIT_LEVEL_DEBUG, "tmp_params: %s",
                   to_string(temp_params).c_str());
       debug_print(EMIT_LEVEL_DEBUG,
                   "next_lh : %f, cur_lh:%f, acceptance ratio: %f", next_lh,
                   cur_lh, next_lh / cur_lh);
-      if(std::isnan(next_lh)){
+      if (std::isnan(next_lh)) {
         throw std::runtime_error("next_lh is nan");
       }
-      if (coin(gen) < (next_lh / cur_lh)) {
+      if (coin(gen) < std::exp(next_lh - cur_lh)) {
         record_sample(temp_params, next_lh);
         std::swap(next_lh, cur_lh);
         std::swap(temp_params, params);
@@ -107,8 +107,8 @@ private:
     return _tournament.eval();
   }
 
-  void record_sample(const params_t &params, double lh) {
-    result_t r{run_simulation(params), params, lh};
+  void record_sample(const params_t &params, double llh) {
+    result_t r{run_simulation(params), params, llh};
     _samples.emplace_back(r);
   }
 

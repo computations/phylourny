@@ -2,6 +2,7 @@
 #include "tournament.hpp"
 #include <algorithm>
 #include <bits/stdint-uintn.h>
+#include <cstdlib>
 #include <stdint.h>
 
 std::shared_ptr<tournament_node_t>
@@ -53,6 +54,12 @@ tournament_t tournament_factory(size_t tourny_size_l, size_t tourny_size_r) {
   tournament_t t{tournament_node_t{tournament_node_factory(tourny_size_l),
                                    tournament_node_factory(tourny_size_r)}};
   t.relabel_indicies();
+  return t;
+}
+
+tournament_t tournament_factory(const std::vector<std::string> &team_labels) {
+  auto t = tournament_factory(team_labels.size());
+  t.relabel_tips(team_labels);
   return t;
 }
 
@@ -281,6 +288,12 @@ vector_t tournament_node_t::eval(const matrix_t &pmatrix,
     return wpv;
   }
 
+  /* This will be correct, but inefficient, as it does not take into account
+   * that the match might have already been evaluated. A future optimization
+   * would be to include a "evaluated" flag so that the evaluation of the
+   * current node can be skipped. Right now, since we are computing the results
+   * for a single elimination tournament, we don't need to do this.
+   */
   auto l_wpv = children().left.eval(pmatrix, tip_count);
   auto r_wpv = children().right.eval(pmatrix, tip_count);
   auto bestof = children().bestof;

@@ -225,6 +225,7 @@ private:
 };
 
 tournament_t tournament_factory(size_t tourny_size);
+tournament_t tournament_factory(const std::vector<std::string> &);
 tournament_t tournament_factory(size_t tourny_size_l, size_t tourny_size_r);
 
 std::shared_ptr<tournament_node_t>
