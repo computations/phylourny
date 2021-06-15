@@ -65,14 +65,15 @@ public:
       align -= 8;
     }
 
-    oss << ": ";
-    align -= 2;
-
     for (int i = 0; i < align; i++) {
       oss << " ";
     }
 
     oss << _description;
+
+    if (_required) {
+      oss << " (REQUIRED)";
+    }
 
     return oss.str();
   }
