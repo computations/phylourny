@@ -122,8 +122,8 @@ std::vector<match_t> parse_match_file(const std::string &match_filename,
     size_t index2 = name_map.at(team2);
     size_t winner_index = name_map.at(winner);
     match_history.push_back({index1, index2,
-                             winner_index == index1 ? match_winner_t::left
-                                                    : match_winner_t::right});
+                             winner_index == index1 ? match_winner_t::right
+                                                    : match_winner_t::left});
   }
 
   return match_history;
@@ -185,13 +185,13 @@ int main(int argc, char **argv) {
 
   std::string output_prefix = cli_options["prefix"].value<std::string>();
 
-  std::ofstream outfile(output_prefix + "samples.json");
+  std::ofstream outfile(output_prefix + ".samples.json");
   summary.write_samples(outfile, 0, 1);
 
   std::ofstream mpp_outfile(output_prefix + ".mpp.json");
   summary.write_mpp(mpp_outfile);
 
-  std::ofstream mmpp_outfile(output_prefix + "mmpp.json");
+  std::ofstream mmpp_outfile(output_prefix + ".mmpp.json");
   summary.write_mmpp(mmpp_outfile);
 
   auto end_time = std::chrono::high_resolution_clock::now();
