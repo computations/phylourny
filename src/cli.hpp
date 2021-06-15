@@ -3,7 +3,10 @@
 
 #include "debug.h"
 #include <any>
+#include <cstring>
 #include <functional>
+#include <iostream>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
@@ -50,6 +53,28 @@ public:
       return default_value;
     }
     return std::any_cast<T>(_opt_val);
+  }
+
+  std::string help(int align = 20) const {
+    std::stringstream oss;
+    oss << "--" << _name;
+
+    align -= (2 + strlen(_name));
+    if (_argument) {
+      oss << " <VALUE>";
+      align -= 8;
+    }
+
+    oss << ": ";
+    align -= 2;
+
+    for (int i = 0; i < align; i++) {
+      oss << " ";
+    }
+
+    oss << _description;
+
+    return oss.str();
   }
 
 private:
@@ -120,6 +145,10 @@ public:
       }
       cur_arg = cur_arg + 2;
       bool found = false;
+      if (strcmp(cur_arg, "help") == 0) {
+        std::cout << help();
+        throw std::runtime_error{"Found help"};
+      }
       for (size_t k = 0; k < _option_count; ++k) {
         if (strcmp(cur_arg, args[k].name()) != 0) {
           continue;
@@ -148,6 +177,15 @@ public:
   };
 
   cli_option_t operator[](std::string key) { return *_opt_vals.at(key); }
+
+  std::string help() const {
+    std::stringstream oss;
+    oss << "Help:\n";
+    for (auto a : args) {
+      oss << "  " << a.help() << std::endl;
+    }
+    return oss.str();
+  }
 
 private:
   size_t _option_count;
