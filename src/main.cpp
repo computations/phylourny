@@ -160,15 +160,6 @@ int main(int argc, char **argv) {
     matches = make_dummy_data(teams.size());
   }
 
-  matrix_t odds;
-  if (cli_options["odds"].initialized()) {
-    odds = parse_odds_file(cli_options["odds"].value<std::string>(),
-                           team_name_map);
-    auto t = tournament_factory(teams);
-    t.reset_win_probs(odds);
-    auto wp = t.eval();
-  }
-
   uint64_t seed;
   if (cli_options["seed"].initialized()) {
     seed = cli_options["seed"].value<uint64_t>();
@@ -193,6 +184,17 @@ int main(int argc, char **argv) {
 
   std::ofstream mmpp_outfile(output_prefix + ".mmpp.json");
   summary.write_mmpp(mmpp_outfile);
+
+  if (cli_options["odds"].initialized()) {
+    matrix_t odds;
+    odds = parse_odds_file(cli_options["odds"].value<std::string>(),
+                           team_name_map);
+    auto t = tournament_factory(teams);
+    t.reset_win_probs(odds);
+    auto wp = t.eval();
+    std::ofstream odds_outfile(output_prefix + ".odds.json");
+    odds_outfile << to_json(wp) << std::endl;
+  }
 
   auto end_time = std::chrono::high_resolution_clock::now();
   print_end_time(start_time, end_time);
