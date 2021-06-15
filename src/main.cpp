@@ -168,22 +168,26 @@ int main(int argc, char **argv) {
     seed = rd();
   }
 
-  dataset_t ds{matches};
-  sampler_t sampler{ds, tournament_factory(teams)};
-
-  sampler.run_chain(10000, seed);
-  auto summary = sampler.summary();
-
   std::string output_prefix = cli_options["prefix"].value<std::string>();
 
-  std::ofstream outfile(output_prefix + ".samples.json");
-  summary.write_samples(outfile, 0, 1);
+  if (cli_options["matches"].initialized() ||
+      cli_options["dummy"].initialized()) {
 
-  std::ofstream mpp_outfile(output_prefix + ".mpp.json");
-  summary.write_mpp(mpp_outfile);
+    dataset_t ds{matches};
+    sampler_t sampler{ds, tournament_factory(teams)};
 
-  std::ofstream mmpp_outfile(output_prefix + ".mmpp.json");
-  summary.write_mmpp(mmpp_outfile);
+    sampler.run_chain(10000, seed);
+    auto summary = sampler.summary();
+
+    std::ofstream outfile(output_prefix + ".samples.json");
+    summary.write_samples(outfile, 0, 1);
+
+    std::ofstream mpp_outfile(output_prefix + ".mpp.json");
+    summary.write_mpp(mpp_outfile);
+
+    std::ofstream mmpp_outfile(output_prefix + ".mmpp.json");
+    summary.write_mmpp(mmpp_outfile);
+  }
 
   if (cli_options["odds"].initialized()) {
     matrix_t odds;
