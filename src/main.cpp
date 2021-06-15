@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <chrono>
 #include <cstdint>
+#include <csv.h>
 #include <fstream>
 #include <iostream>
 #include <json.hpp>
@@ -8,9 +9,11 @@
 #include <optional>
 #include <random>
 #include <string>
+#include <unordered_map>
 #include <unordered_set>
 
 #include "cli.hpp"
+#include "dataset.hpp"
 #include "debug.h"
 #include "sampler.hpp"
 #include "summary.hpp"
@@ -25,6 +28,8 @@ int __VERBOSE__ = EMIT_LEVEL_PROGRESS;
 
 typedef std::chrono::time_point<std::chrono::high_resolution_clock> timepoint_t;
 typedef std::chrono::duration<double> duration_t;
+
+typedef std::unordered_map<std::string, size_t> team_name_map_t;
 
 void print_version() {
   debug_string(EMIT_LEVEL_IMPORTANT, "Running Phylourny");
@@ -58,10 +63,70 @@ std::vector<match_t> make_dummy_data(size_t team_count) {
       t2 = team(gen);
     }
     double prob = params[t1] / (params[t1] + params[t2]);
-    matches.push_back({t1, t2, coin(gen) < prob});
+    matches.push_back(
+        {t1, t2,
+         coin(gen) < prob ? match_winner_t::left : match_winner_t::right});
   }
 
   return matches;
+}
+
+team_name_map_t create_name_map(std::vector<std::string> team_names) {
+  team_name_map_t name_map;
+
+  for (size_t i = 0; i < team_names.size(); i++) {
+    name_map[team_names[i]] = i;
+  }
+
+  return name_map;
+}
+
+matrix_t parse_odds_file(const std::string &odds_filename,
+                         const team_name_map_t &name_map) {
+
+  matrix_t odds;
+
+  odds.resize(name_map.size());
+  for (auto &&r : odds) {
+    r.resize(name_map.size());
+  }
+
+  io::CSVReader<4> odds_file(odds_filename);
+  odds_file.read_header(io::ignore_extra_column, "team1", "team2", "odds1",
+                        "odds2");
+
+  std::string team1, team2;
+  double odds1, odds2;
+  while (odds_file.read_row(team1, team2, odds1, odds2)) {
+    size_t index1 = name_map.at(team1);
+    size_t index2 = name_map.at(team2);
+
+    double prob = odds1 / (odds1 + odds2);
+
+    odds[index1][index2] = prob;
+    odds[index2][index1] = 1 - prob;
+  }
+
+  return odds;
+}
+
+std::vector<match_t> parse_match_file(const std::string &match_filename,
+                                      const team_name_map_t &name_map) {
+  std::vector<match_t> match_history;
+
+  io::CSVReader<3> match_file(match_filename);
+  match_file.read_header(io::ignore_extra_column, "team1", "team2", "winner");
+  std::string team1, team2, winner;
+  while (match_file.read_row(team1, team2, winner)) {
+    size_t index1 = name_map.at(team1);
+    size_t index2 = name_map.at(team2);
+    size_t winner_index = name_map.at(winner);
+    match_history.push_back({index1, index2,
+                             winner_index == index1 ? match_winner_t::left
+                                                    : match_winner_t::right});
+  }
+
+  return match_history;
 }
 
 int main(int argc, char **argv) {
@@ -84,10 +149,24 @@ int main(int argc, char **argv) {
     }
   }
 
+  auto team_name_map = create_name_map(teams);
+
   std::vector<match_t> matches;
-  if (cli_options["dummy"].value<bool>(false)) {
+  if (cli_options["matches"].initialized()) {
+    matches = parse_match_file(cli_options["matches"].value<std::string>(),
+                               team_name_map);
+  } else if (cli_options["dummy"].value<bool>(false)) {
     debug_string(EMIT_LEVEL_IMPORTANT, "Making dummy data");
     matches = make_dummy_data(teams.size());
+  }
+
+  matrix_t odds;
+  if (cli_options["odds"].initialized()) {
+    odds = parse_odds_file(cli_options["odds"].value<std::string>(),
+                           team_name_map);
+    auto t = tournament_factory(teams);
+    t.reset_win_probs(odds);
+    auto wp = t.eval();
   }
 
   uint64_t seed;
@@ -104,13 +183,15 @@ int main(int argc, char **argv) {
   sampler.run_chain(10000, seed);
   auto summary = sampler.summary();
 
-  std::ofstream outfile(cli_options["output"].value<std::string>());
+  std::string output_prefix = cli_options["prefix"].value<std::string>();
+
+  std::ofstream outfile(output_prefix + "samples.json");
   summary.write_samples(outfile, 0, 1);
 
-  std::ofstream mpp_outfile("test_mpp");
+  std::ofstream mpp_outfile(output_prefix + ".mpp.json");
   summary.write_mpp(mpp_outfile);
 
-  std::ofstream mmpp_outfile("test_mmpp");
+  std::ofstream mmpp_outfile(output_prefix + "mmpp.json");
   summary.write_mmpp(mmpp_outfile);
 
   auto end_time = std::chrono::high_resolution_clock::now();

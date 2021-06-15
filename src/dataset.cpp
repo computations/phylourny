@@ -14,3 +14,10 @@ std::vector<match_t> generate_bootstrap(const std::vector<match_t> &matches,
 
   return bs_matches;
 }
+
+match_winner_t operator!(match_winner_t mw) {
+  if (mw == match_winner_t::left)
+    return match_winner_t::right;
+
+  return match_winner_t::left;
+}

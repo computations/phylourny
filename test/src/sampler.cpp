@@ -8,9 +8,9 @@
 
 TEST_CASE("sampler_t simple case", "[sampler_t]") {
   std::vector<match_t> matches;
-  matches.push_back({0, 1, true});
-  matches.push_back({0, 1, false});
-  matches.push_back({0, 1, false});
+  matches.push_back({0, 1, match_winner_t::left});
+  matches.push_back({0, 1, match_winner_t::right});
+  matches.push_back({0, 1, match_winner_t::right});
   SECTION("constructor") {
     auto t = tournament_factory(2);
     dataset_t ds(matches);

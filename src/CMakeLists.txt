@@ -20,7 +20,7 @@ set_target_properties(phylourny PROPERTIES
     INTERPROCEDURAL_OPTIMIZATION TRUE
 )
 
-target_link_libraries(phylourny ${LINK_LIBS} phylourny_lib)
+target_link_libraries(phylourny ${LINK_LIBS} phylourny_lib pthread)
 target_compile_options(phylourny PRIVATE -Wall -Wextra -Wshadow
     -Wdouble-promotion -Wmissing-include-dirs -pedantic)
 target_compile_definitions(phylourny PRIVATE

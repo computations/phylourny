@@ -8,10 +8,17 @@
 
 typedef std::vector<double> params_t;
 
+enum struct match_winner_t {
+  left = 1,
+  right = 0,
+};
+
+match_winner_t operator!(match_winner_t mw);
+
 struct match_t {
   size_t l_team;
   size_t r_team;
-  bool l_win;
+  match_winner_t winner;
 };
 
 std::vector<match_t> generate_bootstrap(const std::vector<match_t> &matches,
@@ -50,9 +57,10 @@ public:
     }
 
     for (auto &m : matches) {
-      _win_matrix[m.r_team][m.l_team] += 1 * static_cast<unsigned int>(m.l_win);
+      _win_matrix[m.r_team][m.l_team] +=
+          1 * static_cast<unsigned int>(m.winner);
       _win_matrix[m.l_team][m.r_team] +=
-          1 * static_cast<unsigned int>(!m.l_win);
+          1 * static_cast<unsigned int>(!m.winner);
     }
   }
 

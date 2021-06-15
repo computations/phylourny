@@ -7,3 +7,6 @@
 [submodule "test/libs/catch"]
 	path = test/lib/catch
 	url = https://github.com/catchorg/Catch2
+[submodule "lib/csv"]
+	path = lib/csv
+	url = https://github.com/ben-strasser/fast-cpp-csv-parser.git

@@ -97,8 +97,12 @@ cli_option_t option_flag(const char *name, const char *desc) {
 cli_option_t args[] = {
     option_with_argument<std::string>("teams", "File with the team names")
         .required(),
-    option_with_argument<std::string>("output", "Output json file").required(),
+    option_with_argument<std::string>("prefix", "Output files prefix")
+        .required(),
     option_with_argument<uint64_t>("seed", "Random engine seed"),
+    option_with_argument<std::string>("matches", "Match history as a csv file"),
+    option_with_argument<std::string>("odds",
+                                      "Odds of teams winning as a csv file"),
     option_flag("dummy", "Make dummy data"),
     option_flag("debug", "Enable debug output"),
 };
