@@ -166,6 +166,8 @@ cli_option_t args[] = {
     option_with_argument<std::string>("matches", "Match history as a csv file"),
     option_with_argument<std::string>("odds",
                                       "Odds of teams winning as a csv file"),
+    option_with_argument<std::string>(
+        "probs", "Pairwise win probabilities as a csv file"),
     option_flag("dummy", "Make dummy data"),
     option_flag("debug", "Enable debug output"),
 };

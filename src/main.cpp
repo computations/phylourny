@@ -129,6 +129,31 @@ std::vector<match_t> parse_match_file(const std::string &match_filename,
   return match_history;
 }
 
+matrix_t parse_prob_files(const std::string &probs_filename,
+                          const team_name_map_t &name_map) {
+
+  matrix_t win_probs;
+  win_probs.resize(name_map.size());
+
+  for (auto &&v : win_probs) {
+    v.resize(name_map.size());
+  }
+
+  io::CSVReader<3> probs_file(probs_filename);
+  probs_file.read_header(io::ignore_extra_column, "team1", "team2",
+                         "prob-win-team1");
+  std::string team1, team2;
+  double win_prob;
+  while (probs_file.read_row(team1, team2, win_prob)) {
+    size_t team1_index = name_map.at(team1);
+    size_t team2_index = name_map.at(team2);
+    win_probs[team1_index][team2_index] = win_prob;
+    win_probs[team2_index][team1_index] = 1.0 - win_prob;
+  }
+
+  return win_probs;
+}
+
 int main(int argc, char **argv) {
   __VERBOSE__ = EMIT_LEVEL_PROGRESS;
   auto start_time = std::chrono::high_resolution_clock::now();
@@ -200,6 +225,16 @@ int main(int argc, char **argv) {
       auto wp = t.eval();
       std::ofstream odds_outfile(output_prefix + ".odds.json");
       odds_outfile << to_json(wp) << std::endl;
+    }
+
+    if (cli_options["probs"].initialized()) {
+      matrix_t probs = parse_prob_files(
+          cli_options["probs"].value<std::string>(), team_name_map);
+      auto t = tournament_factory(teams);
+      t.reset_win_probs(probs);
+      auto wp = t.eval();
+      std::ofstream probs_outfile(output_prefix + ".probs.json");
+      probs_outfile << to_json(wp) << std::endl;
     }
   } catch (cli_option_help &e) {
     return 1;
