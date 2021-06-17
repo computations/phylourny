@@ -4,12 +4,44 @@
 #include "debug.h"
 #include <any>
 #include <cstring>
+#include <exception>
 #include <functional>
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
+
+class cli_option_exception : std::exception {};
+
+class cli_option_not_recognized : cli_option_exception {
+public:
+  cli_option_not_recognized(std::string m) : _what{m} {}
+  const char *what() const noexcept override { return _what.c_str(); }
+
+private:
+  std::string _what;
+};
+
+class cli_option_argument_not_found : cli_option_exception {
+public:
+  cli_option_argument_not_found(std::string m) : _what{m} {}
+  const char *what() const noexcept override { return _what.c_str(); }
+
+private:
+  std::string _what;
+};
+
+class cli_option_not_initialized : cli_option_exception {
+public:
+  cli_option_not_initialized(std::string m) : _what{m} {}
+  const char *what() const noexcept override { return _what.c_str(); }
+
+private:
+  std::string _what;
+};
+
+class cli_option_help : cli_option_exception {};
 
 class cli_option_t {
 public:
@@ -42,8 +74,8 @@ public:
 
   template <typename T> T value() {
     if (!initialized()) {
-      throw std::runtime_error{std::string("Did not find a value for ") +
-                               _name};
+      throw cli_option_not_initialized{
+          std::string("Did not find a value for ") + _name};
     }
     return std::any_cast<T>(_opt_val);
   }
@@ -142,13 +174,14 @@ public:
       const char *cur_arg = argv[i];
       debug_print(EMIT_LEVEL_DEBUG, "working on argument: %s", cur_arg);
       if (!(cur_arg[0] == '-' && cur_arg[1] == '-')) {
-        throw std::runtime_error{std::string{"Failed to recognize "} + cur_arg};
+        throw cli_option_not_recognized{std::string{"Failed to recognize "} +
+                                        cur_arg};
       }
       cur_arg = cur_arg + 2;
       bool found = false;
       if (strcmp(cur_arg, "help") == 0) {
         std::cout << help();
-        throw std::runtime_error{"Found help"};
+        throw cli_option_help{};
       }
       for (size_t k = 0; k < _option_count; ++k) {
         if (strcmp(cur_arg, args[k].name()) != 0) {
@@ -157,7 +190,7 @@ public:
         found = true;
         if (args[k].has_argument()) {
           if (i + 1 >= argc) {
-            throw std::runtime_error{
+            throw cli_option_argument_not_found{
                 std::string{"Did not find an argument to option "} + argv[i]};
           }
           args[k].consume(argv[++i]);
@@ -179,7 +212,7 @@ public:
 
   cli_option_t operator[](std::string key) { return *_opt_vals.at(key); }
 
-  std::string help() const {
+  static std::string help() {
     std::stringstream oss;
     oss << "Help:\n";
     for (auto a : args) {

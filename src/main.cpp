@@ -133,71 +133,86 @@ int main(int argc, char **argv) {
   __VERBOSE__ = EMIT_LEVEL_PROGRESS;
   auto start_time = std::chrono::high_resolution_clock::now();
   print_version();
-  cli_options_t cli_options{argc, argv};
+  try {
+    cli_options_t cli_options{argc, argv};
 
-  if (cli_options["debug"].value<bool>(false)) {
-    __VERBOSE__ = EMIT_LEVEL_DEBUG;
-  }
-
-  std::vector<std::string> teams;
-
-  {
-    std::ifstream teams_file(cli_options["teams"].value<std::string>());
-    std::string tmp;
-    while (teams_file >> tmp) {
-      teams.push_back(tmp);
+    if (cli_options["debug"].value<bool>(false)) {
+      __VERBOSE__ = EMIT_LEVEL_DEBUG;
     }
-  }
 
-  auto team_name_map = create_name_map(teams);
+    std::vector<std::string> teams;
 
-  std::vector<match_t> matches;
-  if (cli_options["matches"].initialized()) {
-    matches = parse_match_file(cli_options["matches"].value<std::string>(),
-                               team_name_map);
-  } else if (cli_options["dummy"].value<bool>(false)) {
-    debug_string(EMIT_LEVEL_IMPORTANT, "Making dummy data");
-    matches = make_dummy_data(teams.size());
-  }
+    {
+      std::ifstream teams_file(cli_options["teams"].value<std::string>());
+      std::string tmp;
+      while (teams_file >> tmp) {
+        teams.push_back(tmp);
+      }
+    }
 
-  uint64_t seed;
-  if (cli_options["seed"].initialized()) {
-    seed = cli_options["seed"].value<uint64_t>();
-  } else {
-    std::random_device rd;
-    seed = rd();
-  }
+    auto team_name_map = create_name_map(teams);
 
-  std::string output_prefix = cli_options["prefix"].value<std::string>();
+    std::vector<match_t> matches;
+    if (cli_options["matches"].initialized()) {
+      matches = parse_match_file(cli_options["matches"].value<std::string>(),
+                                 team_name_map);
+    } else if (cli_options["dummy"].value<bool>(false)) {
+      debug_string(EMIT_LEVEL_IMPORTANT, "Making dummy data");
+      matches = make_dummy_data(teams.size());
+    }
 
-  if (cli_options["matches"].initialized() ||
-      cli_options["dummy"].initialized()) {
+    uint64_t seed;
+    if (cli_options["seed"].initialized()) {
+      seed = cli_options["seed"].value<uint64_t>();
+    } else {
+      std::random_device rd;
+      seed = rd();
+    }
 
-    dataset_t ds{matches};
-    sampler_t sampler{ds, tournament_factory(teams)};
+    std::string output_prefix = cli_options["prefix"].value<std::string>();
 
-    sampler.run_chain(10000, seed);
-    auto summary = sampler.summary();
+    if (cli_options["matches"].initialized() ||
+        cli_options["dummy"].initialized()) {
 
-    std::ofstream outfile(output_prefix + ".samples.json");
-    summary.write_samples(outfile, 0, 1);
+      dataset_t ds{matches};
+      sampler_t sampler{ds, tournament_factory(teams)};
 
-    std::ofstream mpp_outfile(output_prefix + ".mpp.json");
-    summary.write_mpp(mpp_outfile);
+      debug_string(EMIT_LEVEL_PROGRESS, "Running MCMC sampler");
+      sampler.run_chain(10000000, seed);
+      auto summary = sampler.summary();
 
-    std::ofstream mmpp_outfile(output_prefix + ".mmpp.json");
-    summary.write_mmpp(mmpp_outfile);
-  }
+      std::ofstream outfile(output_prefix + ".samples.json");
+      summary.write_samples(outfile, 0, 1);
 
-  if (cli_options["odds"].initialized()) {
-    matrix_t odds;
-    odds = parse_odds_file(cli_options["odds"].value<std::string>(),
-                           team_name_map);
-    auto t = tournament_factory(teams);
-    t.reset_win_probs(odds);
-    auto wp = t.eval();
-    std::ofstream odds_outfile(output_prefix + ".odds.json");
-    odds_outfile << to_json(wp) << std::endl;
+      std::ofstream mpp_outfile(output_prefix + ".mpp.json");
+      summary.write_mpp(mpp_outfile);
+
+      std::ofstream mmpp_outfile(output_prefix + ".mmpp.json");
+      summary.write_mmpp(mmpp_outfile);
+    }
+
+    if (cli_options["odds"].initialized()) {
+      matrix_t odds;
+      odds = parse_odds_file(cli_options["odds"].value<std::string>(),
+                             team_name_map);
+      auto t = tournament_factory(teams);
+      t.reset_win_probs(odds);
+      auto wp = t.eval();
+      std::ofstream odds_outfile(output_prefix + ".odds.json");
+      odds_outfile << to_json(wp) << std::endl;
+    }
+  } catch (cli_option_help &e) {
+    return 1;
+  } catch (cli_option_argument_not_found &e) {
+    std::cout << e.what() << std::endl;
+    return 1;
+  } catch (cli_option_not_recognized &e) {
+    std::cout << e.what() << std::endl;
+    return 1;
+  } catch (cli_option_not_initialized &e) {
+    std::cout << e.what() << std::endl;
+    std::cout << cli_options_t::help();
+    return 1;
   }
 
   auto end_time = std::chrono::high_resolution_clock::now();
