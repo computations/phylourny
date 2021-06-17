@@ -12,9 +12,9 @@
 #include <string>
 #include <unordered_map>
 
-class cli_option_exception : std::exception {};
+class cli_option_exception : public std::exception {};
 
-class cli_option_not_recognized : cli_option_exception {
+class cli_option_not_recognized : public cli_option_exception {
 public:
   cli_option_not_recognized(std::string m) : _what{m} {}
   const char *what() const noexcept override { return _what.c_str(); }
@@ -23,7 +23,7 @@ private:
   std::string _what;
 };
 
-class cli_option_argument_not_found : cli_option_exception {
+class cli_option_argument_not_found : public cli_option_exception {
 public:
   cli_option_argument_not_found(std::string m) : _what{m} {}
   const char *what() const noexcept override { return _what.c_str(); }
@@ -32,7 +32,7 @@ private:
   std::string _what;
 };
 
-class cli_option_not_initialized : cli_option_exception {
+class cli_option_not_initialized : public cli_option_exception {
 public:
   cli_option_not_initialized(std::string m) : _what{m} {}
   const char *what() const noexcept override { return _what.c_str(); }
@@ -41,7 +41,12 @@ private:
   std::string _what;
 };
 
-class cli_option_help : cli_option_exception {};
+class cli_option_help : public cli_option_exception {
+public:
+  const char *what() const noexcept override {
+    return "Found help on the command line";
+  }
+};
 
 class cli_option_t {
 public:

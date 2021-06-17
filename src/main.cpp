@@ -203,13 +203,7 @@ int main(int argc, char **argv) {
     }
   } catch (cli_option_help &e) {
     return 1;
-  } catch (cli_option_argument_not_found &e) {
-    std::cout << e.what() << std::endl;
-    return 1;
-  } catch (cli_option_not_recognized &e) {
-    std::cout << e.what() << std::endl;
-    return 1;
-  } catch (cli_option_not_initialized &e) {
+  } catch (cli_option_exception &e) {
     std::cout << e.what() << std::endl;
     std::cout << cli_options_t::help();
     return 1;
