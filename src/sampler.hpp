@@ -115,6 +115,8 @@ private:
   dataset_t _dataset;
   tournament_t _tournament;
   std::vector<result_t> _samples;
+  size_t _burnin;
+  size_t _sample_rate;
 };
 
 #endif

@@ -21,12 +21,12 @@ public:
   summary_t(std::vector<result_t> &&r) : _results{std::move(r)} {}
 
   void write_samples(std::ostream &os, size_t burnin, size_t sample_iter) const;
-  void write_mpp(std::ostream &os) const;
-  void write_mmpp(std::ostream &os) const;
+  void write_mpp(std::ostream &os, size_t burnin) const;
+  void write_mmpp(std::ostream &os, size_t burnin) const;
 
 private:
-  vector_t compute_mpp() const;
-  vector_t compute_mmpp() const;
+  vector_t compute_mpp(size_t burnin) const;
+  vector_t compute_mmpp(size_t burnin) const;
 
   std::vector<result_t> _results;
 };

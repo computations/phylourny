@@ -1,6 +1,7 @@
 #include "summary.hpp"
 #include "tournament.hpp"
 #include <cmath>
+#include <cstddef>
 #include <limits>
 
 std::ostream &operator<<(std::ostream &os, const result_t &r) {
@@ -23,46 +24,51 @@ void summary_t::write_samples(std::ostream &os, size_t burnin,
   os << "]\n";
 }
 
-void summary_t::write_mpp(std::ostream &os) const {
-  auto mpp = compute_mpp();
+void summary_t::write_mpp(std::ostream &os, size_t burnin) const {
+  auto mpp = compute_mpp(burnin);
   os << to_json(mpp) << std::endl;
 }
 
-void summary_t::write_mmpp(std::ostream &os) const {
-  auto mmpp = compute_mmpp();
+void summary_t::write_mmpp(std::ostream &os, size_t burnin) const {
+  auto mmpp = compute_mmpp(burnin);
   os << to_json(mmpp) << std::endl;
 }
 
-vector_t summary_t::compute_mpp() const {
+vector_t summary_t::compute_mpp(size_t burnin) const {
+  if (burnin > _results.size()) {
+    throw std::runtime_error("Burnin is longer than results");
+  }
+
   vector_t best_probs = _results[0].win_prob;
   double best_llh = -std::numeric_limits<double>::infinity();
-  for (auto &r : _results) {
-    if (best_llh < r.llh) {
-      best_llh = r.llh;
-      best_probs = r.win_prob;
+
+  for (size_t i = burnin; i < _results.size(); ++i) {
+    if (best_llh < _results[i].llh) {
+      best_llh = _results[i].llh;
+      best_probs = _results[i].win_prob;
     }
   }
   return best_probs;
 }
 
-vector_t summary_t::compute_mmpp() const {
+vector_t summary_t::compute_mmpp(size_t burnin) const {
+  if (burnin > _results.size()) {
+    throw std::runtime_error("Burnin is longer than results");
+  }
+
   vector_t avg_probs(_results.front().win_prob.size(), 0);
 
-  double max_llh = -std::numeric_limits<double>::infinity();
-  for (auto &r : _results) {
-    max_llh = std::max(r.llh, max_llh);
-  }
-
-  double total_lh = 0;
-  for (auto &r : _results) {
-    total_lh += std::exp(r.llh - max_llh);
-  }
-
-  for (auto &r : _results) {
-    double weight = exp(r.llh - max_llh) / total_lh;
+  size_t total_iters = 0;
+  for (size_t i = burnin; i < _results.size(); ++i) {
+    total_iters++;
     for (size_t i = 0; i < avg_probs.size(); i++) {
-      avg_probs[i] += r.win_prob[i] * weight;
+      avg_probs[i] += _results[i].win_prob[i];
     }
   }
+
+  for (size_t i = 0; i < avg_probs.size(); i++) {
+    avg_probs[i] /= static_cast<double>(total_iters);
+  }
+
   return avg_probs;
 }

@@ -210,10 +210,10 @@ int main(int argc, char **argv) {
       summary.write_samples(outfile, 0, 1);
 
       std::ofstream mpp_outfile(output_prefix + ".mpp.json");
-      summary.write_mpp(mpp_outfile);
+      summary.write_mpp(mpp_outfile, 1000000);
 
       std::ofstream mmpp_outfile(output_prefix + ".mmpp.json");
-      summary.write_mmpp(mmpp_outfile);
+      summary.write_mmpp(mmpp_outfile, 0);
     }
 
     if (cli_options["odds"].initialized()) {
