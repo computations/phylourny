@@ -24,8 +24,8 @@ void summary_t::write_samples(std::ostream &os, size_t burnin,
   os << "]\n";
 }
 
-void summary_t::write_mpp(std::ostream &os, size_t burnin) const {
-  auto mpp = compute_mpp(burnin);
+void summary_t::write_mlp(std::ostream &os, size_t burnin) const {
+  auto mpp = compute_mlp(burnin);
   os << to_json(mpp) << std::endl;
 }
 
@@ -34,9 +34,9 @@ void summary_t::write_mmpp(std::ostream &os, size_t burnin) const {
   os << to_json(mmpp) << std::endl;
 }
 
-vector_t summary_t::compute_mpp(size_t burnin) const {
+vector_t summary_t::compute_mlp(size_t burnin) const {
   if (burnin > _results.size()) {
-    throw std::runtime_error("Burnin is longer than results");
+    throw std::runtime_error("Burnin is longer than result for mlps");
   }
 
   vector_t best_probs = _results[0].win_prob;
@@ -53,7 +53,7 @@ vector_t summary_t::compute_mpp(size_t burnin) const {
 
 vector_t summary_t::compute_mmpp(size_t burnin) const {
   if (burnin > _results.size()) {
-    throw std::runtime_error("Burnin is longer than results");
+    throw std::runtime_error("Burnin is longer than results for mmpp");
   }
 
   vector_t avg_probs(_results.front().win_prob.size(), 0);
@@ -61,8 +61,8 @@ vector_t summary_t::compute_mmpp(size_t burnin) const {
   size_t total_iters = 0;
   for (size_t i = burnin; i < _results.size(); ++i) {
     total_iters++;
-    for (size_t i = 0; i < avg_probs.size(); i++) {
-      avg_probs[i] += _results[i].win_prob[i];
+    for (size_t j = 0; j < avg_probs.size(); j++) {
+      avg_probs[j] += _results[i].win_prob[j];
     }
   }
 

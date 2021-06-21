@@ -209,11 +209,11 @@ int main(int argc, char **argv) {
       std::ofstream outfile(output_prefix + ".samples.json");
       summary.write_samples(outfile, 0, 1);
 
-      std::ofstream mpp_outfile(output_prefix + ".mpp.json");
-      summary.write_mpp(mpp_outfile, 1000000);
+      std::ofstream mlp_outfile(output_prefix + ".mlp.json");
+      summary.write_mlp(mlp_outfile, 1000000);
 
       std::ofstream mmpp_outfile(output_prefix + ".mmpp.json");
-      summary.write_mmpp(mmpp_outfile, 0);
+      summary.write_mmpp(mmpp_outfile, 1000000);
     }
 
     if (cli_options["odds"].initialized()) {
