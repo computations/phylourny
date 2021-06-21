@@ -169,8 +169,7 @@ int main(int argc, char **argv) {
 
     {
       std::ifstream teams_file(cli_options["teams"].value<std::string>());
-      std::string tmp;
-      while (teams_file >> tmp) {
+      for (std::string tmp; std::getline(teams_file, tmp);) {
         teams.push_back(tmp);
       }
     }
