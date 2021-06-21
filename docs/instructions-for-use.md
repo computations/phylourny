@@ -16,6 +16,7 @@ To use Phylourny to predict the UEFA 2020 tournament, follow these steps:
   - The required arguments are `--teams` and `--prefix`
   - `--teams` takes the `teams.ini` file from earlier.
   - **The prefix does not work with directories right now.**
+  - **Warning: the samples file will be on the order of 1 GB.**
   - Relevant optional arguments are:
     - `--matches`, which takes the match history from earlier.
     - `--probs`, which takes the csv file produced by the python script from step 2.
