@@ -85,17 +85,17 @@ class tournament_node_t;
 
 class tournament_edge_t {
 public:
-  enum edge_type_t {
+  enum class edge_type_e {
     win,
     loss,
   };
 
   /* Constructors */
-  tournament_edge_t() : _node{nullptr}, _edge_type{edge_type_t::win} {}
+  tournament_edge_t() : _node{nullptr}, _edge_type{edge_type_e::win} {}
   tournament_edge_t(const std::shared_ptr<tournament_node_t> &node,
-                    edge_type_t edge_type)
+                    edge_type_e edge_type)
       : _node{std::move(node)}, _edge_type{edge_type} {}
-  tournament_edge_t(tournament_node_t *node, edge_type_t edge_type)
+  tournament_edge_t(tournament_node_t *node, edge_type_e edge_type)
       : _node{node}, _edge_type{edge_type} {}
 
   /* Operators */
@@ -106,7 +106,7 @@ public:
 
   /* Attributes */
   bool empty() const { return _node == nullptr; }
-  inline bool is_win() const { return _edge_type == win; }
+  inline bool is_win() const { return _edge_type == edge_type_e::win; }
   inline bool is_loss() const { return !is_win(); }
 
   inline vector_t eval(const matrix_t &pmatrix, size_t tip_count) const;
@@ -114,7 +114,7 @@ public:
 private:
   /* Data Members */
   std::shared_ptr<tournament_node_t> _node;
-  edge_type_t _edge_type;
+  edge_type_e _edge_type;
 };
 
 struct tournament_children_t {
@@ -133,14 +133,14 @@ public:
   tournament_node_t(const tournament_edge_t &l, const tournament_edge_t &r)
       : tournament_node_t{tournament_children_t{l, r}} {}
   tournament_node_t(const std::shared_ptr<tournament_node_t> &l,
-                    tournament_edge_t::edge_type_t lt,
+                    tournament_edge_t::edge_type_e lt,
                     const std::shared_ptr<tournament_node_t> &r,
-                    tournament_edge_t::edge_type_t rt)
+                    tournament_edge_t::edge_type_e rt)
       : tournament_node_t{tournament_edge_t{l, lt}, tournament_edge_t{r, rt}} {}
   tournament_node_t(const std::shared_ptr<tournament_node_t> &l,
                     const std::shared_ptr<tournament_node_t> &r)
-      : tournament_node_t{l, tournament_edge_t::win, r,
-                          tournament_edge_t::win} {}
+      : tournament_node_t{l, tournament_edge_t::edge_type_e::win, r,
+                          tournament_edge_t::edge_type_e::win} {}
 
   bool is_tip() const;
   size_t tip_count() const;
@@ -173,9 +173,10 @@ private:
 class tournament_t {
 public:
   tournament_t()
-      : _head{
-            tournament_edge_t{new tournament_node_t, tournament_edge_t::win},
-            tournament_edge_t{new tournament_node_t, tournament_edge_t::win}} {
+      : _head{tournament_edge_t{new tournament_node_t,
+                                tournament_edge_t::edge_type_e::win},
+              tournament_edge_t{new tournament_node_t,
+                                tournament_edge_t::edge_type_e::win}} {
     relabel_indicies();
   }
 

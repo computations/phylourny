@@ -250,45 +250,45 @@ TEST_CASE("4 team tournament with losers bracket") {
   std::shared_ptr<tournament_node_t> w1{
       new tournament_node_t{
           (n1),
-          tournament_edge_t::edge_type_t::win,
+          tournament_edge_t::edge_type_e::win,
           (n2),
-          tournament_edge_t::edge_type_t::win,
+          tournament_edge_t::edge_type_e::win,
       },
   };
 
   std::shared_ptr<tournament_node_t> w2{
       new tournament_node_t{
           (n3),
-          tournament_edge_t::edge_type_t::win,
+          tournament_edge_t::edge_type_e::win,
           (n4),
-          tournament_edge_t::edge_type_t::win,
+          tournament_edge_t::edge_type_e::win,
       },
   };
 
   std::shared_ptr<tournament_node_t> w3{
       new tournament_node_t{
           (w1),
-          tournament_edge_t::edge_type_t::win,
+          tournament_edge_t::edge_type_e::win,
           (w2),
-          tournament_edge_t::edge_type_t::win,
+          tournament_edge_t::edge_type_e::win,
       },
   };
 
   std::shared_ptr<tournament_node_t> l3{
       new tournament_node_t{
           (w1),
-          tournament_edge_t::edge_type_t::loss,
+          tournament_edge_t::edge_type_e::loss,
           (w2),
-          tournament_edge_t::edge_type_t::loss,
+          tournament_edge_t::edge_type_e::loss,
       },
   };
 
   std::shared_ptr<tournament_node_t> l4{
       new tournament_node_t{
           w3,
-          tournament_edge_t::edge_type_t::loss,
+          tournament_edge_t::edge_type_e::loss,
           l3,
-          tournament_edge_t::edge_type_t::win,
+          tournament_edge_t::edge_type_e::win,
       },
   };
 
