@@ -63,141 +63,6 @@ tournament_t tournament_factory(const std::vector<std::string> &team_labels) {
   return t;
 }
 
-matrix_t uniform_matrix_factory(size_t n) {
-  matrix_t matrix;
-  for (size_t i = 0; i < n; ++i) {
-    matrix.emplace_back(n);
-    for (size_t j = 0; j < n; ++j) {
-      if (i == j) {
-        matrix[i][j] = 0.0;
-      } else {
-        matrix[i][j] = 0.5;
-      }
-    }
-  }
-  return matrix;
-}
-
-matrix_t random_matrix_factory(size_t n, uint64_t seed) {
-  matrix_t                         matrix;
-  std::mt19937_64                  rng(seed);
-  std::uniform_real_distribution<> dist;
-  for (size_t i = 0; i < n; ++i) { matrix.emplace_back(n); }
-  for (size_t i = 0; i < n; ++i) {
-    for (size_t j = i; j < n; ++j) {
-      if (i == j) {
-        matrix[i][j] = 0.0;
-      } else {
-        matrix[i][j] = dist(rng);
-        matrix[j][i] = 1 - matrix[i][j];
-      }
-    }
-  }
-  return matrix;
-}
-
-double compute_entropy(const vector_t &v) {
-  double ent = 0.0;
-  for (auto f : v) { ent += -f * log2(f); }
-  return ent;
-}
-
-double compute_perplexity(const vector_t &v) {
-  double ent = compute_entropy(v);
-  return pow(2.0, ent);
-}
-
-std::string to_json(const matrix_t &m) {
-  std::stringstream out;
-  out << std::setprecision(3);
-  for (auto &i : m) {
-    out << "[";
-    for (auto &j : i) {
-      out << std::setw(3);
-      out << std::fixed << j << ", ";
-    }
-    out.seekp(-1, out.cur);
-    out << "],\n";
-  }
-  out.seekp(-2, out.cur);
-  out << "\n";
-  auto ret_str = out.str();
-  ret_str.resize(ret_str.size() - 1);
-  return ret_str;
-}
-
-std::string to_json(const vector_t &m) {
-  std::stringstream out;
-  out << std::setprecision(3);
-  out << "[";
-  for (auto &i : m) {
-    out << std::setw(3);
-    out << std::fixed << i << ", ";
-  }
-  out.seekp(-2, out.cur);
-  out << "]";
-  auto tmp = out.str();
-  tmp.resize(tmp.size() - 1);
-  return tmp;
-}
-
-std::string to_json(const std::vector<size_t> &m) {
-  std::stringstream out;
-  out << "[";
-  for (auto &i : m) {
-    out << std::setw(3);
-    out << std::fixed << i << ", ";
-  }
-  out.seekp(-2, out.cur);
-  out << "]";
-  auto tmp = out.str();
-  tmp.resize(tmp.size() - 1);
-  return tmp;
-}
-
-std::string to_string(const matrix_t &m) {
-  std::stringstream out;
-  out << std::setprecision(3);
-  for (auto &i : m) {
-    out << "[";
-    for (auto &j : i) {
-      out << std::setw(3);
-      out << std::fixed << j << " ";
-    }
-    out.seekp(-1, out.cur);
-    out << "]\n";
-  }
-  out.seekp(-1, out.cur);
-  auto ret_str = out.str();
-  ret_str.resize(ret_str.size() - 1);
-  return ret_str;
-}
-
-std::string to_string(const vector_t &m) {
-  std::stringstream out;
-  out << std::setprecision(3);
-  out << "[";
-  for (auto &i : m) {
-    out << std::setw(3);
-    out << std::fixed << i << " ";
-  }
-  out.seekp(-1, out.cur);
-  out << "]";
-  return out.str();
-}
-
-std::string to_string(const std::vector<size_t> &m) {
-  std::stringstream out;
-  out << "[";
-  for (auto &i : m) {
-    out << std::setw(3);
-    out << std::fixed << i << " ";
-  }
-  out.seekp(-1, out.cur);
-  out << "]";
-  return out.str();
-}
-
 bool tournament_node_t::is_tip() const {
   return std::holds_alternative<team_t>(_children);
 }
@@ -292,15 +157,35 @@ vector_t tournament_node_t::eval(const matrix_t &pmatrix,
   return fold_a;
 }
 
-vector_t tournament_node_t::fold(const vector_t &w,
+/**
+ * A "fold" what I call each term of the main formula for evaluation. In the
+ * expression
+ *
+ * @f[
+ * R_i = x_i \times \sum_j \left( y_j \times P_{i \vdash j} \right)
+ *     + y_i \times \sum_j \left( x_j \times P_{i \vdash j} \right)
+ * @f]
+ *
+ * Where @f$ x_i @f$ is the @f$ i @f$th term of the WPV @f$ x @f$.Afold then, is
+ * the one of the two terms.
+ *
+ * @param x This corresponds to the `x` in the left fold above.
+ *
+ * @param y This corresponds to the `y` in the left fold above.
+ *
+ * @param bestof How many games are to be played.
+ *
+ * @param pmatrix The pairwise win probability matrix.
+ */
+vector_t tournament_node_t::fold(const vector_t &x,
                                  const vector_t &y,
                                  uint64_t        bestof,
-                                 const matrix_t &p) const {
-  vector_t r(w.size());
-  for (size_t m1 = 0; m1 < w.size(); ++m1) {
-    if (w[m1] == 0.0) { continue; }
+                                 const matrix_t &pmatrix) const {
+  vector_t r(x.size());
+  for (size_t m1 = 0; m1 < x.size(); ++m1) {
+    if (x[m1] == 0.0) { continue; }
     for (size_t m2 = 0; m2 < y.size(); ++m2) {
-      r[m1] += bestof_n(p[m1][m2], p[m2][m1], bestof) * y[m2];
+      r[m1] += bestof_n(pmatrix[m1][m2], pmatrix[m2][m1], bestof) * y[m2];
     }
 
     /* This line was added to make it so that multi-elimination tournaments
@@ -310,7 +195,7 @@ vector_t tournament_node_t::fold(const vector_t &w,
      * probabiltiy, it doesn't make any sense. So, I need to do something about
      * this.
      */
-    r[m1] *= w[m1] / (1.0 - y[m1]);
+    r[m1] *= x[m1] / (1.0 - y[m1]);
   }
   return r;
 }

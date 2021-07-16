@@ -11,9 +11,18 @@ std::ostream &operator<<(std::ostream &os, const result_t &r) {
   return os;
 }
 
-void summary_t::write_samples(std::ostream &os,
-                              size_t        burnin,
-                              size_t        sample_iter) const {
+/**
+ * Write samples in a CSV format to a stream. The output format for this
+ * function is JSON.
+ *
+ * @param os Output stream to insert the samples. The output format is JSON.
+ *
+ * @param burnin Number of initial samples to discard before summarizing.
+ *
+ * @param sample_iter Sample ever `sample_iter` results after the burnin.
+ */
+void summary_t::write_samples(std::ostream &os, size_t burnin,
+                              size_t sample_iter) const {
   if (burnin > _results.size()) {
     throw std::runtime_error("Burnin is longer than results");
   }
@@ -25,11 +34,25 @@ void summary_t::write_samples(std::ostream &os,
   os << "]\n";
 }
 
+/**
+ * Compute and write the maximum likelihood prediction to a stream
+ *
+ * @param os Stream to output results. Results are written in JSON format.
+ *
+ * @param burnin Initial samples to discard before computing the MLP.
+ */
 void summary_t::write_mlp(std::ostream &os, size_t burnin) const {
   auto mpp = compute_mlp(burnin);
   os << to_json(mpp) << std::endl;
 }
 
+/**
+ * Compute and write the maximum marginal posterior prediction to the stream.
+ *
+ * @param os Stream to output results. Results are written in JSON format.
+ *
+ * @param burnin Initial samples to discard before compute the MMPP.
+ */
 void summary_t::write_mmpp(std::ostream &os, size_t burnin) const {
   auto mmpp = compute_mmpp(burnin);
   os << to_json(mmpp) << std::endl;

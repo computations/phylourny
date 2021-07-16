@@ -1,3 +1,7 @@
+/**
+ * CLI option parser. Header only and templated. Currently is not in a great
+ * state, as the library is very unergonomic to consume.
+ */
 #ifndef __CLIHPP__
 #define __CLIHPP__
 
@@ -6,14 +10,26 @@
 #include <cstring>
 #include <exception>
 #include <functional>
-#include <iostream>
 #include <sstream>
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
 
+/** @defgroup cli_errors CLI Parser Error Types
+ */
+
+/**
+ * Base exception type for cli option parsing
+ *
+ * @ingroup: cli_errors
+ */
 class cli_option_exception : public std::exception {};
 
+/**
+ * Exception for an option not being recognized by the parser
+ *
+ * @ingroup: cli_errors
+ */
 class cli_option_not_recognized : public cli_option_exception {
 public:
   cli_option_not_recognized(std::string m) : _what{m} {}
@@ -23,6 +39,11 @@ private:
   std::string _what;
 };
 
+/**
+ * Exception for a required argument not found
+ *
+ * @ingroup: cli_errors
+ */
 class cli_option_argument_not_found : public cli_option_exception {
 public:
   cli_option_argument_not_found(std::string m) : _what{m} {}
@@ -32,6 +53,11 @@ private:
   std::string _what;
 };
 
+/**
+ * Exception for an arguement being accessed, but not initialized.
+ *
+ * @ingroup: cli_errors
+ */
 class cli_option_not_initialized : public cli_option_exception {
 public:
   cli_option_not_initialized(std::string m) : _what{m} {}
@@ -41,6 +67,11 @@ private:
   std::string _what;
 };
 
+/**
+ * Exception that signals to print the help
+ *
+ * @ingroup: cli_errors
+ */
 class cli_option_help : public cli_option_exception {
 public:
   const char *what() const noexcept override {
@@ -48,6 +79,9 @@ public:
   }
 };
 
+/**
+ * Class that contains a CLI option and its value.
+ */
 class cli_option_t {
 public:
   cli_option_t(const char *                          name,
@@ -75,10 +109,14 @@ public:
     if (_opt_parser.has_value()) { _opt_val = (*_opt_parser)(_optarg); }
   }
 
-  void flag() { _opt_val = true; }
+  void set_flag() { _opt_val = true; }
 
   bool initialized() const { return _opt_val.has_value(); }
 
+  /**
+   * Gets the value from a CLI option. Templated because the type of the
+   * argument isn't known at runtime (in this version).
+   */
   template <typename T> T value() {
     if (!initialized()) {
       throw cli_option_not_initialized{
@@ -87,11 +125,21 @@ public:
     return std::any_cast<T>(_opt_val);
   }
 
+  /**
+   * Gets the value from a CLI option, but with a default value. Templated
+   * because the type of the value is not known at runtime.
+   */
   template <typename T> T value(const T &default_value) {
     if (!initialized()) { return default_value; }
     return std::any_cast<T>(_opt_val);
   }
 
+  /**
+   * Return help for this option as a string.
+   *
+   * @param align Controls the gap between the options and help text. Behaves
+   * like a "tab stop".
+   */
   std::string help(int align = 20) const {
     std::stringstream oss;
     oss << "--" << _name;
@@ -112,12 +160,29 @@ public:
   }
 
 private:
-  const char *                                         _name;
-  const char *                                         _description;
-  const char *                                         _optarg;
-  bool                                                 _required;
-  bool                                                 _argument;
-  std::any                                             _opt_val;
+  /**
+   * Statically allocated name of the option. Also the text that is parsed on
+   * the command line.
+   */
+  const char *_name;
+
+  /**
+   * Description of the option. Used in the help text.
+   */
+  const char *_description;
+
+  /**
+   * Pointer to the actual option argument. Will be used to parse _opt_val
+   */
+  const char *_optarg;
+
+  bool     _required;
+  bool     _argument;
+  std::any _opt_val;
+
+  /**
+   * Optional custom parser for the value.
+   */
   std::optional<std::function<std::any(const char *)>> _opt_parser;
 };
 
@@ -153,6 +218,9 @@ cli_option_t option_flag(const char *name, const char *desc) {
   };
 }
 
+/**
+ * Actual CLI options for the program.
+ */
 cli_option_t args[] = {
     option_with_argument<std::string>("teams", "File with the team names")
         .required(),
@@ -168,6 +236,10 @@ cli_option_t args[] = {
     option_flag("debug", "Enable debug output"),
 };
 
+/**
+ * A list of all the options. Also includes a constructor that will parse the
+ * options. The default constructor has been deleted.
+ */
 class cli_options_t {
 public:
   cli_options_t() = delete;
@@ -197,7 +269,7 @@ public:
           args[k].consume(argv[++i]);
           break;
         } else {
-          args[k].flag();
+          args[k].set_flag();
         }
       }
       if (!found) {
@@ -212,6 +284,12 @@ public:
     }
   };
 
+  /**
+   * Use this function to access the parsed CLI options.
+   *
+   * @param key The CLI option, as a string. No preceding characters (such as
+   * '--').
+   */
   cli_option_t operator[](std::string key) { return *_opt_vals.at(key); }
 
   static std::string help() {
