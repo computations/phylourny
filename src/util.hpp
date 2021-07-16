@@ -7,6 +7,9 @@
 typedef std::vector<std::vector<double>> matrix_t;
 typedef std::vector<double> vector_t;
 
+/**
+ * TEST INFO FROM HEADER
+ */
 matrix_t uniform_matrix_factory(size_t n);
 matrix_t random_matrix_factory(size_t n, uint64_t seed);
 

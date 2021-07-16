@@ -4,6 +4,9 @@
 #include <iomanip>
 #include <random>
 
+/**
+ * TEST INFO FROM CPP
+ */
 matrix_t uniform_matrix_factory(size_t n) {
   matrix_t matrix;
   for (size_t i = 0; i < n; ++i) {

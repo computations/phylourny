@@ -170,17 +170,38 @@ vector_t tournament_node_t::eval(const matrix_t &pmatrix,
   return fold_a;
 }
 
-vector_t tournament_node_t::fold(const vector_t &w, const vector_t &y,
-                                 uint64_t bestof, const matrix_t &p) const {
-  vector_t r(w.size());
-  for (size_t m1 = 0; m1 < w.size(); ++m1) {
-    if (w[m1] == 0.0) {
+/**
+ * A "fold" what I call each term of the main formula for evaluation. In the
+ * expression
+ *
+ * @f[
+ * R_i = x_i \times \sum_j \left( y_j \times P_{i \vdash j} \right)
+ *     + y_i \times \sum_j \left( x_j \times P_{i \vdash j} \right)
+ * @f]
+ *
+ * Where @f$ x_i @f$ is the @f$ i @f$th term of the WPV @f$ x @f$.Afold then, is
+ * the one of the two terms.
+ *
+ * @param x This corresponds to the `x` in the left fold above.
+ *
+ * @param y This corresponds to the `y` in the left fold above.
+ *
+ * @param bestof How many games are to be played.
+ *
+ * @param pmatrix The pairwise win probability matrix.
+ */
+vector_t tournament_node_t::fold(const vector_t &x, const vector_t &y,
+                                 uint64_t bestof,
+                                 const matrix_t &pmatrix) const {
+  vector_t r(x.size());
+  for (size_t m1 = 0; m1 < x.size(); ++m1) {
+    if (x[m1] == 0.0) {
       continue;
     }
     for (size_t m2 = 0; m2 < y.size(); ++m2) {
-      r[m1] += bestof_n(p[m1][m2], p[m2][m1], bestof) * y[m2];
+      r[m1] += bestof_n(pmatrix[m1][m2], pmatrix[m2][m1], bestof) * y[m2];
     }
-    r[m1] *= w[m1] / (1.0 - y[m1]);
+    r[m1] *= x[m1] / (1.0 - y[m1]);
   }
   return r;
 }
