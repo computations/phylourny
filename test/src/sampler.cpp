@@ -16,7 +16,7 @@ TEST_CASE("sampler_t simple case", "[sampler_t]") {
     dataset_t ds(matches);
     sampler_t s{ds, std::move(t)};
     SECTION("Running the chain") {
-      s.run_chain(100, rand());
+      s.run_chain(100, (rand() % 3));
       auto r = s.report();
       CHECK(r.size() > 0);
       CHECK(r.size() <= 100);

@@ -36,7 +36,7 @@ constexpr inline std::pair<double, double> make_ab(double median, double k) {
 class sampler_t {
 public:
   sampler_t(const dataset_t &ds, tournament_t &&t) :
-      _dataset{ds}, _tournament{t} {}
+      _dataset{ds}, _tournament{t}, _burnin{0}, _sample_rate{1} {}
 
   void run_chain(size_t iters, unsigned int seed) {
     size_t   team_count = _tournament.tip_count();
@@ -75,7 +75,9 @@ public:
                   next_lh / cur_lh);
       if (std::isnan(next_lh)) { throw std::runtime_error("next_lh is nan"); }
       if (coin(gen) < std::exp(next_lh - cur_lh)) {
-        record_sample(temp_params, next_lh);
+        if (i >= _burnin && (i - _burnin) % _sample_rate == 0) {
+          record_sample(temp_params, next_lh);
+        }
         std::swap(next_lh, cur_lh);
         std::swap(temp_params, params);
       }
