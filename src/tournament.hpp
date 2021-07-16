@@ -87,7 +87,7 @@ class tournament_node_t;
 
 class tournament_edge_t {
 public:
-  enum edge_type_t {
+  enum class edge_type_t {
     win,
     loss,
   };
@@ -108,7 +108,7 @@ public:
 
   /* Attributes */
   bool        empty() const { return _node == nullptr; }
-  inline bool is_win() const { return _edge_type == win; }
+  inline bool is_win() const { return _edge_type == edge_type_t::win; }
   inline bool is_loss() const { return !is_win(); }
 
   inline vector_t eval(const matrix_t &pmatrix, size_t tip_count) const;
@@ -141,7 +141,10 @@ public:
       tournament_node_t{tournament_edge_t{l, lt}, tournament_edge_t{r, rt}} {}
   tournament_node_t(const std::shared_ptr<tournament_node_t> &l,
                     const std::shared_ptr<tournament_node_t> &r) :
-      tournament_node_t{l, tournament_edge_t::win, r, tournament_edge_t::win} {}
+      tournament_node_t{l,
+                        tournament_edge_t::edge_type_t::win,
+                        r,
+                        tournament_edge_t::edge_type_t::win} {}
 
   bool   is_tip() const;
   size_t tip_count() const;
@@ -176,8 +179,10 @@ private:
 class tournament_t {
 public:
   tournament_t() :
-      _head{tournament_edge_t{new tournament_node_t, tournament_edge_t::win},
-            tournament_edge_t{new tournament_node_t, tournament_edge_t::win}} {
+      _head{tournament_edge_t{new tournament_node_t,
+                              tournament_edge_t::edge_type_t::win},
+            tournament_edge_t{new tournament_node_t,
+                              tournament_edge_t::edge_type_t::win}} {
     relabel_indicies();
   }
 
