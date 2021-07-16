@@ -319,6 +319,14 @@ vector_t tournament_node_t::fold(const vector_t &w, const vector_t &y,
     for (size_t m2 = 0; m2 < y.size(); ++m2) {
       r[m1] += bestof_n(p[m1][m2], p[m2][m1], bestof) * y[m2];
     }
+
+    /* This line was added to make it so that multi-elimination tournaments
+     * compute a "correct" wpv. This is to say, that the wpv will sum to 1. 
+     *
+     * The problem is, this isn't correct. From a standpoint about the
+     * probabiltiy, it doesn't make any sense. So, I need to do something about
+     * this.
+     */
     r[m1] *= w[m1] / (1.0 - y[m1]);
   }
   return r;
