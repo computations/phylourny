@@ -10,7 +10,7 @@ obtain higher fidelity estimations with less effort.
 As stated before the algorithm used in Phylourny is a modified version of
 Felsenstein's pruning algorithm for evaluating the likelihood of a tree and a
 model given some data. As pointed out by Zhang in his book _Computational
-Molecular Evolution_ this algorithm is itself a versions of a method from the
+Molecular Evolution_ this algorithm is itself a version of a method from the
 early Chinese mathematics to evaluate polynomials faster. We use this to
 enumerate the paths a team can take through the tournament in a quicker fashion
 than brute force enumeration.
