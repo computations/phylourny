@@ -131,7 +131,8 @@ public:
   tournament_node_t(team_t t) : _children{t} {}
   tournament_node_t(std::string team_name) : _children{team_t{team_name, 0}} {}
 
-  tournament_node_t(const tournament_children_t &c) : _children{c} {}
+  tournament_node_t(const tournament_children_t &c) :
+      _children{c}, _type{tournament_node_type_t::simple} {}
   tournament_node_t(const tournament_edge_t &l, const tournament_edge_t &r) :
       tournament_node_t{tournament_children_t{l, r}} {}
   tournament_node_t(const std::shared_ptr<tournament_node_t> &l,
@@ -172,8 +173,26 @@ private:
   inline const team_t &team() const { return std::get<team_t>(_children); }
   inline team_t &      team() { return std::get<team_t>(_children); }
 
+  enum class tournament_node_type_t {
+    simple,
+    crossover,
+  };
+
+  template <tournament_node_type_t T>
+  vector_t internal_eval(const matrix_t &pmatrix, size_t tip_count) const;
+
+  template <>
+  vector_t
+  internal_eval<tournament_node_type_t::simple>(const matrix_t &pmatrix,
+                                                size_t tip_count) const;
+  template <>
+  vector_t
+  internal_eval<tournament_node_type_t::crossover>(const matrix_t &pmatrix,
+                                                   size_t tip_count) const;
+
   /* Data Members */
   std::variant<tournament_children_t, team_t> _children;
+  tournament_node_type_t                      _type;
 };
 
 class tournament_t {

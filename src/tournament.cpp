@@ -266,6 +266,18 @@ std::vector<size_t> tournament_node_t::members(size_t node_count) const {
 
 vector_t tournament_node_t::eval(const matrix_t &pmatrix,
                                  size_t          tip_count) const {
+  if (_type == tournament_node_type_t::simple) {
+    return internal_eval<tournament_node_type_t::simple>(pmatrix, tip_count);
+  }
+  if (_type == tournament_node_type_t::crossover) {
+    return internal_eval<tournament_node_type_t::crossover>(pmatrix, tip_count);
+  }
+}
+
+template <>
+vector_t tournament_node_t::internal_eval<
+    tournament_node_t::tournament_node_type_t::simple>(const matrix_t &pmatrix,
+                                                       size_t tip_count) const {
 
   if (is_tip()) {
     vector_t wpv(tip_count);
