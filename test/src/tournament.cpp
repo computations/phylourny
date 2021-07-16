@@ -129,11 +129,11 @@ TEST_CASE("tournament_factory", "[tournament_t]") {
 TEST_CASE("tournament_t larger cases", "[tournament_t]") {
   SECTION("sized 16") {
     size_t tsize = 16;
-    auto t = tournament_factory(tsize);
+    auto   t     = tournament_factory(tsize);
     SECTION("Uniform win probs") {
       auto m = uniform_matrix_factory(tsize);
       t.reset_win_probs(m);
-      auto r = t.eval();
+      auto   r   = t.eval();
       double sum = 0.0;
       for (auto f : r) {
         CHECK(f == Approx(1.0 / static_cast<double>(tsize)));
@@ -144,21 +144,19 @@ TEST_CASE("tournament_t larger cases", "[tournament_t]") {
     SECTION("Random win probs") {
       auto m = random_matrix_factory(tsize, rand());
       t.reset_win_probs(m);
-      auto r = t.eval();
+      auto   r   = t.eval();
       double sum = 0.0;
-      for (auto f : r) {
-        sum += f;
-      }
+      for (auto f : r) { sum += f; }
       CHECK(sum == Approx(1.0));
     }
   }
   SECTION("sized 32") {
     size_t tsize = 32;
-    auto t = tournament_factory(tsize);
+    auto   t     = tournament_factory(tsize);
     SECTION("Uniform win probs") {
       auto m = uniform_matrix_factory(tsize);
       t.reset_win_probs(m);
-      auto r = t.eval();
+      auto   r   = t.eval();
       double sum = 0.0;
       for (auto f : r) {
         CHECK(f == Approx(1.0 / static_cast<double>(tsize)));
@@ -169,11 +167,9 @@ TEST_CASE("tournament_t larger cases", "[tournament_t]") {
     SECTION("Random win probs") {
       auto m = random_matrix_factory(tsize, rand());
       t.reset_win_probs(m);
-      auto r = t.eval();
+      auto   r   = t.eval();
       double sum = 0.0;
-      for (auto f : r) {
-        sum += f;
-      }
+      for (auto f : r) { sum += f; }
       CHECK(sum == Approx(1.0));
     }
   }
@@ -183,29 +179,25 @@ TEST_CASE("tournament_t, unbalanced", "[tournament_t]") {
   SECTION("left sized 16, right sized 8") {
     size_t left_size = 16, right_size = 8;
     size_t total_size = left_size + right_size;
-    auto t1 = tournament_factory(left_size, right_size);
+    auto   t1         = tournament_factory(left_size, right_size);
 
     CHECK(t1.tip_count() == (total_size));
 
     SECTION("uniform rate matrix") {
       auto m1 = uniform_matrix_factory((total_size));
       t1.reset_win_probs(m1);
-      auto r1 = t1.eval();
+      auto   r1  = t1.eval();
       double sum = 0.0;
-      for (auto f : r1) {
-        sum += f;
-      }
+      for (auto f : r1) { sum += f; }
       CHECK(sum == Approx(1.0));
     }
 
     SECTION("random rate matrix") {
       auto m1 = random_matrix_factory((total_size), rand());
       t1.reset_win_probs(m1);
-      auto r1 = t1.eval();
+      auto   r1  = t1.eval();
       double sum = 0.0;
-      for (auto f : r1) {
-        sum += f;
-      }
+      for (auto f : r1) { sum += f; }
       CHECK(sum == Approx(1.0));
     }
   }
@@ -213,29 +205,25 @@ TEST_CASE("tournament_t, unbalanced", "[tournament_t]") {
   SECTION("left sized 8, right size 16") {
     size_t left_size = 8, right_size = 16;
     size_t total_size = left_size + right_size;
-    auto t1 = tournament_factory(left_size, right_size);
+    auto   t1         = tournament_factory(left_size, right_size);
 
     CHECK(t1.tip_count() == (total_size));
 
     SECTION("uniform rate matrix") {
       auto m1 = uniform_matrix_factory((total_size));
       t1.reset_win_probs(m1);
-      auto r1 = t1.eval();
+      auto   r1  = t1.eval();
       double sum = 0.0;
-      for (auto f : r1) {
-        sum += f;
-      }
+      for (auto f : r1) { sum += f; }
       CHECK(sum == Approx(1.0));
     }
 
     SECTION("random rate matrix") {
       auto m1 = random_matrix_factory((total_size), rand());
       t1.reset_win_probs(m1);
-      auto r1 = t1.eval();
+      auto   r1  = t1.eval();
       double sum = 0.0;
-      for (auto f : r1) {
-        sum += f;
-      }
+      for (auto f : r1) { sum += f; }
       CHECK(sum == Approx(1.0));
     }
   }
@@ -299,10 +287,10 @@ TEST_CASE("4 team tournament with losers bracket") {
 
   t.relabel_indicies();
   size_t tip_count = t.tip_count();
-  auto m = uniform_matrix_factory(tip_count);
+  auto   m         = uniform_matrix_factory(tip_count);
   t.reset_win_probs(m);
 
-  auto r = t.eval();
+  auto   r   = t.eval();
   double sum = 0.0;
   for (auto f : r) {
     sum += f;

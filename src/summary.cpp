@@ -11,8 +11,9 @@ std::ostream &operator<<(std::ostream &os, const result_t &r) {
   return os;
 }
 
-void summary_t::write_samples(std::ostream &os, size_t burnin,
-                              size_t sample_iter) const {
+void summary_t::write_samples(std::ostream &os,
+                              size_t        burnin,
+                              size_t        sample_iter) const {
   if (burnin > _results.size()) {
     throw std::runtime_error("Burnin is longer than results");
   }
@@ -40,11 +41,11 @@ vector_t summary_t::compute_mlp(size_t burnin) const {
   }
 
   vector_t best_probs = _results[0].win_prob;
-  double best_llh = -std::numeric_limits<double>::infinity();
+  double   best_llh   = -std::numeric_limits<double>::infinity();
 
   for (size_t i = burnin; i < _results.size(); ++i) {
     if (best_llh < _results[i].llh) {
-      best_llh = _results[i].llh;
+      best_llh   = _results[i].llh;
       best_probs = _results[i].win_prob;
     }
   }

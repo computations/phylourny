@@ -10,8 +10,8 @@
 #include <unistd.h>
 
 const clock_t CLOCK_START = clock();
-extern bool __PROGRESS_BAR_FLAG__;
-extern int __VERBOSE__;
+extern bool   __PROGRESS_BAR_FLAG__;
+extern int    __VERBOSE__;
 
 #define DEBUG_IF_FLAG 1
 
@@ -30,8 +30,8 @@ extern int __VERBOSE__;
 
 #define print_clock                                                            \
   do {                                                                         \
-    fprintf(stdout, "[%.2f] ",                                                 \
-            ((double)clock() - CLOCK_START) / CLOCKS_PER_SEC);                 \
+    fprintf(                                                                   \
+        stdout, "[%.2f] ", ((double)clock() - CLOCK_START) / CLOCKS_PER_SEC);  \
   } while (0)
 
 #define debug_print(level, fmt, ...)                                           \
@@ -46,19 +46,17 @@ extern int __VERBOSE__;
   } while (0)
 
 #define debug_string(level, x)                                                 \
-  do {                                                                         \
-    debug_print(level, "%s", x);                                               \
-  } while (0)
+  do { debug_print(level, "%s", x); } while (0)
 
 #define print_trace()                                                          \
   do {                                                                         \
     if (DEBUG_IF_FLAG) {                                                       \
-      void *callstack[128];                                                    \
-      int frames = backtrace(callstack, 128);                                  \
+      void * callstack[128];                                                   \
+      int    frames     = backtrace(callstack, 128);                           \
       char **bt_symbols = backtrace_symbols(callstack, frames);                \
       print_clock;                                                             \
-      fprintf(stderr, "BACKTRACE AT %s:%d:%s():\n", __FILE__, __LINE__,        \
-              __func__);                                                       \
+      fprintf(                                                                 \
+          stderr, "BACKTRACE AT %s:%d:%s():\n", __FILE__, __LINE__, __func__); \
       for (int i = 0; i < frames; ++i) {                                       \
         print_clock;                                                           \
         fprintf(stderr, "%s\n", bt_symbols[i]);                                \
@@ -75,12 +73,14 @@ extern int __VERBOSE__;
           fprintf(                                                             \
               stderr,                                                          \
               "assertion \"%s\" failed: file: %s, line: %d, comment: %s\n",    \
-              #cond, __FILE__, __LINE__, comment);                             \
+              #cond,                                                           \
+              __FILE__,                                                        \
+              __LINE__,                                                        \
+              comment);                                                        \
           abort();                                                             \
         }                                                                      \
       }                                                                        \
     }                                                                          \
   } while (0)
-
 
 #endif

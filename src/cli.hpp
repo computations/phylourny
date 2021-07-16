@@ -50,12 +50,16 @@ public:
 
 class cli_option_t {
 public:
-  cli_option_t(const char *name, const char *desc, bool argument,
-               std::function<std::any(const char *)> parser)
-      : _name{name}, _description{desc}, _argument{argument}, _opt_parser{
-                                                                  parser} {}
-  cli_option_t(const char *name, const char *desc, bool argument)
-      : _name{name}, _description{desc}, _argument{argument} {}
+  cli_option_t(const char *                          name,
+               const char *                          desc,
+               bool                                  argument,
+               std::function<std::any(const char *)> parser) :
+      _name{name},
+      _description{desc},
+      _argument{argument},
+      _opt_parser{parser} {}
+  cli_option_t(const char *name, const char *desc, bool argument) :
+      _name{name}, _description{desc}, _argument{argument} {}
 
   bool has_argument() const { return _argument; }
 
@@ -68,9 +72,7 @@ public:
 
   void consume(const char *o) {
     _optarg = o;
-    if (_opt_parser.has_value()) {
-      _opt_val = (*_opt_parser)(_optarg);
-    }
+    if (_opt_parser.has_value()) { _opt_val = (*_opt_parser)(_optarg); }
   }
 
   void flag() { _opt_val = true; }
@@ -86,9 +88,7 @@ public:
   }
 
   template <typename T> T value(const T &default_value) {
-    if (!initialized()) {
-      return default_value;
-    }
+    if (!initialized()) { return default_value; }
     return std::any_cast<T>(_opt_val);
   }
 
@@ -102,26 +102,22 @@ public:
       align -= 8;
     }
 
-    for (int i = 0; i < align; i++) {
-      oss << " ";
-    }
+    for (int i = 0; i < align; i++) { oss << " "; }
 
     oss << _description;
 
-    if (_required) {
-      oss << " (REQUIRED)";
-    }
+    if (_required) { oss << " (REQUIRED)"; }
 
     return oss.str();
   }
 
 private:
-  const char *_name;
-  const char *_description;
-  const char *_optarg;
-  bool _required;
-  bool _argument;
-  std::any _opt_val;
+  const char *                                         _name;
+  const char *                                         _description;
+  const char *                                         _optarg;
+  bool                                                 _required;
+  bool                                                 _argument;
+  std::any                                             _opt_val;
   std::optional<std::function<std::any(const char *)>> _opt_parser;
 };
 
@@ -133,20 +129,20 @@ cli_option_t option_with_argument(const char *name, const char *desc) {
 template <>
 cli_option_t option_with_argument<std::string>(const char *name,
                                                const char *desc) {
-  return cli_option_t{name, desc, true,
-                      [](const char *o) -> std::string { return {o}; }};
+  return cli_option_t{
+      name, desc, true, [](const char *o) -> std::string { return {o}; }};
 }
 
 template <>
 cli_option_t option_with_argument<double>(const char *name, const char *desc) {
-  return cli_option_t{name, desc, true,
-                      [](const char *o) -> double { return std::stod(o); }};
+  return cli_option_t{
+      name, desc, true, [](const char *o) -> double { return std::stod(o); }};
 }
 
 template <>
 cli_option_t option_with_argument<size_t>(const char *name, const char *desc) {
-  return cli_option_t{name, desc, true,
-                      [](const char *o) -> size_t { return std::stoull(o); }};
+  return cli_option_t{
+      name, desc, true, [](const char *o) -> size_t { return std::stoull(o); }};
 }
 
 cli_option_t option_flag(const char *name, const char *desc) {
@@ -184,16 +180,14 @@ public:
         throw cli_option_not_recognized{std::string{"Failed to recognize "} +
                                         cur_arg};
       }
-      cur_arg = cur_arg + 2;
+      cur_arg    = cur_arg + 2;
       bool found = false;
       if (strcmp(cur_arg, "help") == 0) {
         std::cout << help();
         throw cli_option_help{};
       }
       for (size_t k = 0; k < _option_count; ++k) {
-        if (strcmp(cur_arg, args[k].name()) != 0) {
-          continue;
-        }
+        if (strcmp(cur_arg, args[k].name()) != 0) { continue; }
         found = true;
         if (args[k].has_argument()) {
           if (i + 1 >= argc) {
@@ -208,7 +202,8 @@ public:
       }
       if (!found) {
         debug_print(EMIT_LEVEL_IMPORTANT,
-                    "Failed to recognize command line argument: %s", argv[i]);
+                    "Failed to recognize command line argument: %s",
+                    argv[i]);
       }
     }
 
@@ -222,14 +217,12 @@ public:
   static std::string help() {
     std::stringstream oss;
     oss << "Help:\n";
-    for (auto a : args) {
-      oss << "  " << a.help() << std::endl;
-    }
+    for (auto a : args) { oss << "  " << a.help() << std::endl; }
     return oss.str();
   }
 
 private:
-  size_t _option_count;
+  size_t                                          _option_count;
   std::unordered_map<std::string, cli_option_t *> _opt_vals;
 };
 

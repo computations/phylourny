@@ -10,7 +10,7 @@ TEST_CASE("dataset_t simple cases", "[dataset_t]") {
     dataset_t ds(matches);
     SECTION("likelihood") {
       params_t params{0.5, 0.5};
-      double lh = ds.likelihood(params);
+      double   lh = ds.likelihood(params);
       CHECK(!std::isnan(lh));
       CHECK(lh == Approx(0.5));
     }
@@ -27,21 +27,21 @@ TEST_CASE("dataset_t slightly more complex cases", "[dataset_t]") {
     dataset_t ds(matches);
     SECTION("likelihood, uniform params") {
       params_t params{0.5, 0.5};
-      double lh = ds.likelihood(params);
+      double   lh = ds.likelihood(params);
       CHECK(!std::isnan(lh));
       CHECK(lh == Approx(0.25));
     }
 
     SECTION("likelihood, team 0 superior params") {
       params_t params{0.25, 0.75};
-      double lh = ds.likelihood(params);
+      double   lh = ds.likelihood(params);
       CHECK(!std::isnan(lh));
       CHECK(lh == Approx(0.421875));
     }
 
     SECTION("likelihood, team 1 superior params") {
       params_t params{0.75, 0.25};
-      double lh = ds.likelihood(params);
+      double   lh = ds.likelihood(params);
       CHECK(!std::isnan(lh));
       CHECK(lh == Approx(0.046875));
     }

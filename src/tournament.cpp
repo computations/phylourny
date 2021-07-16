@@ -22,7 +22,7 @@ tournament_node_factory(size_t sub_tourny_size) {
   }
 
   while (nodes.size() != 1) {
-    size_t cur_size = nodes.size() / 2;
+    size_t                                          cur_size = nodes.size() / 2;
     std::vector<std::unique_ptr<tournament_node_t>> tmp_nodes;
     tmp_nodes.reserve(cur_size);
     for (size_t i = 0, j = 1; j < nodes.size(); i += 2, j += 2) {
@@ -79,12 +79,10 @@ matrix_t uniform_matrix_factory(size_t n) {
 }
 
 matrix_t random_matrix_factory(size_t n, uint64_t seed) {
-  matrix_t matrix;
-  std::mt19937_64 rng(seed);
+  matrix_t                         matrix;
+  std::mt19937_64                  rng(seed);
   std::uniform_real_distribution<> dist;
-  for (size_t i = 0; i < n; ++i) {
-    matrix.emplace_back(n);
-  }
+  for (size_t i = 0; i < n; ++i) { matrix.emplace_back(n); }
   for (size_t i = 0; i < n; ++i) {
     for (size_t j = i; j < n; ++j) {
       if (i == j) {
@@ -100,9 +98,7 @@ matrix_t random_matrix_factory(size_t n, uint64_t seed) {
 
 double compute_entropy(const vector_t &v) {
   double ent = 0.0;
-  for (auto f : v) {
-    ent += -f * log2(f);
-  }
+  for (auto f : v) { ent += -f * log2(f); }
   return ent;
 }
 
@@ -207,15 +203,10 @@ bool tournament_node_t::is_tip() const {
 }
 
 size_t tournament_node_t::tip_count() const {
-  if (is_tip())
-    return 1;
+  if (is_tip()) return 1;
   size_t t_c = 0;
-  if (children().left.is_win()) {
-    t_c += children().left->tip_count();
-  }
-  if (children().right.is_win()) {
-    t_c += children().right->tip_count();
-  }
+  if (children().left.is_win()) { t_c += children().left->tip_count(); }
+  if (children().right.is_win()) { t_c += children().right->tip_count(); }
 
   return t_c;
 }
@@ -249,18 +240,12 @@ void tournament_node_t::relabel_tips(const std::vector<std::string> labels) {
     team().label = labels[team().index];
     return;
   }
-  if (children().left.is_win()) {
-    children().left->relabel_tips(labels);
-  }
-  if (children().right.is_win()) {
-    children().right->relabel_tips(labels);
-  }
+  if (children().left.is_win()) { children().left->relabel_tips(labels); }
+  if (children().right.is_win()) { children().right->relabel_tips(labels); }
 }
 
 bool tournament_node_t::is_member(size_t index) const {
-  if (is_tip()) {
-    return team().index == index;
-  }
+  if (is_tip()) { return team().index == index; }
   return children().left->is_member(index) ||
          children().right->is_member(index);
 }
@@ -280,7 +265,7 @@ std::vector<size_t> tournament_node_t::members(size_t node_count) const {
 }
 
 vector_t tournament_node_t::eval(const matrix_t &pmatrix,
-                                 size_t tip_count) const {
+                                 size_t          tip_count) const {
 
   if (is_tip()) {
     vector_t wpv(tip_count);
@@ -294,34 +279,32 @@ vector_t tournament_node_t::eval(const matrix_t &pmatrix,
    * current node can be skipped. Right now, since we are computing the results
    * for a single elimination tournament, we don't need to do this.
    */
-  auto l_wpv = children().left.eval(pmatrix, tip_count);
-  auto r_wpv = children().right.eval(pmatrix, tip_count);
+  auto l_wpv  = children().left.eval(pmatrix, tip_count);
+  auto r_wpv  = children().right.eval(pmatrix, tip_count);
   auto bestof = children().bestof;
 
   auto fold_a = fold(l_wpv, r_wpv, bestof, pmatrix);
   debug_print(EMIT_LEVEL_DEBUG, "fold_a: %s", to_string(fold_a).c_str());
   auto fold_b = fold(r_wpv, l_wpv, bestof, pmatrix);
   debug_print(EMIT_LEVEL_DEBUG, "fold_b: %s", to_string(fold_b).c_str());
-  for (size_t i = 0; i < fold_a.size(); ++i) {
-    fold_a[i] += fold_b[i];
-  }
+  for (size_t i = 0; i < fold_a.size(); ++i) { fold_a[i] += fold_b[i]; }
   debug_print(EMIT_LEVEL_DEBUG, "eval result: %s", to_string(fold_a).c_str());
   return fold_a;
 }
 
-vector_t tournament_node_t::fold(const vector_t &w, const vector_t &y,
-                                 uint64_t bestof, const matrix_t &p) const {
+vector_t tournament_node_t::fold(const vector_t &w,
+                                 const vector_t &y,
+                                 uint64_t        bestof,
+                                 const matrix_t &p) const {
   vector_t r(w.size());
   for (size_t m1 = 0; m1 < w.size(); ++m1) {
-    if (w[m1] == 0.0) {
-      continue;
-    }
+    if (w[m1] == 0.0) { continue; }
     for (size_t m2 = 0; m2 < y.size(); ++m2) {
       r[m1] += bestof_n(p[m1][m2], p[m2][m1], bestof) * y[m2];
     }
 
     /* This line was added to make it so that multi-elimination tournaments
-     * compute a "correct" wpv. This is to say, that the wpv will sum to 1. 
+     * compute a "correct" wpv. This is to say, that the wpv will sum to 1.
      *
      * The problem is, this isn't correct. From a standpoint about the
      * probabiltiy, it doesn't make any sense. So, I need to do something about
@@ -333,8 +316,7 @@ vector_t tournament_node_t::fold(const vector_t &w, const vector_t &y,
 }
 
 vector_t tournament_edge_t::eval(const matrix_t &pmatrix,
-                                 size_t tip_count) const {
-
+                                 size_t          tip_count) const {
   auto r = _node->eval(pmatrix, tip_count);
   return r;
 }

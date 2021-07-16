@@ -10,7 +10,7 @@
 struct result_t {
   vector_t win_prob;
   params_t params;
-  double llh;
+  double   llh;
 };
 
 std::ostream &operator<<(std::ostream &os, const result_t &r);

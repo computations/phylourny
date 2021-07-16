@@ -12,7 +12,7 @@ TEST_CASE("sampler_t simple case", "[sampler_t]") {
   matches.push_back({0, 1, match_winner_t::right});
   matches.push_back({0, 1, match_winner_t::right});
   SECTION("constructor") {
-    auto t = tournament_factory(2);
+    auto      t = tournament_factory(2);
     dataset_t ds(matches);
     sampler_t s{ds, std::move(t)};
     SECTION("Running the chain") {
@@ -27,18 +27,18 @@ TEST_CASE("sampler_t simple case", "[sampler_t]") {
 TEST_CASE("beta distribution", "[beta_distribution]") {
   std::mt19937_64 gen(rand());
   SECTION("uniform") {
-    double a = 1.0, b = 1.0;
+    double                    a = 1.0, b = 1.0;
     beta_distribution<double> beta_dis(a, b);
-    std::vector<double> samples;
-    for (size_t i = 0; i < 1e5; ++i) {
-      samples.push_back(beta_dis(gen));
-    }
-    double acc = std::accumulate(samples.begin(), samples.end(), 0.0);
+    std::vector<double>       samples;
+    for (size_t i = 0; i < 1e5; ++i) { samples.push_back(beta_dis(gen)); }
+    double acc           = std::accumulate(samples.begin(), samples.end(), 0.0);
     double expected_mean = a / (a + b);
-    double mean = acc / samples.size();
+    double mean          = acc / samples.size();
     CHECK(mean == Approx(expected_mean).epsilon(1e-2));
 
-    double std_dev = std::accumulate(samples.begin(), samples.end(), 0.0,
+    double std_dev = std::accumulate(samples.begin(),
+                                     samples.end(),
+                                     0.0,
                                      [mean](double a, double b) -> double {
                                        return a + (b - mean) * (b - mean);
                                      });
@@ -56,16 +56,16 @@ TEST_CASE("beta distribution", "[beta_distribution]") {
   SECTION("mode of 0.5") {
     auto [a, b] = make_ab(0.5, 5);
     beta_distribution<double> beta_dis(a, b);
-    std::vector<double> samples;
-    for (size_t i = 0; i < 1e5; ++i) {
-      samples.push_back(beta_dis(gen));
-    }
-    double acc = std::accumulate(samples.begin(), samples.end(), 0.0);
+    std::vector<double>       samples;
+    for (size_t i = 0; i < 1e5; ++i) { samples.push_back(beta_dis(gen)); }
+    double acc           = std::accumulate(samples.begin(), samples.end(), 0.0);
     double expected_mean = a / (a + b);
-    double mean = acc / samples.size();
+    double mean          = acc / samples.size();
     CHECK(mean == Approx(expected_mean).epsilon(1e-2));
 
-    double std_dev = std::accumulate(samples.begin(), samples.end(), 0.0,
+    double std_dev = std::accumulate(samples.begin(),
+                                     samples.end(),
+                                     0.0,
                                      [mean](double a, double b) -> double {
                                        return a + (b - mean) * (b - mean);
                                      });
@@ -83,16 +83,16 @@ TEST_CASE("beta distribution", "[beta_distribution]") {
   SECTION("mode of 0.25") {
     auto [a, b] = make_ab(0.25, 5);
     beta_distribution<double> beta_dis(a, b);
-    std::vector<double> samples;
-    for (size_t i = 0; i < 1e5; ++i) {
-      samples.push_back(beta_dis(gen));
-    }
-    double acc = std::accumulate(samples.begin(), samples.end(), 0.0);
+    std::vector<double>       samples;
+    for (size_t i = 0; i < 1e5; ++i) { samples.push_back(beta_dis(gen)); }
+    double acc           = std::accumulate(samples.begin(), samples.end(), 0.0);
     double expected_mean = a / (a + b);
-    double mean = acc / samples.size();
+    double mean          = acc / samples.size();
     CHECK(mean == Approx(expected_mean).epsilon(1e-2));
 
-    double std_dev = std::accumulate(samples.begin(), samples.end(), 0.0,
+    double std_dev = std::accumulate(samples.begin(),
+                                     samples.end(),
+                                     0.0,
                                      [mean](double a, double b) -> double {
                                        return a + (b - mean) * (b - mean);
                                      });
@@ -110,16 +110,16 @@ TEST_CASE("beta distribution", "[beta_distribution]") {
   SECTION("mode of 0.75") {
     auto [a, b] = make_ab(0.75, 5);
     beta_distribution<double> beta_dis(a, b);
-    std::vector<double> samples;
-    for (size_t i = 0; i < 1e5; ++i) {
-      samples.push_back(beta_dis(gen));
-    }
-    double acc = std::accumulate(samples.begin(), samples.end(), 0.0);
+    std::vector<double>       samples;
+    for (size_t i = 0; i < 1e5; ++i) { samples.push_back(beta_dis(gen)); }
+    double acc           = std::accumulate(samples.begin(), samples.end(), 0.0);
     double expected_mean = a / (a + b);
-    double mean = acc / samples.size();
+    double mean          = acc / samples.size();
     CHECK(mean == Approx(expected_mean).epsilon(1e-2));
 
-    double std_dev = std::accumulate(samples.begin(), samples.end(), 0.0,
+    double std_dev = std::accumulate(samples.begin(),
+                                     samples.end(),
+                                     0.0,
                                      [mean](double a, double b) -> double {
                                        return a + (b - mean) * (b - mean);
                                      });
@@ -137,16 +137,16 @@ TEST_CASE("beta distribution", "[beta_distribution]") {
   SECTION("mode of 0.75, steeper curve") {
     auto [a, b] = make_ab(0.75, 100);
     beta_distribution<double> beta_dis(a, b);
-    std::vector<double> samples;
-    for (size_t i = 0; i < 1e5; ++i) {
-      samples.push_back(beta_dis(gen));
-    }
-    double acc = std::accumulate(samples.begin(), samples.end(), 0.0);
+    std::vector<double>       samples;
+    for (size_t i = 0; i < 1e5; ++i) { samples.push_back(beta_dis(gen)); }
+    double acc           = std::accumulate(samples.begin(), samples.end(), 0.0);
     double expected_mean = a / (a + b);
-    double mean = acc / samples.size();
+    double mean          = acc / samples.size();
     CHECK(mean == Approx(expected_mean).epsilon(1e-2));
 
-    double std_dev = std::accumulate(samples.begin(), samples.end(), 0.0,
+    double std_dev = std::accumulate(samples.begin(),
+                                     samples.end(),
+                                     0.0,
                                      [mean](double a, double b) -> double {
                                        return a + (b - mean) * (b - mean);
                                      });
