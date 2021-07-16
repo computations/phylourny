@@ -68,7 +68,4 @@ if(ASAN_FOUND)
     add_subdirectory(test)
 endif()
 
-find_package(benchmark)
-if(BENCHMARK_FOUND)
 add_subdirectory(bench)
-endif()

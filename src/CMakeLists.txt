@@ -4,7 +4,11 @@ add_library(phylourny_lib
     dataset.cpp
     sampler.cpp
     summary.cpp
+    match.cpp
+    cli.cpp
+    util.cpp
 )
+
 add_executable(phylourny
     main.cpp
 )

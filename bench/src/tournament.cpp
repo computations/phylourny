@@ -87,10 +87,10 @@ static void BM_factorial4(benchmark::State &state) {
   }
 }
 
-BENCHMARK(BM_factorial1)->DenseRange(1, 20, 5);
-BENCHMARK(BM_factorial2)->DenseRange(1, 20, 5);
-BENCHMARK(BM_factorial3)->DenseRange(1, 20, 5);
-BENCHMARK(BM_factorial4)->DenseRange(1, 20, 5);
+BENCHMARK(BM_factorial1)->DenseRange(1, 21, 5);
+BENCHMARK(BM_factorial2)->DenseRange(1, 21, 5);
+BENCHMARK(BM_factorial3)->DenseRange(1, 21, 5);
+BENCHMARK(BM_factorial4)->DenseRange(1, 21, 5);
 
 constexpr inline double bestof_n1(double wp1, double wp2, uint64_t n) {
   uint64_t k = (n + 1) / 2;

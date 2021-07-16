@@ -1,80 +1,17 @@
 #ifndef __TOURNAMENT_HPP__
 #define __TOURNAMENT_HPP__
 #include "debug.h"
+#include "factorial.hpp"
+#include "util.hpp"
 #include <cstddef>
 #include <exception>
-#include <iomanip>
-#include <iostream>
 #include <limits>
 #include <memory>
 #include <random>
-#include <sstream>
 #include <stdexcept>
-#include <stdint.h>
 #include <utility>
 #include <variant>
 #include <vector>
-
-typedef std::vector<std::vector<double>> matrix_t;
-typedef std::vector<double> vector_t;
-
-matrix_t uniform_matrix_factory(size_t n);
-matrix_t random_matrix_factory(size_t n, uint64_t seed);
-
-double compute_entropy(const vector_t &v);
-
-double compute_perplexity(const vector_t &v);
-
-std::string to_json(const matrix_t &m);
-std::string to_json(const vector_t &m);
-std::string to_json(const std::vector<size_t> &m);
-
-std::string to_string(const matrix_t &m);
-std::string to_string(const vector_t &m);
-std::string to_string(const std::vector<size_t> &m);
-
-constexpr double factorial_table[] = {
-    1, 1, 2, 6, 24, 120, 720, 5040, 40320, 362880, 3628800,
-};
-
-constexpr size_t factorial_table_size =
-    sizeof(factorial_table) / sizeof(double);
-
-constexpr inline double factorial(uint64_t i) {
-  if (i < factorial_table_size) {
-    return factorial_table[i];
-  }
-  double f = factorial_table[factorial_table_size - 1];
-  for (size_t k = factorial_table_size; k <= i; ++k) {
-    f *= k;
-  }
-  return f;
-}
-
-constexpr inline double combinations(uint64_t n, uint64_t i) {
-  return factorial(n) / (factorial(i) * factorial(n - i));
-}
-
-constexpr inline double int_pow(double base, uint64_t k) {
-  if (k == 0) {
-    return 1.0;
-  }
-  double wpp1 = base;
-  for (size_t i = 1; i < k; ++i) {
-    wpp1 *= base;
-  }
-  return wpp1;
-}
-
-constexpr inline double bestof_n(double wp1, double wp2, uint64_t n) {
-  uint64_t k = (n + 1) / 2;
-  double sum = 0.0;
-  double wpp1 = int_pow(wp1, k);
-  for (size_t i = 0; i < k; ++i) {
-    sum += int_pow(wp2, i) * combinations(k + i - 1, i);
-  }
-  return sum * wpp1;
-}
 
 struct team_t {
   std::string label;
