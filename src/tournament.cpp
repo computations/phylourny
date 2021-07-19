@@ -205,3 +205,13 @@ vector_t tournament_edge_t::eval(const matrix_t &pmatrix,
   auto r = _node->eval(pmatrix, tip_count);
   return r;
 }
+
+bool tournament_node_t::is_simple() const {
+  if (is_tip()) { return true; }
+  return std::get<match_parameters_t>(_children).is_simple();
+}
+
+bool tournament_edge_t::is_simple() const {
+  if (is_loss()) { return false; }
+  return _node->is_simple();
+}

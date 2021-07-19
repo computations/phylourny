@@ -56,6 +56,7 @@ public:
   bool        empty() const { return _node == nullptr; }
   inline bool is_win() const { return _edge_type == edge_type_e::win; }
   inline bool is_loss() const { return !is_win(); }
+  bool        is_simple() const;
 
   inline vector_t eval(const matrix_t &pmatrix, size_t tip_count) const;
 
@@ -69,6 +70,8 @@ struct match_parameters_t {
   tournament_edge_t left;
   tournament_edge_t right;
   uint64_t          bestof = 1;
+
+  bool is_simple() const { return left.is_simple() && right.is_simple(); }
 };
 
 class tournament_node_t {
@@ -121,6 +124,11 @@ public:
    * Get a list of all the children of this node, and return it as a vector.
    */
   inline std::vector<size_t> members(size_t node_count) const;
+
+  /**
+   * Determines if the current node can be computed using a simple method.
+   */
+  bool is_simple() const;
 
   vector_t eval(const matrix_t &pmatrix, size_t tip_count) const;
   vector_t fold(const vector_t &x,

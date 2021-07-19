@@ -338,3 +338,22 @@ TEST_CASE("Best tests", "[bestof_n]") {
     }
   }
 }
+
+TEST_CASE("Simple Checks", "[simple]") {
+  SECTION("Testing single node") {
+    tournament_node_t t;
+    CHECK(t.is_simple());
+  }
+  SECTION("Testing simple tournament (2 nodes)") {
+    auto t = tournament_node_factory(2);
+    CHECK(t->is_simple());
+  }
+  SECTION("Testing simple tournament (4 nodes)") {
+    auto t = tournament_node_factory(4);
+    CHECK(t->is_simple());
+  }
+  SECTION("Testing simple tournament (8 nodes)") {
+    auto t = tournament_node_factory(8);
+    CHECK(t->is_simple());
+  }
+}
