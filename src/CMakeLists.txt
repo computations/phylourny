@@ -8,6 +8,7 @@ add_library(phylourny_lib
     cli.cpp
     util.cpp
     tournament_node.cpp
+    tournament_factory.cpp
 )
 
 add_executable(phylourny

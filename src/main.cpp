@@ -18,6 +18,7 @@
 #include "sampler.hpp"
 #include "summary.hpp"
 #include "tournament.hpp"
+#include "tournament_factory.hpp"
 int __VERBOSE__ = EMIT_LEVEL_PROGRESS;
 
 #define STRING(s) #s
