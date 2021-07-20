@@ -146,6 +146,10 @@ private:
   inline const team_t &team() const { return std::get<team_t>(_children); }
   inline team_t &      team() { return std::get<team_t>(_children); }
 
+  vector_t simple_eval(const matrix_t &pmatrix, size_t tip_count) const;
+
+  vector_t complex_eval(const matrix_t &pmatrix, size_t tip_count) const;
+
   /* Data Members */
   std::variant<match_parameters_t, team_t> _children;
 };

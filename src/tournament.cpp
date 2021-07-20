@@ -1,5 +1,6 @@
 #include "debug.h"
 #include "tournament.hpp"
+#include "util.hpp"
 #include <algorithm>
 #include <bits/stdint-uintn.h>
 #include <cstdlib>
@@ -138,11 +139,21 @@ vector_t tournament_node_t::eval(const matrix_t &pmatrix,
     return wpv;
   }
 
+  if (is_simple()) {
+    return simple_eval(pmatrix, tip_count);
+  } else {
+    return complex_eval(pmatrix, tip_count);
+  }
+}
+
+vector_t tournament_node_t::simple_eval(const matrix_t &pmatrix,
+                                        size_t          tip_count) const {
+
   /* This will be correct, but inefficient, as it does not take into account
    * that the match might have already been evaluated. A future optimization
    * would be to include a "evaluated" flag so that the evaluation of the
-   * current node can be skipped. Right now, since we are computing the results
-   * for a single elimination tournament, we don't need to do this.
+   * current node can be skipped. Right now, since we are computing the
+   * results for a single elimination tournament, we don't need to do this.
    */
   auto l_wpv  = children().left.eval(pmatrix, tip_count);
   auto r_wpv  = children().right.eval(pmatrix, tip_count);
@@ -155,6 +166,11 @@ vector_t tournament_node_t::eval(const matrix_t &pmatrix,
   for (size_t i = 0; i < fold_a.size(); ++i) { fold_a[i] += fold_b[i]; }
   debug_print(EMIT_LEVEL_DEBUG, "eval result: %s", to_string(fold_a).c_str());
   return fold_a;
+}
+
+vector_t tournament_node_t::complex_eval(const matrix_t &pmatrix,
+                                         size_t          tip_count) const {
+  throw std::runtime_error{"Not implemented"};
 }
 
 /**
@@ -208,7 +224,7 @@ vector_t tournament_edge_t::eval(const matrix_t &pmatrix,
 
 bool tournament_node_t::is_simple() const {
   if (is_tip()) { return true; }
-  return std::get<match_parameters_t>(_children).is_simple();
+  return children().is_simple();
 }
 
 bool tournament_edge_t::is_simple() const {
