@@ -11,6 +11,7 @@
 #include <memory>
 #include <random>
 #include <stdexcept>
+#include <sul/dynamic_bitset.hpp>
 #include <utility>
 #include <variant>
 #include <vector>
@@ -51,7 +52,10 @@ public:
    * Relabel the indices of the tree. Should be called after adding or removing
    * tips.
    */
-  void relabel_indicies() { _head.relabel_indicies(0); }
+  void relabel_indicies() {
+    _head.relabel_indicies(0);
+    _head.set_tip_bitset(tip_count());
+  }
 
   /**
    * Relabel the tips based on an index to label map.
@@ -63,6 +67,7 @@ public:
       throw std::runtime_error("Labels vector is too small");
     }
     _head.relabel_tips(labels);
+    _head.set_tip_bitset(labels.size());
   }
 
   /**
@@ -86,11 +91,13 @@ public:
     if (!check_matrix_size(_win_probs)) {
       throw std::runtime_error("Initialize the win probs before calling eval");
     }
+    _head.reset_saved_evals();
     if (_single_mode) {
       vector_t result;
       result.resize(tip_count());
 
-      std::vector<bool> include(tip_count(), true);
+      sul::dynamic_bitset<> include(tip_count());
+      include.flip();
 
       for (size_t i = 0; i < result.size(); i++) {
         result[i] = _head.single_eval(_win_probs, i, include);

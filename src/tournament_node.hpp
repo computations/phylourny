@@ -4,6 +4,7 @@
 #include "util.hpp"
 #include <memory>
 #include <string>
+#include <sul/dynamic_bitset.hpp>
 #include <variant>
 #include <vector>
 
@@ -128,15 +129,23 @@ public:
    */
   bool is_simple() const;
 
+  inline bool is_subtip(size_t index) const;
+
+  inline bool can_optimize(const sul::dynamic_bitset<> &sub_include);
+
+  void reset_saved_evals();
+
   vector_t eval(const matrix_t &pmatrix, size_t tip_count);
   vector_t fold(const vector_t &x,
                 const vector_t &y,
                 uint64_t        bestof,
                 const matrix_t &pmatrix) const;
 
-  double single_eval(const matrix_t &  pmatrix,
-                     size_t            eval_index,
-                     std::vector<bool> include);
+  double single_eval(const matrix_t &      pmatrix,
+                     size_t                eval_index,
+                     sul::dynamic_bitset<> include);
+
+  sul::dynamic_bitset<> set_tip_bitset(size_t tip_count);
 
 private:
   inline const match_parameters_t &children() const {
@@ -148,16 +157,17 @@ private:
   inline const team_t &team() const { return std::get<team_t>(_children); }
   inline team_t &      team() { return std::get<team_t>(_children); }
 
-  double single_fold(const matrix_t &   pmatrix,
-                     size_t             eval_index,
-                     std::vector<bool>  include,
-                     tournament_edge_t &child);
+  double single_fold(const matrix_t &      pmatrix,
+                     size_t                eval_index,
+                     sul::dynamic_bitset<> include,
+                     tournament_edge_t &   child);
 
   bool eval_saved() const { return _memoized_values.size() != 0; }
 
   /* Data Members */
   std::variant<match_parameters_t, team_t> _children;
   vector_t                                 _memoized_values;
+  sul::dynamic_bitset<>                    _tip_bitset;
 };
 
 #endif // __TOURNAMENT_NODE_HPP__

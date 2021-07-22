@@ -5,6 +5,7 @@
 #include <exception>
 #include <numeric>
 #include <stdexcept>
+#include <sul/dynamic_bitset.hpp>
 
 bool tournament_node_t::is_tip() const {
   return std::holds_alternative<team_t>(_children);
@@ -147,19 +148,15 @@ vector_t tournament_node_t::fold(const vector_t &x,
   return r;
 }
 
-double tournament_node_t::single_eval(const matrix_t &  pmatrix,
-                                      size_t            eval_index,
-                                      std::vector<bool> include) {
+double tournament_node_t::single_eval(const matrix_t &      pmatrix,
+                                      size_t                eval_index,
+                                      sul::dynamic_bitset<> include) {
 
   if (is_tip()) {
     return include[eval_index] ? (team().index == eval_index ? 1.0 : 0.0) : 0.0;
   }
 
-  if (is_simple()) {
-    auto tmp_vals = eval(pmatrix, include.size())[eval_index];
-    for (size_t i = 0; i < tmp_vals.size(); i++) {}
-    tmp_vals
-  }
+  if (!is_subtip(eval_index)) { return 0.0; }
 
   double fold_a = single_fold(pmatrix, eval_index, include, children().left);
   double term_a = children().right->single_eval(pmatrix, eval_index, include);
@@ -171,21 +168,29 @@ double tournament_node_t::single_eval(const matrix_t &  pmatrix,
   return result;
 }
 
-double tournament_node_t::single_fold(const matrix_t &   pmatrix,
-                                      size_t             eval_index,
-                                      std::vector<bool>  include,
-                                      tournament_edge_t &child) {
+double tournament_node_t::single_fold(const matrix_t &      pmatrix,
+                                      size_t                eval_index,
+                                      sul::dynamic_bitset<> include,
+                                      tournament_edge_t &   child) {
 
   vector_t sub_values(include.size());
   auto     sub_include = include;
   include[eval_index]  = false;
 
-  for (size_t i = 0; i < include.size(); i++) {
-    if (!include[i]) { continue; }
-    sub_values[i] = child->single_eval(pmatrix, i, sub_include);
+  if (child->can_optimize(sub_include)) {
+    return child->eval(pmatrix, include.size())[eval_index];
   }
 
-  sub_values = softmax(sub_values);
+  for (size_t i = 0; i < include.size(); i++) {
+    if (!include[i]) { continue; }
+    if (is_subtip(i)) {
+      sub_values[i] = child->single_eval(pmatrix, i, sub_include);
+    } else {
+      sub_values[i] = 0.0;
+    }
+  }
+
+  // sub_values = softmax(sub_values);
 
   for (size_t i = 0; i < sub_values.size(); i++) {
     sub_values[i] *= pmatrix[eval_index][i];
@@ -208,4 +213,33 @@ bool tournament_node_t::is_simple() const {
 bool tournament_edge_t::is_simple() const {
   if (is_loss()) { return false; }
   return _node->is_simple();
+}
+
+sul::dynamic_bitset<> tournament_node_t::set_tip_bitset(size_t tip_count) {
+  if (is_tip()) {
+    sul::dynamic_bitset<> tips(tip_count);
+    tips[team().index] = 1;
+    _tip_bitset        = tips;
+  } else {
+    _tip_bitset = children().left->set_tip_bitset(tip_count) |
+                  children().right->set_tip_bitset(tip_count);
+  }
+  return _tip_bitset;
+}
+
+inline bool tournament_node_t::is_subtip(size_t index) const {
+  return _tip_bitset[index];
+}
+
+inline bool
+tournament_node_t::can_optimize(const sul::dynamic_bitset<> &sub_include) {
+  return (_tip_bitset & ~sub_include).any();
+}
+
+void tournament_node_t::reset_saved_evals() {
+  _memoized_values.clear();
+  if (!is_tip()) {
+    children().left->reset_saved_evals();
+    children().right->reset_saved_evals();
+  }
 }
