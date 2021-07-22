@@ -10,3 +10,6 @@
 [submodule "lib/csv"]
 	path = lib/csv
 	url = https://github.com/ben-strasser/fast-cpp-csv-parser.git
+[submodule "lib/dynamic_bitset"]
+	path = lib/dynamic_bitset
+	url = https://github.com/pinam45/dynamic_bitset
