@@ -54,6 +54,10 @@ public:
 
   inline vector_t eval(const matrix_t &pmatrix, size_t tip_count) const;
 
+  inline double single_eval(const matrix_t &  pmatrix,
+                            size_t            eval_index,
+                            std::vector<bool> exclude) const;
+
 private:
   /* Data Members */
   std::shared_ptr<tournament_node_t> _node;
@@ -124,11 +128,15 @@ public:
    */
   bool is_simple() const;
 
-  vector_t eval(const matrix_t &pmatrix, size_t tip_count) const;
+  vector_t eval(const matrix_t &pmatrix, size_t tip_count);
   vector_t fold(const vector_t &x,
                 const vector_t &y,
                 uint64_t        bestof,
                 const matrix_t &pmatrix) const;
+
+  double single_eval(const matrix_t &  pmatrix,
+                     size_t            eval_index,
+                     std::vector<bool> include);
 
 private:
   inline const match_parameters_t &children() const {
@@ -140,12 +148,16 @@ private:
   inline const team_t &team() const { return std::get<team_t>(_children); }
   inline team_t &      team() { return std::get<team_t>(_children); }
 
-  vector_t simple_eval(const matrix_t &pmatrix, size_t tip_count) const;
+  double single_fold(const matrix_t &   pmatrix,
+                     size_t             eval_index,
+                     std::vector<bool>  include,
+                     tournament_edge_t &child);
 
-  vector_t complex_eval(const matrix_t &pmatrix, size_t tip_count) const;
+  bool eval_saved() const { return _memoized_values.size() != 0; }
 
   /* Data Members */
   std::variant<match_parameters_t, team_t> _children;
+  vector_t                                 _memoized_values;
 };
 
 #endif // __TOURNAMENT_NODE_HPP__

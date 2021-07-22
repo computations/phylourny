@@ -5,7 +5,7 @@
 #include <vector>
 
 typedef std::vector<std::vector<double>> matrix_t;
-typedef std::vector<double> vector_t;
+typedef std::vector<double>              vector_t;
 
 /**
  * TEST INFO FROM HEADER
@@ -24,5 +24,7 @@ std::string to_json(const std::vector<size_t> &m);
 std::string to_string(const matrix_t &m);
 std::string to_string(const vector_t &m);
 std::string to_string(const std::vector<size_t> &m);
+
+vector_t softmax(const vector_t &v);
 
 #endif // UTIL_HPP

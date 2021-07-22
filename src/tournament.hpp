@@ -28,11 +28,13 @@ public:
       _head{tournament_edge_t{new tournament_node_t,
                               tournament_edge_t::edge_type_e::win},
             tournament_edge_t{new tournament_node_t,
-                              tournament_edge_t::edge_type_e::win}} {
+                              tournament_edge_t::edge_type_e::win}},
+      _single_mode{false} {
     relabel_indicies();
   }
 
-  tournament_t(tournament_node_t &&head) : _head{std::move(head)} {}
+  tournament_t(tournament_node_t &&head) :
+      _head{std::move(head)}, _single_mode{false} {}
 
   tournament_t(const tournament_node_t &) = delete;
 
@@ -80,12 +82,28 @@ public:
    * between calls to this function. So, while computation is memoized during
    * evaluation, that information is discarded once computation is complete.
    */
-  vector_t eval() const {
+  vector_t eval() {
     if (!check_matrix_size(_win_probs)) {
       throw std::runtime_error("Initialize the win probs before calling eval");
     }
+    if (_single_mode) {
+      vector_t result;
+      result.resize(tip_count());
+
+      std::vector<bool> include(tip_count(), true);
+
+      for (size_t i = 0; i < result.size(); i++) {
+        result[i] = _head.single_eval(_win_probs, i, include);
+      }
+
+      return result;
+    }
     return _head.eval(_win_probs, tip_count());
   }
+
+  void set_single_mode() { _single_mode = true; }
+
+  void set_single_mode(bool m) { _single_mode = m; }
 
 private:
   bool check_matrix_size(const matrix_t &wp) const {
@@ -95,6 +113,7 @@ private:
 
   tournament_node_t _head;
   matrix_t          _win_probs;
+  bool              _single_mode;
 };
 
 #endif

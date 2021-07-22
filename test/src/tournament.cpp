@@ -1,3 +1,4 @@
+#include "util.hpp"
 #include <catch2/catch.hpp>
 #include <debug.h>
 #include <tournament.hpp>
@@ -299,6 +300,77 @@ TEST_CASE("4 team tournament with losers bracket") {
   CHECK(sum == Approx(1.0));
 }
 
+TEST_CASE("4 team tournament with losers bracket, single mode") {
+  std::shared_ptr<tournament_node_t> n1{new tournament_node_t{"a"}};
+  std::shared_ptr<tournament_node_t> n2{new tournament_node_t{"b"}};
+  std::shared_ptr<tournament_node_t> n3{new tournament_node_t{"c"}};
+  std::shared_ptr<tournament_node_t> n4{new tournament_node_t{"d"}};
+
+  std::shared_ptr<tournament_node_t> w1{
+      new tournament_node_t{
+          (n1),
+          tournament_edge_t::edge_type_e::win,
+          (n2),
+          tournament_edge_t::edge_type_e::win,
+      },
+  };
+
+  std::shared_ptr<tournament_node_t> w2{
+      new tournament_node_t{
+          (n3),
+          tournament_edge_t::edge_type_e::win,
+          (n4),
+          tournament_edge_t::edge_type_e::win,
+      },
+  };
+
+  std::shared_ptr<tournament_node_t> w3{
+      new tournament_node_t{
+          (w1),
+          tournament_edge_t::edge_type_e::win,
+          (w2),
+          tournament_edge_t::edge_type_e::win,
+      },
+  };
+
+  std::shared_ptr<tournament_node_t> l3{
+      new tournament_node_t{
+          (w1),
+          tournament_edge_t::edge_type_e::loss,
+          (w2),
+          tournament_edge_t::edge_type_e::loss,
+      },
+  };
+
+  std::shared_ptr<tournament_node_t> l4{
+      new tournament_node_t{
+          w3,
+          tournament_edge_t::edge_type_e::loss,
+          l3,
+          tournament_edge_t::edge_type_e::win,
+      },
+  };
+
+  tournament_t t{tournament_node_t{
+      l4,
+      w3,
+  }};
+
+  t.relabel_indicies();
+  size_t tip_count = t.tip_count();
+  auto   m         = uniform_matrix_factory(tip_count);
+  t.reset_win_probs(m);
+  t.set_single_mode();
+
+  auto   r   = t.eval();
+  double sum = 0.0;
+  for (auto f : r) {
+    sum += f;
+    CHECK(f == Approx(1.0 / tip_count));
+  }
+  CHECK(sum == Approx(1.0));
+}
+
 TEST_CASE("Best tests", "[bestof_n]") {
   SECTION("Best ofs with equal probs") {
     CHECK(bestof_n(0.5, 0.5, 1) == 0.5);
@@ -356,4 +428,17 @@ TEST_CASE("Simple Checks", "[simple]") {
     auto t = tournament_node_factory(8);
     CHECK(t->is_simple());
   }
+}
+
+TEST_CASE("Single evaluation", "[single_eval]") {
+  auto t  = tournament_factory(4);
+  auto m1 = uniform_matrix_factory(4);
+  t.reset_win_probs(m1);
+
+  t.set_single_mode();
+
+  auto   r   = t.eval();
+  double sum = 0.0;
+  for (auto &&f : r) { sum += f; }
+  CHECK(sum == Approx(1.0));
 }

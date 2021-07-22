@@ -1,7 +1,9 @@
 #include "debug.h"
 #include "factorial.hpp"
 #include "tournament_node.hpp"
+#include "util.hpp"
 #include <exception>
+#include <numeric>
 #include <stdexcept>
 
 bool tournament_node_t::is_tip() const {
@@ -70,8 +72,7 @@ std::vector<size_t> tournament_node_t::members(size_t node_count) const {
   return members;
 }
 
-vector_t tournament_node_t::eval(const matrix_t &pmatrix,
-                                 size_t          tip_count) const {
+vector_t tournament_node_t::eval(const matrix_t &pmatrix, size_t tip_count) {
 
   if (is_tip()) {
     vector_t wpv(tip_count);
@@ -79,15 +80,7 @@ vector_t tournament_node_t::eval(const matrix_t &pmatrix,
     return wpv;
   }
 
-  if (is_simple()) {
-    return simple_eval(pmatrix, tip_count);
-  } else {
-    return complex_eval(pmatrix, tip_count);
-  }
-}
-
-vector_t tournament_node_t::simple_eval(const matrix_t &pmatrix,
-                                        size_t          tip_count) const {
+  if (eval_saved()) { return _memoized_values; }
 
   /* This will be correct, but inefficient, as it does not take into account
    * that the match might have already been evaluated. A future optimization
@@ -105,12 +98,10 @@ vector_t tournament_node_t::simple_eval(const matrix_t &pmatrix,
   debug_print(EMIT_LEVEL_DEBUG, "fold_b: %s", to_string(fold_b).c_str());
   for (size_t i = 0; i < fold_a.size(); ++i) { fold_a[i] += fold_b[i]; }
   debug_print(EMIT_LEVEL_DEBUG, "eval result: %s", to_string(fold_a).c_str());
-  return fold_a;
-}
 
-vector_t tournament_node_t::complex_eval(const matrix_t &pmatrix,
-                                         size_t          tip_count) const {
-  throw std::runtime_error{"Not implemented"};
+  _memoized_values = fold_a;
+
+  return fold_a;
 }
 
 /**
@@ -154,6 +145,53 @@ vector_t tournament_node_t::fold(const vector_t &x,
     r[m1] *= x[m1] / (1.0 - y[m1]);
   }
   return r;
+}
+
+double tournament_node_t::single_eval(const matrix_t &  pmatrix,
+                                      size_t            eval_index,
+                                      std::vector<bool> include) {
+
+  if (is_tip()) {
+    return include[eval_index] ? (team().index == eval_index ? 1.0 : 0.0) : 0.0;
+  }
+
+  if (is_simple()) {
+    auto tmp_vals = eval(pmatrix, include.size())[eval_index];
+    for (size_t i = 0; i < tmp_vals.size(); i++) {}
+    tmp_vals
+  }
+
+  double fold_a = single_fold(pmatrix, eval_index, include, children().left);
+  double term_a = children().right->single_eval(pmatrix, eval_index, include);
+
+  double fold_b = single_fold(pmatrix, eval_index, include, children().right);
+  double term_b = children().left->single_eval(pmatrix, eval_index, include);
+
+  double result = fold_a * term_a + fold_b * term_b;
+  return result;
+}
+
+double tournament_node_t::single_fold(const matrix_t &   pmatrix,
+                                      size_t             eval_index,
+                                      std::vector<bool>  include,
+                                      tournament_edge_t &child) {
+
+  vector_t sub_values(include.size());
+  auto     sub_include = include;
+  include[eval_index]  = false;
+
+  for (size_t i = 0; i < include.size(); i++) {
+    if (!include[i]) { continue; }
+    sub_values[i] = child->single_eval(pmatrix, i, sub_include);
+  }
+
+  sub_values = softmax(sub_values);
+
+  for (size_t i = 0; i < sub_values.size(); i++) {
+    sub_values[i] *= pmatrix[eval_index][i];
+  }
+
+  return std::accumulate(sub_values.begin(), sub_values.end(), 0.0);
 }
 
 vector_t tournament_edge_t::eval(const matrix_t &pmatrix,

@@ -1,7 +1,9 @@
 #include "util.hpp"
 
+#include <algorithm>
 #include <cmath>
 #include <iomanip>
+#include <numeric>
 #include <random>
 
 /**
@@ -23,12 +25,10 @@ matrix_t uniform_matrix_factory(size_t n) {
 }
 
 matrix_t random_matrix_factory(size_t n, uint64_t seed) {
-  matrix_t matrix;
-  std::mt19937_64 rng(seed);
+  matrix_t                         matrix;
+  std::mt19937_64                  rng(seed);
   std::uniform_real_distribution<> dist;
-  for (size_t i = 0; i < n; ++i) {
-    matrix.emplace_back(n);
-  }
+  for (size_t i = 0; i < n; ++i) { matrix.emplace_back(n); }
   for (size_t i = 0; i < n; ++i) {
     for (size_t j = i; j < n; ++j) {
       if (i == j) {
@@ -44,9 +44,7 @@ matrix_t random_matrix_factory(size_t n, uint64_t seed) {
 
 double compute_entropy(const vector_t &v) {
   double ent = 0.0;
-  for (auto f : v) {
-    ent += -f * log2(f);
-  }
+  for (auto f : v) { ent += -f * log2(f); }
   return ent;
 }
 
@@ -144,4 +142,13 @@ std::string to_string(const std::vector<size_t> &m) {
   out.seekp(-1, out.cur);
   out << "]";
   return out.str();
+}
+
+vector_t softmax(const vector_t &v) {
+  auto ret = v;
+
+  double sum = std::reduce(ret.begin(), ret.end(), 0.0);
+  std::for_each(ret.begin(), ret.end(), [sum](double &f) { f /= sum; });
+
+  return ret;
 }
