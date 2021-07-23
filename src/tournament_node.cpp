@@ -152,19 +152,77 @@ double tournament_node_t::single_eval(const matrix_t &      pmatrix,
                                       size_t                eval_index,
                                       sul::dynamic_bitset<> include) {
 
+  if (!(include & _tip_bitset).any()) {
+    debug_string(EMIT_LEVEL_DEBUG,
+                 "include and tip_bitset are disjoint, no need to continue");
+    return 0.0;
+  }
+  debug_print(EMIT_LEVEL_DEBUG,
+              "=== START eval_index: %lu, include: %s, tip_bitset: %s",
+              eval_index,
+              include.to_string().c_str(),
+              _tip_bitset.to_string().c_str());
+
   if (is_tip()) {
-    return include[eval_index] ? (team().index == eval_index ? 1.0 : 0.0) : 0.0;
+    debug_print(EMIT_LEVEL_DEBUG,
+                "We found a tip: '%s'. team index: %lu, eval_index: %lu",
+                team().label.c_str(),
+                team().index,
+                eval_index);
+    debug_print(EMIT_LEVEL_DEBUG,
+                "END === eval_index: %lu, include: %s",
+                eval_index,
+                include.to_string().c_str());
+    return team().index == eval_index ? 1.0 : 0.0;
   }
 
   if (!is_subtip(eval_index)) { return 0.0; }
 
-  double fold_a = single_fold(pmatrix, eval_index, include, children().left);
+  auto sub_include        = include;
+  sub_include[eval_index] = false;
+
+  /**
+   * This check is in the case that we are a cherry. In this case, we need to
+   * evaluate this a different way. We also apply an optimization that doesn't
+   * require the full fold.
+   */
+  if (_tip_bitset.count() == 2) {
+    if ((_tip_bitset & ~include).count() == 1) { return 1.0; }
+
+    /* Find the other index that is a child */
+    size_t other_index;
+    for (other_index = 0; other_index < _tip_bitset.size(); ++other_index) {
+      if (_tip_bitset[other_index] && other_index != eval_index) {
+        return pmatrix[eval_index][other_index];
+      }
+    }
+  }
+
+  debug_string(EMIT_LEVEL_DEBUG, "Starting fold_a");
+  double fold_a =
+      single_fold(pmatrix, eval_index, sub_include, children().left);
+  debug_string(EMIT_LEVEL_DEBUG, "Starting term_a");
   double term_a = children().right->single_eval(pmatrix, eval_index, include);
 
-  double fold_b = single_fold(pmatrix, eval_index, include, children().right);
+  debug_string(EMIT_LEVEL_DEBUG, "Starting fold_b");
+  double fold_b =
+      single_fold(pmatrix, eval_index, sub_include, children().right);
+  debug_string(EMIT_LEVEL_DEBUG, "Starting term_b");
   double term_b = children().left->single_eval(pmatrix, eval_index, include);
 
   double result = fold_a * term_a + fold_b * term_b;
+
+  debug_print(EMIT_LEVEL_DEBUG,
+              "fold_a: %f, term_a: %f, fold_b: %f, term_b: %f, result :%f",
+              fold_a,
+              term_a,
+              fold_b,
+              term_b,
+              result);
+  debug_print(EMIT_LEVEL_DEBUG,
+              "END === eval_index: %lu, include: %s",
+              eval_index,
+              include.to_string().c_str());
   return result;
 }
 
@@ -175,9 +233,14 @@ double tournament_node_t::single_fold(const matrix_t &      pmatrix,
 
   vector_t sub_values(include.size());
   auto     sub_include = include;
-  include[eval_index]  = false;
+  // include[eval_index]  = false;
 
   if (child->can_optimize(sub_include)) {
+    debug_print(EMIT_LEVEL_DEBUG,
+                "Determined that we can optimize this child eval_index: %lu "
+                "sub_include: %s",
+                eval_index,
+                include.to_string().c_str());
     return child->eval(pmatrix, include.size())[eval_index];
   }
 
@@ -190,13 +253,21 @@ double tournament_node_t::single_fold(const matrix_t &      pmatrix,
     }
   }
 
-  // sub_values = softmax(sub_values);
+  if ((child->get_tip_bitset() & sub_include).count() == 1) {
+    sub_values = softmax(sub_values);
+  }
 
   for (size_t i = 0; i < sub_values.size(); i++) {
     sub_values[i] *= pmatrix[eval_index][i];
   }
 
-  return std::accumulate(sub_values.begin(), sub_values.end(), 0.0);
+  double result = std::accumulate(sub_values.begin(), sub_values.end(), 0.0);
+  debug_print(EMIT_LEVEL_DEBUG,
+              "returning %f from single_fold eval_index: %d, include: %s",
+              result,
+              eval_index,
+              include.to_string().c_str());
+  return result;
 }
 
 vector_t tournament_edge_t::eval(const matrix_t &pmatrix,
@@ -233,7 +304,13 @@ inline bool tournament_node_t::is_subtip(size_t index) const {
 
 inline bool
 tournament_node_t::can_optimize(const sul::dynamic_bitset<> &sub_include) {
-  return (_tip_bitset & ~sub_include).any();
+  return false;
+  debug_print(EMIT_LEVEL_DEBUG,
+              "_tip_bitset: %s, ~sub_include: %s, can_optimize: %s",
+              _tip_bitset.to_string().c_str(),
+              (~sub_include).to_string().c_str(),
+              (_tip_bitset & ~sub_include).to_string().c_str());
+  return !(_tip_bitset & ~sub_include).any();
 }
 
 void tournament_node_t::reset_saved_evals() {

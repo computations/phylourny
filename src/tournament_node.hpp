@@ -146,6 +146,7 @@ public:
                      sul::dynamic_bitset<> include);
 
   sul::dynamic_bitset<> set_tip_bitset(size_t tip_count);
+  sul::dynamic_bitset<> get_tip_bitset() const { return _tip_bitset; };
 
 private:
   inline const match_parameters_t &children() const {

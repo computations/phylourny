@@ -300,7 +300,7 @@ TEST_CASE("4 team tournament with losers bracket") {
   CHECK(sum == Approx(1.0));
 }
 
-TEST_CASE("4 team tournament with losers bracket, single mode") {
+TEST_CASE("4 team tournament with losers bracket, single mode", "[single]") {
   std::shared_ptr<tournament_node_t> n1{new tournament_node_t{"a"}};
   std::shared_ptr<tournament_node_t> n2{new tournament_node_t{"b"}};
   std::shared_ptr<tournament_node_t> n3{new tournament_node_t{"c"}};
@@ -439,6 +439,9 @@ TEST_CASE("Single evaluation", "[single_eval]") {
 
   auto   r   = t.eval();
   double sum = 0.0;
-  for (auto &&f : r) { sum += f; }
+  for (auto &&f : r) {
+    sum += f;
+    CHECK(f == Approx(1.0 / 4.0));
+  }
   CHECK(sum == Approx(1.0));
 }

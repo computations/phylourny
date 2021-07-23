@@ -148,6 +148,7 @@ vector_t softmax(const vector_t &v) {
   auto ret = v;
 
   double sum = std::reduce(ret.begin(), ret.end(), 0.0);
+  if (sum == 0) { return v; }
   std::for_each(ret.begin(), ret.end(), [sum](double &f) { f /= sum; });
 
   return ret;
