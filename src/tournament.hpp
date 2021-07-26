@@ -7,12 +7,14 @@
 #include "util.hpp"
 #include <cstddef>
 #include <exception>
+#include <fstream>
 #include <ios>
 #include <limits>
 #include <memory>
 #include <random>
 #include <sstream>
 #include <stdexcept>
+#include <string>
 #include <sul/dynamic_bitset.hpp>
 #include <utility>
 #include <variant>
@@ -104,6 +106,8 @@ public:
 
       for (size_t i = 0; i < result.size(); i++) {
         result[i] = _head.single_eval(_win_probs, i, include);
+        std::ofstream outfile(std::to_string(i) + ".dot");
+        dump_state_graphviz_scratchpad(outfile);
       }
 
       return result;
@@ -119,6 +123,48 @@ public:
     std::ostringstream oss;
     dump_state_graphviz(oss);
     return oss.str();
+  }
+
+  void dump_state_graphviz_scratchpad(std::ostream &os) const {
+
+    auto node_attr_func = [](const tournament_node_t &n) -> std::string {
+      std::ostringstream oss;
+      oss << "[label=";
+      if (n.is_tip()) {
+        oss << "\"" << n.get_display_label() << "|" << n.get_team_index()
+            << "\" ";
+      } else {
+        auto sp = n.get_scratch_pad();
+        if (!n.is_simple()) {
+          oss << "\"" << sp.fold_a << "|" << sp.term_a << "|" << sp.fold_b
+              << "|" << sp.term_b << "|" << sp.result << "|" << sp.eval_index
+              << "|" << sp.include.to_string() << "\" ";
+        } else {
+          oss << sp.result << " ";
+          oss << "style = filled ";
+        }
+      }
+      oss.seekp(-1, std::ios_base::end);
+      oss << "]";
+      return oss.str();
+    };
+
+    auto edge_attr_func = [](const tournament_edge_t &e) -> std::string {
+      std::ostringstream oss;
+      oss << "[";
+
+      if (e.is_win()) {
+        oss << "style = solid ";
+      } else {
+        oss << "style = dashed ";
+      }
+
+      oss.seekp(-1, std::ios_base::end);
+      oss << "]";
+      return oss.str();
+    };
+
+    dump_state_graphviz(os, node_attr_func, edge_attr_func);
   }
 
   void dump_state_graphviz(std::ostream &os) const {
@@ -155,6 +201,16 @@ public:
       oss << "]";
       return oss.str();
     };
+
+    dump_state_graphviz(os, node_attr_func, edge_attr_func);
+  }
+
+  void dump_state_graphviz(
+      std::ostream &os,
+      const std::function<std::string(const tournament_node_t &)>
+          &node_attr_func,
+      const std::function<std::string(const tournament_edge_t &)>
+          &edge_attr_func) const {
 
     os << "digraph {\n";
     os << "node [shape=record]\n";

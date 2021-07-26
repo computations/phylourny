@@ -151,6 +151,8 @@ vector_t tournament_node_t::fold(const vector_t &x,
 double tournament_node_t::single_eval(const matrix_t &      pmatrix,
                                       size_t                eval_index,
                                       sul::dynamic_bitset<> include) {
+  _scratchpad.eval_index = eval_index;
+  _scratchpad.include    = include;
 
   if (!(include & _tip_bitset).any()) {
     debug_string(EMIT_LEVEL_DEBUG,
@@ -199,31 +201,34 @@ double tournament_node_t::single_eval(const matrix_t &      pmatrix,
   }
 
   debug_string(EMIT_LEVEL_DEBUG, "Starting fold_a");
-  double fold_a =
+  _scratchpad.fold_a =
       single_fold(pmatrix, eval_index, sub_include, children().left);
   debug_string(EMIT_LEVEL_DEBUG, "Starting term_a");
-  double term_a = children().right->single_eval(pmatrix, eval_index, include);
+  _scratchpad.term_a =
+      children().right->single_eval(pmatrix, eval_index, include);
 
   debug_string(EMIT_LEVEL_DEBUG, "Starting fold_b");
-  double fold_b =
+  _scratchpad.fold_b =
       single_fold(pmatrix, eval_index, sub_include, children().right);
   debug_string(EMIT_LEVEL_DEBUG, "Starting term_b");
-  double term_b = children().left->single_eval(pmatrix, eval_index, include);
+  _scratchpad.term_b =
+      children().left->single_eval(pmatrix, eval_index, include);
 
-  double result = fold_a * term_a + fold_b * term_b;
+  _scratchpad.result = _scratchpad.fold_a * _scratchpad.term_a +
+                       _scratchpad.fold_b * _scratchpad.term_b;
 
   debug_print(EMIT_LEVEL_DEBUG,
               "fold_a: %f, term_a: %f, fold_b: %f, term_b: %f, result :%f",
-              fold_a,
-              term_a,
-              fold_b,
-              term_b,
-              result);
+              _scratchpad.fold_a,
+              _scratchpad.term_a,
+              _scratchpad.fold_b,
+              _scratchpad.term_b,
+              _scratchpad.result);
   debug_print(EMIT_LEVEL_DEBUG,
               "END === eval_index: %lu, include: %s",
               eval_index,
               include.to_string().c_str());
-  return result;
+  return _scratchpad.result;
 }
 
 double tournament_node_t::single_fold(const matrix_t &      pmatrix,
@@ -241,7 +246,8 @@ double tournament_node_t::single_fold(const matrix_t &      pmatrix,
                 "sub_include: %s",
                 eval_index,
                 include.to_string().c_str());
-    return child->eval(pmatrix, include.size())[eval_index];
+    _scratchpad.result = child->eval(pmatrix, include.size())[eval_index];
+    return _scratchpad.result;
   }
 
   for (size_t i = 0; i < include.size(); i++) {

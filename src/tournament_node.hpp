@@ -14,6 +14,18 @@ struct team_t {
   size_t      index;
 };
 
+struct scratchpad_t {
+  double fold_a = 0.0;
+  double fold_b = 0.0;
+  double term_a = 0.0;
+  double term_b = 0.0;
+
+  double result = 0.0;
+
+  sul::dynamic_bitset<> include;
+  size_t                eval_index;
+};
+
 class tournament_node_t;
 
 /**
@@ -198,6 +210,10 @@ public:
 
   vector_t get_memoized_values() const { return _memoized_values; }
 
+  scratchpad_t get_scratch_pad() const { return _scratchpad; }
+
+  size_t get_team_index() const { return team().index; }
+
 private:
   inline const match_parameters_t &children() const {
     return std::get<match_parameters_t>(_children);
@@ -220,6 +236,7 @@ private:
   vector_t                                 _memoized_values;
   sul::dynamic_bitset<>                    _tip_bitset;
   std::string                              _internal_label;
+  scratchpad_t                             _scratchpad;
 };
 
 #endif // __TOURNAMENT_NODE_HPP__
