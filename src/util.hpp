@@ -27,4 +27,6 @@ std::string to_string(const std::vector<size_t> &m);
 
 vector_t softmax(const vector_t &v);
 
+std::string compute_base26(size_t i);
+
 #endif // UTIL_HPP

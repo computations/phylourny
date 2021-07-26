@@ -445,3 +445,32 @@ TEST_CASE("Single evaluation", "[single_eval]") {
   }
   CHECK(sum == Approx(1.0));
 }
+
+TEST_CASE("Graphviz output", "[graphviz]") {
+  SECTION("Simple, single elim") {
+    auto t  = tournament_factory(4);
+    auto m1 = uniform_matrix_factory(4);
+    t.reset_win_probs(m1);
+    t.eval();
+
+    auto dot = t.dump_state_graphviz();
+
+    CHECK(dot ==
+          R"(digraph {
+node [shape=record]
+c[label=c]
+d[label=d]
+b[label="0.5|0.5|0|0"]
+c -> b
+d -> b
+f[label=f]
+g[label=g]
+e[label="0|0|0.5|0.5"]
+f -> e
+g -> e
+a[label="0.25|0.25|0.25|0.25"]
+b -> a
+e -> a
+})");
+  }
+}

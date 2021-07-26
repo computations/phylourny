@@ -153,3 +153,19 @@ vector_t softmax(const vector_t &v) {
 
   return ret;
 }
+
+std::string compute_base26(size_t i) {
+  size_t length =
+      std::max(static_cast<size_t>(std::ceil(
+                   std::log(static_cast<double>(i + 1)) / std::log(26.0))),
+               1ul);
+  std::string ret;
+  ret.reserve(length);
+
+  for (size_t j = 0; j < length; j++) {
+    ret += 'a' + (i % 26);
+    i /= 26;
+  }
+
+  return ret;
+}

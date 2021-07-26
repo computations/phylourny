@@ -3,6 +3,7 @@
 
 #include "util.hpp"
 #include <memory>
+#include <ostream>
 #include <string>
 #include <sul/dynamic_bitset.hpp>
 #include <variant>
@@ -148,6 +149,46 @@ public:
   sul::dynamic_bitset<> set_tip_bitset(size_t tip_count);
   sul::dynamic_bitset<> get_tip_bitset() const { return _tip_bitset; };
 
+  void assign_internal_labels() { assign_internal_labels(0); }
+
+  size_t assign_internal_labels(size_t index) {
+    _internal_label = compute_base26(index++);
+    if (!is_tip()) {
+      index = children().left->assign_internal_labels(index);
+      index = children().right->assign_internal_labels(index);
+    }
+    return index;
+  }
+
+  std::string get_internal_label() const { return _internal_label; }
+
+  void dump_state_graphviz(
+      std::ostream &                                               os,
+      const std::function<std::string(const tournament_node_t &)> &attr_func)
+      const {
+
+    if (!is_tip()) {
+      children().left->dump_state_graphviz(os, attr_func);
+      children().right->dump_state_graphviz(os, attr_func);
+    }
+
+    os << _internal_label << attr_func(*this) << "\n";
+
+    if (!is_tip()) {
+      os << children().left->get_internal_label() << " -> " << _internal_label
+         << "\n";
+      os << children().right->get_internal_label() << " -> " << _internal_label
+         << "\n";
+    }
+  }
+
+  std::string get_display_label() const {
+    if (is_tip() && !team().label.empty()) { return team().label; }
+    return _internal_label;
+  }
+
+  vector_t get_memoized_values() const { return _memoized_values; }
+
 private:
   inline const match_parameters_t &children() const {
     return std::get<match_parameters_t>(_children);
@@ -169,6 +210,7 @@ private:
   std::variant<match_parameters_t, team_t> _children;
   vector_t                                 _memoized_values;
   sul::dynamic_bitset<>                    _tip_bitset;
+  std::string                              _internal_label;
 };
 
 #endif // __TOURNAMENT_NODE_HPP__

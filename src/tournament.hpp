@@ -7,9 +7,11 @@
 #include "util.hpp"
 #include <cstddef>
 #include <exception>
+#include <ios>
 #include <limits>
 #include <memory>
 #include <random>
+#include <sstream>
 #include <stdexcept>
 #include <sul/dynamic_bitset.hpp>
 #include <utility>
@@ -53,6 +55,7 @@ public:
    * tips.
    */
   void relabel_indicies() {
+    _head.assign_internal_labels();
     _head.relabel_indicies(0);
     _head.set_tip_bitset(tip_count());
   }
@@ -111,6 +114,37 @@ public:
   void set_single_mode() { _single_mode = true; }
 
   void set_single_mode(bool m) { _single_mode = m; }
+
+  std::string dump_state_graphviz() const {
+    std::ostringstream oss;
+    dump_state_graphviz(oss);
+    return oss.str();
+  }
+
+  void dump_state_graphviz(std::ostream &os) const {
+    auto attr_func = [](const tournament_node_t &n) -> std::string {
+      std::ostringstream oss;
+      oss << "[label=";
+      if (n.is_tip()) {
+        oss << n.get_display_label() << " ";
+      } else {
+        auto mv = n.get_memoized_values();
+        oss << "\"";
+        for (size_t i = 0; i < mv.size(); i++) {
+          oss << mv[i];
+          if (i != mv.size() - 1) { oss << "|"; }
+        }
+        oss << "\" ";
+      }
+      oss.seekp(-1, std::ios_base::end);
+      oss << "]";
+      return oss.str();
+    };
+    os << "digraph {\n";
+    os << "node [shape=record]\n";
+    _head.dump_state_graphviz(os, attr_func);
+    os << "}";
+  }
 
 private:
   bool check_matrix_size(const matrix_t &wp) const {
