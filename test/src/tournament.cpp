@@ -461,16 +461,109 @@ node [shape=record]
 c[label=c]
 d[label=d]
 b[label="0.5|0.5|0|0"]
-c -> b
-d -> b
+c -> b[style = solid]
+d -> b[style = solid]
 f[label=f]
 g[label=g]
 e[label="0|0|0.5|0.5"]
-f -> e
-g -> e
+f -> e[style = solid]
+g -> e[style = solid]
 a[label="0.25|0.25|0.25|0.25"]
-b -> a
-e -> a
+b -> a[style = solid]
+e -> a[style = solid]
+})");
+  }
+
+  SECTION("Complicated, double elim") {
+    std::shared_ptr<tournament_node_t> n1{new tournament_node_t{"a"}};
+    std::shared_ptr<tournament_node_t> n2{new tournament_node_t{"b"}};
+    std::shared_ptr<tournament_node_t> n3{new tournament_node_t{"c"}};
+    std::shared_ptr<tournament_node_t> n4{new tournament_node_t{"d"}};
+
+    std::shared_ptr<tournament_node_t> w1{
+        new tournament_node_t{
+            (n1),
+            tournament_edge_t::edge_type_e::win,
+            (n2),
+            tournament_edge_t::edge_type_e::win,
+        },
+    };
+
+    std::shared_ptr<tournament_node_t> w2{
+        new tournament_node_t{
+            (n3),
+            tournament_edge_t::edge_type_e::win,
+            (n4),
+            tournament_edge_t::edge_type_e::win,
+        },
+    };
+
+    std::shared_ptr<tournament_node_t> w3{
+        new tournament_node_t{
+            (w1),
+            tournament_edge_t::edge_type_e::win,
+            (w2),
+            tournament_edge_t::edge_type_e::win,
+        },
+    };
+
+    std::shared_ptr<tournament_node_t> l3{
+        new tournament_node_t{
+            (w1),
+            tournament_edge_t::edge_type_e::loss,
+            (w2),
+            tournament_edge_t::edge_type_e::loss,
+        },
+    };
+
+    std::shared_ptr<tournament_node_t> l4{
+        new tournament_node_t{
+            w3,
+            tournament_edge_t::edge_type_e::loss,
+            l3,
+            tournament_edge_t::edge_type_e::win,
+        },
+    };
+
+    tournament_t t{tournament_node_t{
+        l4,
+        w3,
+    }};
+
+    t.relabel_indicies();
+    size_t tip_count = t.tip_count();
+    auto   m         = uniform_matrix_factory(tip_count);
+    t.reset_win_probs(m);
+    t.set_single_mode();
+
+    t.eval();
+
+    auto r = t.dump_state_graphviz();
+    CHECK(r ==
+          R"(digraph {
+node [shape=record]
+j[label=""]
+r -> j[style = dashed]
+u -> j[style = dashed]
+b[label=""]
+q -> b[style = dashed]
+j -> b[style = solid]
+s[label=a]
+t[label=b]
+r[label=""]
+s -> r[style = solid]
+t -> r[style = solid]
+v[label=c]
+w[label=d]
+u[label=""]
+v -> u[style = solid]
+w -> u[style = solid]
+q[label=""]
+r -> q[style = solid]
+u -> q[style = solid]
+a[label=""]
+b -> a[style = solid]
+q -> a[style = solid]
 })");
   }
 }

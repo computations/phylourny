@@ -122,7 +122,7 @@ public:
   }
 
   void dump_state_graphviz(std::ostream &os) const {
-    auto attr_func = [](const tournament_node_t &n) -> std::string {
+    auto node_attr_func = [](const tournament_node_t &n) -> std::string {
       std::ostringstream oss;
       oss << "[label=";
       if (n.is_tip()) {
@@ -140,9 +140,25 @@ public:
       oss << "]";
       return oss.str();
     };
+
+    auto edge_attr_func = [](const tournament_edge_t &e) -> std::string {
+      std::ostringstream oss;
+      oss << "[";
+
+      if (e.is_win()) {
+        oss << "style = solid ";
+      } else {
+        oss << "style = dashed ";
+      }
+
+      oss.seekp(-1, std::ios_base::end);
+      oss << "]";
+      return oss.str();
+    };
+
     os << "digraph {\n";
     os << "node [shape=record]\n";
-    _head.dump_state_graphviz(os, attr_func);
+    _head.dump_state_graphviz(os, node_attr_func, edge_attr_func);
     os << "}";
   }
 

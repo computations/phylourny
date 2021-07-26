@@ -163,22 +163,31 @@ public:
   std::string get_internal_label() const { return _internal_label; }
 
   void dump_state_graphviz(
-      std::ostream &                                               os,
-      const std::function<std::string(const tournament_node_t &)> &attr_func)
-      const {
+      std::ostream &os,
+      const std::function<std::string(const tournament_node_t &)>
+          &node_attr_func,
+      const std::function<std::string(const tournament_edge_t &)>
+          &edge_attr_func) const {
 
     if (!is_tip()) {
-      children().left->dump_state_graphviz(os, attr_func);
-      children().right->dump_state_graphviz(os, attr_func);
+      if (children().left.is_win()) {
+        children().left->dump_state_graphviz(
+            os, node_attr_func, edge_attr_func);
+      }
+      if (children().right.is_win()) {
+        children().right->dump_state_graphviz(
+            os, node_attr_func, edge_attr_func);
+      }
     }
 
-    os << _internal_label << attr_func(*this) << "\n";
+    os << _internal_label << node_attr_func(*this) << "\n";
 
     if (!is_tip()) {
-      os << children().left->get_internal_label() << " -> " << _internal_label
-         << "\n";
-      os << children().right->get_internal_label() << " -> " << _internal_label
-         << "\n";
+      os << children().left->get_internal_label() << " -> " << _internal_label;
+      os << edge_attr_func(children().left) << "\n";
+
+      os << children().right->get_internal_label() << " -> " << _internal_label;
+      os << edge_attr_func(children().right) << "\n";
     }
   }
 
