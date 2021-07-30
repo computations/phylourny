@@ -3,8 +3,10 @@
 #include "tournament_node.hpp"
 #include "util.hpp"
 #include <exception>
+#include <fstream>
 #include <numeric>
 #include <stdexcept>
+#include <string>
 #include <sul/dynamic_bitset.hpp>
 
 bool tournament_node_t::is_tip() const {
@@ -151,128 +153,132 @@ vector_t tournament_node_t::fold(const vector_t &x,
 double tournament_node_t::single_eval(const matrix_t &      pmatrix,
                                       size_t                eval_index,
                                       sul::dynamic_bitset<> include) {
+
   _scratchpad.eval_index = eval_index;
   _scratchpad.include    = include;
 
-  if (!(include & _tip_bitset).any()) {
-    debug_string(EMIT_LEVEL_DEBUG,
-                 "include and tip_bitset are disjoint, no need to continue");
-    return 0.0;
-  }
-  debug_print(EMIT_LEVEL_DEBUG,
-              "=== START eval_index: %lu, include: %s, tip_bitset: %s",
-              eval_index,
-              include.to_string().c_str(),
-              _tip_bitset.to_string().c_str());
-
-  if (is_tip()) {
+  if (!include[eval_index]) {
     debug_print(EMIT_LEVEL_DEBUG,
-                "We found a tip: '%s'. team index: %lu, eval_index: %lu",
-                team().label.c_str(),
-                team().index,
-                eval_index);
-    debug_print(EMIT_LEVEL_DEBUG,
-                "END === eval_index: %lu, include: %s",
+                "[%s] eval_index (%lu) is not in include (%s)",
+                _internal_label.c_str(),
                 eval_index,
                 include.to_string().c_str());
-    return team().index == eval_index ? 1.0 : 0.0;
+    _scratchpad.fold_l = 0.0;
+    _scratchpad.fold_r = 0.0;
+    _scratchpad.result = 0.0;
+    return 0.0;
   }
 
-  if (!is_subtip(eval_index)) { return 0.0; }
+  if (!is_subtip(eval_index)) {
+    debug_print(EMIT_LEVEL_DEBUG,
+                "[%s] eval_index (%lu) is not in tip bitset (%s)",
+                _internal_label.c_str(),
+                eval_index,
+                _tip_bitset.to_string().c_str());
+    _scratchpad.fold_l = 0.0;
+    _scratchpad.fold_r = 0.0;
+    _scratchpad.result = 0.0;
+    return 0.0;
+  }
 
-  auto sub_include        = include;
-  sub_include[eval_index] = false;
-
-  /**
-   * This check is in the case that we are a cherry. In this case, we need to
-   * evaluate this a different way. We also apply an optimization that doesn't
-   * require the full fold.
-   */
-  if (_tip_bitset.count() == 2) {
-    if ((_tip_bitset & ~include).count() == 1) { return 1.0; }
-
-    /* Find the other index that is a child */
-    size_t other_index;
-    for (other_index = 0; other_index < _tip_bitset.size(); ++other_index) {
-      if (_tip_bitset[other_index] && other_index != eval_index) {
-        return pmatrix[eval_index][other_index];
-      }
+  if (is_tip()) {
+    if (eval_index == team().index) {
+      debug_print(EMIT_LEVEL_DEBUG,
+                  "[%s] We are a tip, returning 1.0",
+                  _internal_label.c_str());
+      _scratchpad.fold_l = 0.0;
+      _scratchpad.fold_r = 0.0;
+      _scratchpad.result = 1.0;
+      return 1.0;
     }
+    debug_print(EMIT_LEVEL_DEBUG,
+                "[%s] We are a tip, returning 0.0",
+                _internal_label.c_str());
+    _scratchpad.fold_l = 0.0;
+    _scratchpad.fold_r = 0.0;
+    _scratchpad.result = 0.0;
+    return 0.0;
   }
 
-  debug_string(EMIT_LEVEL_DEBUG, "Starting fold_a");
-  _scratchpad.fold_a =
-      single_fold(pmatrix, eval_index, sub_include, children().left);
-  debug_string(EMIT_LEVEL_DEBUG, "Starting term_a");
-  _scratchpad.term_a =
-      children().right->single_eval(pmatrix, eval_index, include);
+  if ((_tip_bitset & include).count() == 1) {
+    debug_print(EMIT_LEVEL_DEBUG,
+                "[%s] _tip_bitset (%s) & include (%s) == 1",
+                _internal_label.c_str(),
+                _tip_bitset.to_string().c_str(),
+                include.to_string().c_str());
+    _scratchpad.fold_l = 0.0;
+    _scratchpad.fold_r = 0.0;
+    _scratchpad.result = 1.0;
+    return 1.0;
+  }
 
-  debug_string(EMIT_LEVEL_DEBUG, "Starting fold_b");
-  _scratchpad.fold_b =
-      single_fold(pmatrix, eval_index, sub_include, children().right);
-  debug_string(EMIT_LEVEL_DEBUG, "Starting term_b");
-  _scratchpad.term_b =
-      children().left->single_eval(pmatrix, eval_index, include);
+  std::string filename =
+      _internal_label + "." + std::to_string(eval_index) + ".dot";
 
-  _scratchpad.result = _scratchpad.fold_a * _scratchpad.term_a +
-                       _scratchpad.fold_b * _scratchpad.term_b;
+  std::ofstream outfile(filename);
 
-  debug_print(EMIT_LEVEL_DEBUG,
-              "fold_a: %f, term_a: %f, fold_b: %f, term_b: %f, result :%f",
-              _scratchpad.fold_a,
-              _scratchpad.term_a,
-              _scratchpad.fold_b,
-              _scratchpad.term_b,
-              _scratchpad.result);
-  debug_print(EMIT_LEVEL_DEBUG,
-              "END === eval_index: %lu, include: %s",
-              eval_index,
-              include.to_string().c_str());
+  _scratchpad.fold_l = single_fold(
+      pmatrix, eval_index, include, children().left, children().right);
+
+  _scratchpad.fold_r = single_fold(
+      pmatrix, eval_index, include, children().right, children().left);
+
+  _scratchpad.result = _scratchpad.fold_l + _scratchpad.fold_r;
+
+  debug_graphviz(outfile);
   return _scratchpad.result;
 }
 
-double tournament_node_t::single_fold(const matrix_t &      pmatrix,
-                                      size_t                eval_index,
-                                      sul::dynamic_bitset<> include,
-                                      tournament_edge_t &   child) {
+double tournament_node_t::single_fold(const matrix_t &             pmatrix,
+                                      size_t                       eval_index,
+                                      const sul::dynamic_bitset<> &include,
+                                      tournament_edge_t &          child1,
+                                      tournament_edge_t &          child2) {
 
-  vector_t sub_values(include.size());
-  auto     sub_include = include;
-  // include[eval_index]  = false;
+  assert(include.any());
 
-  if (child->can_optimize(sub_include)) {
-    debug_print(EMIT_LEVEL_DEBUG,
-                "Determined that we can optimize this child eval_index: %lu "
-                "sub_include: %s",
-                eval_index,
-                include.to_string().c_str());
-    _scratchpad.result = child->eval(pmatrix, include.size())[eval_index];
-    return _scratchpad.result;
-  }
-
+  double result = 0.0;
   for (size_t i = 0; i < include.size(); i++) {
-    if (!include[i]) { continue; }
-    if (is_subtip(i)) {
-      sub_values[i] = child->single_eval(pmatrix, i, sub_include);
-    } else {
-      sub_values[i] = 0.0;
-    }
+    if (i == eval_index) { continue; }
+
+    auto c1_include        = child1->get_tip_bitset();
+    c1_include[eval_index] = false;
+
+    auto c2_include = include & child2->get_tip_bitset();
+    c2_include[i]   = false;
+
+    double tmp_pmat  = pmatrix[eval_index][i];
+    double tmp_c1    = child1->single_eval(pmatrix, i, c1_include);
+    double tmp_c2    = child2->single_eval(pmatrix, eval_index, c2_include);
+    double tmp_total = tmp_pmat * tmp_c1 * tmp_c2;
+
+    debug_print(
+        EMIT_LEVEL_DEBUG,
+        "[%s (%s, %s)] total: %f, c1: %f, c2: %f, i: %lu, eval_index: %lu, "
+        "include: %s, c1_include: %s, c2_include: %s",
+        _internal_label.c_str(),
+        child1->_internal_label.c_str(),
+        child2->_internal_label.c_str(),
+        tmp_total,
+        tmp_c1,
+        tmp_c2,
+        i,
+        eval_index,
+        include.to_string().c_str(),
+        c1_include.to_string().c_str(),
+        c2_include.to_string().c_str());
+    result += tmp_total;
   }
 
-  if ((child->get_tip_bitset() & sub_include).count() == 1) {
-    sub_values = softmax(sub_values);
-  }
-
-  for (size_t i = 0; i < sub_values.size(); i++) {
-    sub_values[i] *= pmatrix[eval_index][i];
-  }
-
-  double result = std::accumulate(sub_values.begin(), sub_values.end(), 0.0);
-  debug_print(EMIT_LEVEL_DEBUG,
-              "returning %f from single_fold eval_index: %d, include: %s",
-              result,
-              eval_index,
-              include.to_string().c_str());
+  debug_print(
+      EMIT_LEVEL_DEBUG,
+      "[%s (%s, %s)] returning %f from single_fold eval_index: %d, include: %s",
+      _internal_label.c_str(),
+      child1->_internal_label.c_str(),
+      child2->_internal_label.c_str(),
+      result,
+      eval_index,
+      include.to_string().c_str());
   return result;
 }
 

@@ -136,9 +136,8 @@ public:
       } else {
         auto sp = n.get_scratch_pad();
         if (!n.is_simple()) {
-          oss << "\"" << sp.fold_a << "|" << sp.term_a << "|" << sp.fold_b
-              << "|" << sp.term_b << "|" << sp.result << "|" << sp.eval_index
-              << "|" << sp.include.to_string() << "\" ";
+          oss << "\"" << sp.fold_l << "|" << sp.fold_r << "|" << sp.result
+              << "|" << sp.eval_index << "|" << sp.include.to_string() << "\" ";
         } else {
           oss << sp.result << " ";
           oss << "style = filled ";

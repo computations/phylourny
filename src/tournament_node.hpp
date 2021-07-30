@@ -4,6 +4,7 @@
 #include "util.hpp"
 #include <memory>
 #include <ostream>
+#include <sstream>
 #include <string>
 #include <sul/dynamic_bitset.hpp>
 #include <variant>
@@ -15,10 +16,8 @@ struct team_t {
 };
 
 struct scratchpad_t {
-  double fold_a = 0.0;
-  double fold_b = 0.0;
-  double term_a = 0.0;
-  double term_b = 0.0;
+  double fold_l = 0.0;
+  double fold_r = 0.0;
 
   double result = 0.0;
 
@@ -164,7 +163,7 @@ public:
   void assign_internal_labels() { assign_internal_labels(0); }
 
   size_t assign_internal_labels(size_t index) {
-    _internal_label = compute_base26(index++);
+    if (_internal_label.empty()) { _internal_label = compute_base26(index++); }
     if (!is_tip()) {
       index = children().left->assign_internal_labels(index);
       index = children().right->assign_internal_labels(index);
@@ -214,6 +213,53 @@ public:
 
   size_t get_team_index() const { return team().index; }
 
+  void debug_graphviz(std::ostream &os) {
+    auto node_attr_func = [](const tournament_node_t &n) -> std::string {
+      std::ostringstream oss;
+      oss << "[label=";
+      if (n.is_tip()) {
+        oss << "\"" << n.team().label << "|" << n.get_internal_label() << "|"
+            << n.get_team_index() << "\" ";
+      } else {
+        auto sp = n.get_scratch_pad();
+        //        if (!n.is_simple()) {
+        oss << "\"" << n.get_display_label() << "|" << sp.fold_l << "|"
+            << sp.fold_r << "|" << sp.result << "|" << sp.eval_index << "|"
+            << sp.include.to_string() << "|" << n._tip_bitset.to_string()
+            << "\" ";
+        /*
+      } else {
+        oss << sp.result << " ";
+        oss << "style = filled ";
+      }
+      */
+      }
+      oss.seekp(-1, std::ios_base::end);
+      oss << "]";
+      return oss.str();
+    };
+
+    auto edge_attr_func = [](const tournament_edge_t &e) -> std::string {
+      std::ostringstream oss;
+      oss << "[";
+
+      if (e.is_win()) {
+        oss << "style = solid ";
+      } else {
+        oss << "style = dashed ";
+      }
+
+      oss.seekp(-1, std::ios_base::end);
+      oss << "]";
+      return oss.str();
+    };
+
+    os << "digraph {\n";
+    os << "node [shape=record]\n";
+    dump_state_graphviz(os, node_attr_func, edge_attr_func);
+    os << "}";
+  }
+
 private:
   inline const match_parameters_t &children() const {
     return std::get<match_parameters_t>(_children);
@@ -224,10 +270,11 @@ private:
   inline const team_t &team() const { return std::get<team_t>(_children); }
   inline team_t &      team() { return std::get<team_t>(_children); }
 
-  double single_fold(const matrix_t &      pmatrix,
-                     size_t                eval_index,
-                     sul::dynamic_bitset<> include,
-                     tournament_edge_t &   child);
+  double single_fold(const matrix_t &             pmatrix,
+                     size_t                       eval_index,
+                     const sul::dynamic_bitset<> &include,
+                     tournament_edge_t &          child1,
+                     tournament_edge_t &          child2);
 
   bool eval_saved() const { return _memoized_values.size() != 0; }
 
