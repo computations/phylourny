@@ -241,13 +241,13 @@ double tournament_node_t::single_fold(const matrix_t &    pmatrix,
   for (size_t i = 0; i < include.size(); i++) {
     if (i == eval_index) { continue; }
 
-    auto c1_include        = child1->get_tip_bitset();
+    auto c1_include        = child1->get_tip_bitset() & include;
     c1_include[eval_index] = false;
 
     auto c2_include = include & child2->get_tip_bitset();
     c2_include[i]   = false;
 
-    double tmp_pmat  = pmatrix[eval_index][i];
+    double tmp_pmat  = include[i] ? pmatrix[eval_index][i] : 1.0;
     double tmp_c1    = child1->single_eval(pmatrix, i, c1_include);
     double tmp_c2    = child2->single_eval(pmatrix, eval_index, c2_include);
     double tmp_total = tmp_pmat * tmp_c1 * tmp_c2;

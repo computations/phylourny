@@ -2,6 +2,7 @@
 #define __TOURNAMENT_HPP__
 #include "debug.h"
 #include "factorial.hpp"
+#include "single_node.hpp"
 #include "tournament_factory.hpp"
 #include "tournament_node.hpp"
 #include "util.hpp"
@@ -40,6 +41,9 @@ public:
   }
 
   tournament_t(std::unique_ptr<tournament_node_t> &&head) :
+      _head{std::move(head)}, _single_mode{false} {}
+
+  tournament_t(std::unique_ptr<single_node_t> &&head) :
       _head{std::move(head)}, _single_mode{false} {}
 
   tournament_t(tournament_node_t *head) :
@@ -130,7 +134,6 @@ public:
   }
 
   void dump_state_graphviz_scratchpad(std::ostream &os) const {
-
     auto node_attr_func = [](const tournament_node_t &n) -> std::string {
       std::ostringstream oss;
       oss << "[label=";

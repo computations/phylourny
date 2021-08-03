@@ -4,6 +4,7 @@ add_executable(phylourny_test
     tournament.cpp
     dataset.cpp
     sampler.cpp
+    single.cpp
 )
 
 set_target_properties(phylourny_test PROPERTIES

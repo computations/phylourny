@@ -5,6 +5,7 @@
 #include <memory>
 #include <ostream>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <sul/dynamic_bitset.hpp>
 #include <variant>
@@ -56,8 +57,9 @@ public:
       _node{node}, _edge_type{edge_type} {}
 
   tournament_node_t &      operator*() { return *_node; }
-  const tournament_node_t *operator->() const { return _node.get(); }
+  const tournament_node_t &operator*() const { return *_node; }
   tournament_node_t *      operator->() { return _node.get(); }
+  const tournament_node_t *operator->() const { return _node.get(); }
                            operator bool() const { return _node != nullptr; }
 
   bool        empty() const { return _node == nullptr; }
@@ -105,6 +107,8 @@ public:
                         tournament_edge_t::edge_type_e::win,
                         r,
                         tournament_edge_t::edge_type_e::win} {}
+
+  virtual ~tournament_node_t() = default;
 
   bool   is_tip() const;
   size_t tip_count() const;
@@ -159,9 +163,9 @@ public:
   tip_bitset_t set_tip_bitset(size_t tip_count);
   tip_bitset_t get_tip_bitset() const { return _tip_bitset; };
 
-  void assign_internal_labels() { assign_internal_labels(0); }
+  virtual void assign_internal_labels() { assign_internal_labels(0); }
 
-  size_t assign_internal_labels(size_t index) {
+  virtual size_t assign_internal_labels(size_t index) {
     if (_internal_label.empty()) { _internal_label = compute_base26(index++); }
     if (!is_tip()) {
       index = children().left->assign_internal_labels(index);
@@ -259,7 +263,13 @@ public:
     os << "}";
   }
 
-private:
+  virtual size_t winner() const { throw std::runtime_error{"Not implemented"}; }
+
+  virtual size_t loser() const { throw std::runtime_error{"Not implemented"}; }
+
+  const std::string &internal_label() const { return _internal_label; }
+
+protected:
   inline const match_parameters_t &children() const {
     return std::get<match_parameters_t>(_children);
   }
@@ -269,6 +279,7 @@ private:
   inline const team_t &team() const { return std::get<team_t>(_children); }
   inline team_t &      team() { return std::get<team_t>(_children); }
 
+private:
   double single_fold(const matrix_t &    pmatrix,
                      size_t              eval_index,
                      const tip_bitset_t &include,
@@ -276,6 +287,8 @@ private:
                      tournament_edge_t & child2);
 
   bool eval_saved() const { return _memoized_values.size() != 0; }
+
+  size_t team_count() const { return _tip_bitset.size(); }
 
   /* Data Members */
   std::variant<match_parameters_t, team_t> _children;
