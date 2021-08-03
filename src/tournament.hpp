@@ -105,7 +105,7 @@ public:
       vector_t result;
       result.resize(tip_count());
 
-      sul::dynamic_bitset<> include(tip_count());
+      tip_bitset_t include(tip_count());
       include.flip();
 
       for (size_t i = 0; i < result.size(); i++) {

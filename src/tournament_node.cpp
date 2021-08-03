@@ -150,9 +150,9 @@ vector_t tournament_node_t::fold(const vector_t &x,
   return r;
 }
 
-double tournament_node_t::single_eval(const matrix_t &      pmatrix,
-                                      size_t                eval_index,
-                                      sul::dynamic_bitset<> include) {
+double tournament_node_t::single_eval(const matrix_t &pmatrix,
+                                      size_t          eval_index,
+                                      tip_bitset_t    include) {
 
   _scratchpad.eval_index = eval_index;
   _scratchpad.include    = include;
@@ -229,11 +229,11 @@ double tournament_node_t::single_eval(const matrix_t &      pmatrix,
   return _scratchpad.result;
 }
 
-double tournament_node_t::single_fold(const matrix_t &             pmatrix,
-                                      size_t                       eval_index,
-                                      const sul::dynamic_bitset<> &include,
-                                      tournament_edge_t &          child1,
-                                      tournament_edge_t &          child2) {
+double tournament_node_t::single_fold(const matrix_t &    pmatrix,
+                                      size_t              eval_index,
+                                      const tip_bitset_t &include,
+                                      tournament_edge_t & child1,
+                                      tournament_edge_t & child2) {
 
   assert(include.any());
 
@@ -298,9 +298,9 @@ bool tournament_edge_t::is_simple() const {
   return _node->is_simple();
 }
 
-sul::dynamic_bitset<> tournament_node_t::set_tip_bitset(size_t tip_count) {
+tip_bitset_t tournament_node_t::set_tip_bitset(size_t tip_count) {
   if (is_tip()) {
-    sul::dynamic_bitset<> tips(tip_count);
+    tip_bitset_t tips(tip_count);
     tips[team().index] = 1;
     _tip_bitset        = tips;
   } else {
@@ -314,8 +314,7 @@ inline bool tournament_node_t::is_subtip(size_t index) const {
   return _tip_bitset[index];
 }
 
-inline bool
-tournament_node_t::can_optimize(const sul::dynamic_bitset<> &sub_include) {
+inline bool tournament_node_t::can_optimize(const tip_bitset_t &sub_include) {
   return false;
   debug_print(EMIT_LEVEL_DEBUG,
               "_tip_bitset: %s, ~sub_include: %s, can_optimize: %s",

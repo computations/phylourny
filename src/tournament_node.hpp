@@ -21,8 +21,8 @@ struct scratchpad_t {
 
   double result = 0.0;
 
-  sul::dynamic_bitset<> include;
-  size_t                eval_index;
+  tip_bitset_t include;
+  size_t       eval_index;
 };
 
 class tournament_node_t;
@@ -143,7 +143,7 @@ public:
 
   inline bool is_subtip(size_t index) const;
 
-  inline bool can_optimize(const sul::dynamic_bitset<> &sub_include);
+  inline bool can_optimize(const tip_bitset_t &sub_include);
 
   void reset_saved_evals();
 
@@ -153,12 +153,11 @@ public:
                 uint64_t        bestof,
                 const matrix_t &pmatrix) const;
 
-  double single_eval(const matrix_t &      pmatrix,
-                     size_t                eval_index,
-                     sul::dynamic_bitset<> include);
+  double
+  single_eval(const matrix_t &pmatrix, size_t eval_index, tip_bitset_t include);
 
-  sul::dynamic_bitset<> set_tip_bitset(size_t tip_count);
-  sul::dynamic_bitset<> get_tip_bitset() const { return _tip_bitset; };
+  tip_bitset_t set_tip_bitset(size_t tip_count);
+  tip_bitset_t get_tip_bitset() const { return _tip_bitset; };
 
   void assign_internal_labels() { assign_internal_labels(0); }
 
@@ -270,18 +269,18 @@ private:
   inline const team_t &team() const { return std::get<team_t>(_children); }
   inline team_t &      team() { return std::get<team_t>(_children); }
 
-  double single_fold(const matrix_t &             pmatrix,
-                     size_t                       eval_index,
-                     const sul::dynamic_bitset<> &include,
-                     tournament_edge_t &          child1,
-                     tournament_edge_t &          child2);
+  double single_fold(const matrix_t &    pmatrix,
+                     size_t              eval_index,
+                     const tip_bitset_t &include,
+                     tournament_edge_t & child1,
+                     tournament_edge_t & child2);
 
   bool eval_saved() const { return _memoized_values.size() != 0; }
 
   /* Data Members */
   std::variant<match_parameters_t, team_t> _children;
   vector_t                                 _memoized_values;
-  sul::dynamic_bitset<>                    _tip_bitset;
+  tip_bitset_t                             _tip_bitset;
   std::string                              _internal_label;
   scratchpad_t                             _scratchpad;
 };

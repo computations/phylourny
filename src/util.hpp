@@ -2,10 +2,12 @@
 #define UTIL_HPP
 
 #include <string>
+#include <sul/dynamic_bitset.hpp>
 #include <vector>
 
 typedef std::vector<std::vector<double>> matrix_t;
 typedef std::vector<double>              vector_t;
+typedef sul::dynamic_bitset<>            tip_bitset_t;
 
 /**
  * TEST INFO FROM HEADER
