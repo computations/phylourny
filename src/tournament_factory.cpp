@@ -35,8 +35,9 @@ tournament_t tournament_factory(size_t tourny_size) {
     throw std::runtime_error("Tournament factory only accepts powers of 2");
   }
 
-  tournament_t t{tournament_node_t{tournament_node_factory(tourny_size / 2),
-                                   tournament_node_factory(tourny_size / 2)}};
+  tournament_t t{
+      new tournament_node_t{tournament_node_factory(tourny_size / 2),
+                            tournament_node_factory(tourny_size / 2)}};
   t.relabel_indicies();
   return t;
 }
@@ -46,8 +47,8 @@ tournament_t tournament_factory(size_t tourny_size_l, size_t tourny_size_r) {
     throw std::runtime_error("Tournament factory only accepts powers of 2");
   }
 
-  tournament_t t{tournament_node_t{tournament_node_factory(tourny_size_l),
-                                   tournament_node_factory(tourny_size_r)}};
+  tournament_t t{new tournament_node_t{tournament_node_factory(tourny_size_l),
+                                       tournament_node_factory(tourny_size_r)}};
   t.relabel_indicies();
   return t;
 }

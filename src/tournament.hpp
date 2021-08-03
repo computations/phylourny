@@ -30,20 +30,24 @@ public:
    * will delete it.
    */
   tournament_t() :
-      _head{tournament_edge_t{new tournament_node_t,
-                              tournament_edge_t::edge_type_e::win},
-            tournament_edge_t{new tournament_node_t,
-                              tournament_edge_t::edge_type_e::win}},
+      _head{new tournament_node_t{
+          tournament_edge_t{new tournament_node_t,
+                            tournament_edge_t::edge_type_e::win},
+          tournament_edge_t{new tournament_node_t,
+                            tournament_edge_t::edge_type_e::win}}},
       _single_mode{false} {
     relabel_indicies();
   }
 
-  tournament_t(tournament_node_t &&head) :
+  tournament_t(std::unique_ptr<tournament_node_t> &&head) :
       _head{std::move(head)}, _single_mode{false} {}
+
+  tournament_t(tournament_node_t *head) :
+      tournament_t{std::unique_ptr<tournament_node_t>{head}} {}
 
   tournament_t(const tournament_node_t &) = delete;
 
-  size_t tip_count() const { return _head.tip_count(); }
+  size_t tip_count() const { return _head->tip_count(); }
   void   reset_win_probs(const matrix_t wp) {
     if (check_matrix_size(wp)) {
       _win_probs = wp;
@@ -57,9 +61,9 @@ public:
    * tips.
    */
   void relabel_indicies() {
-    _head.assign_internal_labels();
-    _head.relabel_indicies(0);
-    _head.set_tip_bitset(tip_count());
+    _head->assign_internal_labels();
+    _head->relabel_indicies(0);
+    _head->set_tip_bitset(tip_count());
   }
 
   /**
@@ -71,8 +75,8 @@ public:
     if (tip_count() > labels.size()) {
       throw std::runtime_error("Labels vector is too small");
     }
-    _head.relabel_tips(labels);
-    _head.set_tip_bitset(labels.size());
+    _head->relabel_tips(labels);
+    _head->set_tip_bitset(labels.size());
   }
 
   /**
@@ -83,7 +87,7 @@ public:
   std::vector<std::pair<std::string, size_t>> label_map() {
     relabel_indicies();
     std::vector<std::pair<std::string, size_t>> lm;
-    _head.label_map(lm);
+    _head->label_map(lm);
     return lm;
   }
 
@@ -96,7 +100,7 @@ public:
     if (!check_matrix_size(_win_probs)) {
       throw std::runtime_error("Initialize the win probs before calling eval");
     }
-    _head.reset_saved_evals();
+    _head->reset_saved_evals();
     if (_single_mode) {
       vector_t result;
       result.resize(tip_count());
@@ -105,14 +109,14 @@ public:
       include.flip();
 
       for (size_t i = 0; i < result.size(); i++) {
-        result[i] = _head.single_eval(_win_probs, i, include);
+        result[i] = _head->single_eval(_win_probs, i, include);
         std::ofstream outfile(std::to_string(i) + ".dot");
         dump_state_graphviz_scratchpad(outfile);
       }
 
       return result;
     }
-    return _head.eval(_win_probs, tip_count());
+    return _head->eval(_win_probs, tip_count());
   }
 
   void set_single_mode() { _single_mode = true; }
@@ -213,7 +217,7 @@ public:
 
     os << "digraph {\n";
     os << "node [shape=record]\n";
-    _head.dump_state_graphviz(os, node_attr_func, edge_attr_func);
+    _head->dump_state_graphviz(os, node_attr_func, edge_attr_func);
     os << "}";
   }
 
@@ -223,9 +227,9 @@ private:
     return tipc == wp.size();
   }
 
-  tournament_node_t _head;
-  matrix_t          _win_probs;
-  bool              _single_mode;
+  std::unique_ptr<tournament_node_t> _head;
+  matrix_t                           _win_probs;
+  bool                               _single_mode;
 };
 
 #endif

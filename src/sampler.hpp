@@ -43,7 +43,7 @@ constexpr inline std::pair<double, double> make_ab(double median, double k) {
 class sampler_t {
 public:
   sampler_t(const dataset_t &ds, tournament_t &&t) :
-      _dataset{ds}, _tournament{t} {}
+      _dataset{ds}, _tournament{std::move(t)} {}
 
   void run_chain(size_t iters, unsigned int seed);
 

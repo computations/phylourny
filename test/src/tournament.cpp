@@ -281,7 +281,7 @@ TEST_CASE("4 team tournament with losers bracket") {
       },
   };
 
-  tournament_t t{tournament_node_t{
+  tournament_t t{new tournament_node_t{
       l4,
       w3,
   }};
@@ -351,7 +351,7 @@ TEST_CASE("4 team tournament with losers bracket, single mode", "[single]") {
       },
   };
 
-  tournament_t t{tournament_node_t{
+  tournament_t t{new tournament_node_t{
       l4,
       w3,
   }};
@@ -525,7 +525,7 @@ e -> a[style = solid]
         },
     };
 
-    tournament_t t{tournament_node_t{
+    tournament_t t{new tournament_node_t{
         l4,
         w3,
     }};
