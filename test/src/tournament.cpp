@@ -1,3 +1,4 @@
+#include "tournament_node.hpp"
 #include "util.hpp"
 #include <catch2/catch.hpp>
 #include <debug.h>
@@ -49,7 +50,7 @@ TEST_CASE("tournament_node_t basic tests: 4 teamn single elim",
 }
 
 TEST_CASE("tournament_t default case", "[tournament_t]") {
-  tournament_t tournament;
+  tournament_t<tournament_node_t> tournament;
 
   SECTION("count nodes") { CHECK(tournament.tip_count() == 2); }
 
@@ -281,7 +282,7 @@ TEST_CASE("4 team tournament with losers bracket") {
       },
   };
 
-  tournament_t t{new tournament_node_t{
+  tournament_t<tournament_node_t> t{new tournament_node_t{
       l4,
       w3,
   }};
@@ -351,7 +352,7 @@ TEST_CASE("4 team tournament with losers bracket, single mode", "[single]") {
       },
   };
 
-  tournament_t t{new tournament_node_t{
+  tournament_t<tournament_node_t> t{new tournament_node_t{
       l4,
       w3,
   }};
@@ -525,7 +526,7 @@ e -> a[style = solid]
         },
     };
 
-    tournament_t t{new tournament_node_t{
+    tournament_t<tournament_node_t> t{new tournament_node_t{
         l4,
         w3,
     }};

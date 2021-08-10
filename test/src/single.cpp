@@ -1,3 +1,4 @@
+#include "single_node.hpp"
 #include "tournament_factory.hpp"
 #include "util.hpp"
 #include <algorithm>
@@ -30,7 +31,7 @@ TEST_CASE("single node basic tests", "[single_node]") {
     std::unique_ptr<single_node_t> n1 =
         std::make_unique<single_node_t>(team_a, team_b);
 
-    tournament_t t(std::move(n1));
+    tournament_t<single_node_t> t(std::move(n1));
   }
 
   SECTION("Testing ticks and evals") {
@@ -232,9 +233,9 @@ TEST_CASE("Double Elim Tournament", "[single_node]") {
       size_t tick_count = 0;
       for (auto tr = t->tick(); tr != tick_result_t::finished; tr = t->tick()) {
         tick_count++;
-        REQUIRE(tick_count < (1 << node_count + team_count));
+        REQUIRE(tick_count < (1 << (node_count + team_count)));
       }
-      CHECK(tick_count == (1 << node_count + team_count) - 1);
+      CHECK(tick_count == (1 << (node_count + team_count)) - 1);
     }
   }
 
@@ -323,7 +324,7 @@ TEST_CASE("Double elim tournament with tournament_t",
       w3,
   }};
 
-  tournament_t tourny(std::move(t));
+  tournament_t<single_node_t> tourny(std::move(t));
 
   SECTION("Eval") {
     SECTION("Uniform matrix") {

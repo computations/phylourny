@@ -15,8 +15,9 @@ enum class tick_result_t {
 
 class single_node_t : public tournament_node_t {
 public:
-  single_node_t()                 = default;
-  single_node_t(single_node_t &&) = default;
+  single_node_t()                      = default;
+  single_node_t(single_node_t &&)      = default;
+  single_node_t(const single_node_t &) = default;
   single_node_t(const std::shared_ptr<single_node_t> &l,
                 const std::shared_ptr<single_node_t> &r) :
       tournament_node_t{l, r} {}

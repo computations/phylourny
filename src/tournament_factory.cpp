@@ -1,4 +1,6 @@
+#include "single_node.hpp"
 #include "tournament_factory.hpp"
+#include "tournament_node.hpp"
 
 /** @defgroup tournament_factory_templates Tournament factory template functions
  * @{
@@ -30,26 +32,27 @@ std::shared_ptr<T> tournament_node_factory_template(size_t sub_tourny_size) {
 }
 
 template <typename T>
-tournament_t tournament_factory_template(size_t tourny_size) {
+tournament_t<T> tournament_factory_template(size_t tourny_size) {
   if (tourny_size % 2 != 0) {
     throw std::runtime_error("Tournament factory only accepts powers of 2");
   }
 
-  tournament_t t{new T{tournament_node_factory_template<T>(tourny_size / 2),
-                       tournament_node_factory_template<T>(tourny_size / 2)}};
+  tournament_t<T> t{
+      new T{tournament_node_factory_template<T>(tourny_size / 2),
+            tournament_node_factory_template<T>(tourny_size / 2)}};
   t.relabel_indicies();
   return t;
 }
 
 template <typename T>
-tournament_t tournament_factory_template(size_t tourny_size_l,
-                                         size_t tourny_size_r) {
+tournament_t<T> tournament_factory_template(size_t tourny_size_l,
+                                            size_t tourny_size_r) {
   if (tourny_size_r % 2 != 0 || tourny_size_l % 2 != 0) {
     throw std::runtime_error("Tournament factory only accepts powers of 2");
   }
 
-  tournament_t t{new T{tournament_node_factory_template<T>(tourny_size_l),
-                       tournament_node_factory_template<T>(tourny_size_r)}};
+  tournament_t<T> t{new T{tournament_node_factory_template<T>(tourny_size_l),
+                          tournament_node_factory_template<T>(tourny_size_r)}};
   t.relabel_indicies();
   return t;
 }
@@ -66,32 +69,34 @@ tournament_node_factory_single(size_t sub_tourny_size) {
   return tournament_node_factory_template<single_node_t>(sub_tourny_size);
 }
 
-tournament_t tournament_factory(size_t tourny_size) {
+tournament_t<tournament_node_t> tournament_factory(size_t tourny_size) {
   return tournament_factory_template<tournament_node_t>(tourny_size);
 }
 
-tournament_t tournament_factory_single(size_t tourny_size) {
+tournament_t<single_node_t> tournament_factory_single(size_t tourny_size) {
   return tournament_factory_template<single_node_t>(tourny_size);
 }
 
-tournament_t tournament_factory(size_t tourny_size_l, size_t tourny_size_r) {
+tournament_t<tournament_node_t> tournament_factory(size_t tourny_size_l,
+                                                   size_t tourny_size_r) {
   return tournament_factory_template<tournament_node_t>(tourny_size_l,
                                                         tourny_size_r);
 }
 
-tournament_t tournament_factory_single(size_t tourny_size_l,
-                                       size_t tourny_size_r) {
+tournament_t<single_node_t> tournament_factory_single(size_t tourny_size_l,
+                                                      size_t tourny_size_r) {
   return tournament_factory_template<single_node_t>(tourny_size_l,
                                                     tourny_size_r);
 }
 
-tournament_t tournament_factory(const std::vector<std::string> &team_labels) {
+tournament_t<tournament_node_t>
+tournament_factory(const std::vector<std::string> &team_labels) {
   auto t = tournament_factory_template<tournament_node_t>(team_labels.size());
   t.relabel_tips(team_labels);
   return t;
 }
 
-tournament_t
+tournament_t<single_node_t>
 tournament_factory_single(const std::vector<std::string> &team_labels) {
   auto t = tournament_factory_template<single_node_t>(team_labels.size());
   t.relabel_tips(team_labels);

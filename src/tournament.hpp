@@ -17,6 +17,7 @@
 #include <stdexcept>
 #include <string>
 #include <sul/dynamic_bitset.hpp>
+#include <type_traits>
 #include <utility>
 #include <variant>
 #include <vector>
@@ -24,32 +25,31 @@
 /**
  * Class that contains the entire tournament structure
  */
-class tournament_t {
+template <typename T> class tournament_t {
+  static_assert(std::is_base_of<tournament_node_t, T>(),
+                "tournament_t is restricted to tournamnet_node_t only");
+
 public:
   /**
    * Default constructor currently makes a 2 node tournament. In the future I
    * will delete it.
    */
   tournament_t() :
-      _head{new tournament_node_t{
-          tournament_edge_t{new tournament_node_t,
-                            tournament_edge_t::edge_type_e::win},
-          tournament_edge_t{new tournament_node_t,
-                            tournament_edge_t::edge_type_e::win}}},
+      _head{
+          new T{tournament_edge_t{new T, tournament_edge_t::edge_type_e::win},
+                tournament_edge_t{new T, tournament_edge_t::edge_type_e::win}}},
       _single_mode{false} {
     relabel_indicies();
   }
 
-  tournament_t(std::unique_ptr<tournament_node_t> &&head) :
-      _head{std::move(head)}, _single_mode{false} {}
+  tournament_t(std::unique_ptr<T> &&head) :
+      _head{std::move(head)}, _single_mode{false} {
+    relabel_indicies();
+  }
 
-  tournament_t(std::unique_ptr<single_node_t> &&head) :
-      _head{std::move(head)}, _single_mode{false} {}
+  tournament_t(T *head) : tournament_t{std::unique_ptr<T>{head}} {}
 
-  tournament_t(tournament_node_t *head) :
-      tournament_t{std::unique_ptr<tournament_node_t>{head}} {}
-
-  tournament_t(const tournament_node_t &) = delete;
+  tournament_t(const T &) = delete;
 
   size_t tip_count() const { return _head->tip_count(); }
   void   reset_win_probs(const matrix_t wp) {
@@ -64,11 +64,7 @@ public:
    * Relabel the indices of the tree. Should be called after adding or removing
    * tips.
    */
-  void relabel_indicies() {
-    _head->assign_internal_labels();
-    _head->relabel_indicies(0);
-    _head->set_tip_bitset(tip_count());
-  }
+  void relabel_indicies();
 
   /**
    * Relabel the tips based on an index to label map.
@@ -105,21 +101,6 @@ public:
       throw std::runtime_error("Initialize the win probs before calling eval");
     }
     _head->reset_saved_evals();
-    if (_single_mode) {
-      vector_t result;
-      result.resize(tip_count());
-
-      tip_bitset_t include(tip_count());
-      include.flip();
-
-      for (size_t i = 0; i < result.size(); i++) {
-        result[i] = _head->single_eval(_win_probs, i, include);
-        std::ofstream outfile(std::to_string(i) + ".dot");
-        dump_state_graphviz_scratchpad(outfile);
-      }
-
-      return result;
-    }
     return _head->eval(_win_probs, tip_count());
   }
 
@@ -230,9 +211,9 @@ private:
     return tipc == wp.size();
   }
 
-  std::unique_ptr<tournament_node_t> _head;
-  matrix_t                           _win_probs;
-  bool                               _single_mode;
+  std::unique_ptr<T> _head;
+  matrix_t           _win_probs;
+  bool               _single_mode;
 };
 
 #endif

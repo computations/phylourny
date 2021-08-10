@@ -270,15 +270,15 @@ double tournament_node_t::single_fold(const matrix_t &    pmatrix,
     result += tmp_total;
   }
 
-  debug_print(
-      EMIT_LEVEL_DEBUG,
-      "[%s (%s, %s)] returning %f from single_fold eval_index: %d, include: %s",
-      _internal_label.c_str(),
-      child1->_internal_label.c_str(),
-      child2->_internal_label.c_str(),
-      result,
-      eval_index,
-      include.to_string().c_str());
+  debug_print(EMIT_LEVEL_DEBUG,
+              "[%s (%s, %s)] returning %f from single_fold eval_index: %lu, "
+              "include: %s",
+              _internal_label.c_str(),
+              child1->_internal_label.c_str(),
+              child2->_internal_label.c_str(),
+              result,
+              eval_index,
+              include.to_string().c_str());
   return result;
 }
 

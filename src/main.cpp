@@ -19,6 +19,7 @@
 #include "summary.hpp"
 #include "tournament.hpp"
 #include "tournament_factory.hpp"
+#include "tournament_node.hpp"
 int __VERBOSE__ = EMIT_LEVEL_PROGRESS;
 
 #define STRING(s) #s
@@ -193,8 +194,8 @@ int main(int argc, char **argv) {
     if (cli_options["matches"].initialized() ||
         cli_options["dummy"].initialized()) {
 
-      dataset_t ds{matches};
-      sampler_t sampler{ds, tournament_factory(teams)};
+      dataset_t                    ds{matches};
+      sampler_t<tournament_node_t> sampler{ds, tournament_factory(teams)};
 
       debug_string(EMIT_LEVEL_PROGRESS, "Running MCMC sampler");
       sampler.run_chain(10000000, seed);
