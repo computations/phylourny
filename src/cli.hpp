@@ -233,6 +233,7 @@ cli_option_t args[] = {
     option_with_argument<std::string>(
         "probs", "Pairwise win probabilities as a csv file"),
     option_flag("single", "Compute the tournament in single mode."),
+    option_flag("sim", "Compute the tournament in simulation mode."),
     option_flag("dummy", "Make dummy data"),
     option_flag("debug", "Enable debug output"),
 };

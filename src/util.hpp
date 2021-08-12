@@ -1,6 +1,7 @@
 #ifndef UTIL_HPP
 #define UTIL_HPP
 
+#include <random>
 #include <string>
 #include <sul/dynamic_bitset.hpp>
 #include <vector>
@@ -8,6 +9,8 @@
 typedef std::vector<std::vector<double>> matrix_t;
 typedef std::vector<double>              vector_t;
 typedef sul::dynamic_bitset<>            tip_bitset_t;
+typedef std::mt19937_64                  random_engine_t;
+typedef size_t                           clock_tick_t;
 
 /**
  * TEST INFO FROM HEADER

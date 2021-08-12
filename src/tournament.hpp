@@ -104,6 +104,8 @@ public:
     return _head->eval(_win_probs, tip_count());
   }
 
+  vector_t eval(size_t iters);
+
   void set_single_mode() { _single_mode = true; }
 
   void set_single_mode(bool m) { _single_mode = m; }

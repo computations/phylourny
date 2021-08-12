@@ -69,6 +69,9 @@ public:
 
     double cur_lh = _dataset.log_likelihood(params);
     for (size_t i = 0; i < iters; ++i) {
+      if (i % 10000 == 0 && i != 0) {
+        debug_print(EMIT_LEVEL_PROGRESS, "%lu samples", i);
+      }
       for (size_t j = 0; j < params.size(); ++j) {
         auto [a, b] = make_ab(params[j], 5);
         beta_distribution<double> bd(a, b);

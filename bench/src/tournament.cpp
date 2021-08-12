@@ -22,15 +22,26 @@ static void BM_tourney_eval(benchmark::State &state) {
 BENCHMARK(BM_tourney_eval)->RangeMultiplier(2)->Range(1 << 2, 1 << 7);
 
 static void BM_tourney_single_eval(benchmark::State &state) {
-  auto t = tournament_factory(state.range(0));
+  auto t = tournament_factory_single(state.range(0));
   auto m = uniform_matrix_factory(state.range(0));
   t.reset_win_probs(m);
   t.relabel_indicies();
-  t.set_single_mode();
   for (auto _ : state) { benchmark::DoNotOptimize(t.eval()); }
 }
 
 BENCHMARK(BM_tourney_single_eval)->RangeMultiplier(2)->Range(1 << 2, 1 << 3);
+
+static void BM_tourney_simulation_eval(benchmark::State &state) {
+  auto t = tournament_factory_simulation(state.range(0));
+  auto m = uniform_matrix_factory(state.range(0));
+  t.reset_win_probs(m);
+  t.relabel_indicies();
+  for (auto _ : state) { benchmark::DoNotOptimize(t.eval(100)); }
+}
+
+BENCHMARK(BM_tourney_simulation_eval)
+    ->RangeMultiplier(2)
+    ->Range(1 << 2, 1 << 4);
 
 constexpr inline double factorial1(uint64_t i) {
   if (i < factorial_table_size) { return factorial_table[i]; }

@@ -1,3 +1,4 @@
+#include "simulation_node.hpp"
 #include "single_node.hpp"
 #include "tournament_factory.hpp"
 #include "tournament_node.hpp"
@@ -69,12 +70,22 @@ tournament_node_factory_single(size_t sub_tourny_size) {
   return tournament_node_factory_template<single_node_t>(sub_tourny_size);
 }
 
+std::shared_ptr<simulation_node_t>
+tournament_node_factory_simulation(size_t sub_tourny_size) {
+  return tournament_node_factory_template<simulation_node_t>(sub_tourny_size);
+}
+
 tournament_t<tournament_node_t> tournament_factory(size_t tourny_size) {
   return tournament_factory_template<tournament_node_t>(tourny_size);
 }
 
 tournament_t<single_node_t> tournament_factory_single(size_t tourny_size) {
   return tournament_factory_template<single_node_t>(tourny_size);
+}
+
+tournament_t<simulation_node_t>
+tournament_factory_simulation(size_t tourny_size) {
+  return tournament_factory_template<simulation_node_t>(tourny_size);
 }
 
 tournament_t<tournament_node_t> tournament_factory(size_t tourny_size_l,
@@ -89,6 +100,12 @@ tournament_t<single_node_t> tournament_factory_single(size_t tourny_size_l,
                                                     tourny_size_r);
 }
 
+tournament_t<simulation_node_t>
+tournament_factory_simulation(size_t tourny_size_l, size_t tourny_size_r) {
+  return tournament_factory_template<simulation_node_t>(tourny_size_l,
+                                                        tourny_size_r);
+}
+
 tournament_t<tournament_node_t>
 tournament_factory(const std::vector<std::string> &team_labels) {
   auto t = tournament_factory_template<tournament_node_t>(team_labels.size());
@@ -99,6 +116,13 @@ tournament_factory(const std::vector<std::string> &team_labels) {
 tournament_t<single_node_t>
 tournament_factory_single(const std::vector<std::string> &team_labels) {
   auto t = tournament_factory_template<single_node_t>(team_labels.size());
+  t.relabel_tips(team_labels);
+  return t;
+}
+
+tournament_t<simulation_node_t>
+tournament_factory_simulation(const std::vector<std::string> &team_labels) {
+  auto t = tournament_factory_template<simulation_node_t>(team_labels.size());
   t.relabel_tips(team_labels);
   return t;
 }

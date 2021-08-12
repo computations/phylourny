@@ -5,6 +5,7 @@ add_executable(phylourny_test
     dataset.cpp
     sampler.cpp
     single.cpp
+    simulation.cpp
 )
 
 set_target_properties(phylourny_test PROPERTIES
