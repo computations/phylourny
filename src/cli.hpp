@@ -7,6 +7,7 @@
 
 #include "debug.h"
 #include <any>
+#include <cctype>
 #include <cstring>
 #include <exception>
 #include <functional>
@@ -210,6 +211,20 @@ cli_option_t option_with_argument<size_t>(const char *name, const char *desc) {
       name, desc, true, [](const char *o) -> size_t { return std::stoull(o); }};
 }
 
+template <>
+cli_option_t option_with_argument<bool>(const char *name, const char *desc) {
+  return cli_option_t{name, desc, true, [](const char *o) -> bool {
+                        std::string arg(o);
+                        for (size_t i = 0; i < arg.size(); i++) {
+                          arg[i] = tolower(arg[i]);
+                        }
+                        if (arg == "off") { return false; }
+                        if (arg == "on") { return true; }
+                        throw cli_option_argument_not_found{
+                            "Argument should be ieither on or off"};
+                      }};
+}
+
 cli_option_t option_flag(const char *name, const char *desc) {
   return cli_option_t{
       name,
@@ -234,6 +249,10 @@ cli_option_t args[] = {
         "probs", "Pairwise win probabilities as a csv file"),
     option_flag("single", "Compute the tournament in single mode."),
     option_flag("sim", "Compute the tournament in simulation mode."),
+    option_with_argument<size_t>("sim-iters",
+                                 "Number of simulation iterations to run"),
+    option_with_argument<bool>("dynamic",
+                               "Enable or disable dynamic computation"),
     option_flag("dummy", "Make dummy data"),
     option_flag("debug", "Enable debug output"),
 };

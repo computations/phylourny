@@ -100,6 +100,8 @@ public:
     }
   }
 
+  void set_simulation_iterations(size_t s) { _simulation_iterations = s; }
+
 private:
   matrix_t normalize_params(const params_t &params) {
     matrix_t wp;
@@ -116,10 +118,7 @@ private:
     return wp;
   }
 
-  vector_t run_simulation(const params_t &params) {
-    _tournament.reset_win_probs(normalize_params(params));
-    return _tournament.eval();
-  }
+  vector_t run_simulation(const params_t &params);
 
   void record_sample(const params_t &params, double llh) {
     result_t r{run_simulation(params), params, llh};
@@ -129,6 +128,18 @@ private:
   dataset_t             _dataset;
   tournament_t<T>       _tournament;
   std::vector<result_t> _samples;
+  size_t                _simulation_iterations;
 };
 
+template <>
+vector_t sampler_t<simulation_node_t>::run_simulation(const params_t &params) {
+  _tournament.reset_win_probs(normalize_params(params));
+  return _tournament.eval(_simulation_iterations);
+}
+
+template <typename T>
+vector_t sampler_t<T>::run_simulation(const params_t &params) {
+  _tournament.reset_win_probs(normalize_params(params));
+  return _tournament.eval();
+}
 #endif

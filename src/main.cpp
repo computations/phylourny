@@ -195,7 +195,9 @@ int main(int argc, char **argv) {
     if (cli_options["matches"].initialized() ||
         cli_options["dummy"].initialized()) {
 
-      if (cli_options["single"].value<bool>(false)) {
+      std::string suffix = ".json";
+
+      if (cli_options["single"].value(false)) {
         /* This is an insane set of parameters for single mode. I suspect that
          * it will never complete for the team size
          */
@@ -206,16 +208,17 @@ int main(int argc, char **argv) {
         sampler.run_chain(1000, seed);
         auto summary = sampler.summary();
 
-        std::ofstream outfile(output_prefix + ".samples.json");
+        std::ofstream outfile(output_prefix + ".single.samples" + suffix);
         summary.write_samples(outfile, 0, 1);
 
-        std::ofstream mlp_outfile(output_prefix + ".mlp.json");
+        std::ofstream mlp_outfile(output_prefix + ".single.mlp" + suffix);
         summary.write_mlp(mlp_outfile, 10);
 
-        std::ofstream mmpp_outfile(output_prefix + ".mmpp.json");
+        std::ofstream mmpp_outfile(output_prefix + ".single.mmpp" + suffix);
         summary.write_mmpp(mmpp_outfile, 10);
+      }
 
-      } else {
+      if (cli_options["dynamic"].value(true)) {
         dataset_t                    ds{matches};
         sampler_t<tournament_node_t> sampler{ds, tournament_factory(teams)};
 
@@ -223,13 +226,35 @@ int main(int argc, char **argv) {
         sampler.run_chain(10000000, seed);
         auto summary = sampler.summary();
 
-        std::ofstream outfile(output_prefix + ".samples.json");
+        std::ofstream outfile(output_prefix + ".dynamic.samples" + suffix);
         summary.write_samples(outfile, 0, 1);
 
-        std::ofstream mlp_outfile(output_prefix + ".mlp.json");
+        std::ofstream mlp_outfile(output_prefix + ".dynamic.mlp" + suffix);
         summary.write_mlp(mlp_outfile, 1000000);
 
-        std::ofstream mmpp_outfile(output_prefix + ".mmpp.json");
+        std::ofstream mmpp_outfile(output_prefix + ".dynamic.mmpp" + suffix);
+        summary.write_mmpp(mmpp_outfile, 1000000);
+      }
+
+      if (cli_options["sim"].value(false)) {
+        dataset_t                    ds{matches};
+        sampler_t<simulation_node_t> sampler{
+            ds, tournament_factory_simulation(teams)};
+
+        sampler.set_simulation_iterations(
+            cli_options["sim-iters"].value(1'000'000lu));
+
+        debug_string(EMIT_LEVEL_PROGRESS, "Running MCMC sampler");
+        sampler.run_chain(10000000, seed);
+        auto summary = sampler.summary();
+
+        std::ofstream outfile(output_prefix + ".sim.samples" + suffix);
+        summary.write_samples(outfile, 0, 1);
+
+        std::ofstream mlp_outfile(output_prefix + ".sim.mlp" + suffix);
+        summary.write_mlp(mlp_outfile, 1000000);
+
+        std::ofstream mmpp_outfile(output_prefix + ".sim.mmpp" + suffix);
         summary.write_mmpp(mmpp_outfile, 1000000);
       }
     }
@@ -238,16 +263,27 @@ int main(int argc, char **argv) {
       matrix_t odds;
       odds = parse_odds_file(cli_options["odds"].value<std::string>(),
                              team_name_map);
-      std::ofstream odds_outfile(output_prefix + ".odds.json");
-      if (cli_options["single"].value<bool>(false)) {
-        auto t = tournament_factory_single(teams);
+      std::string suffix = ".odds.json";
+      if (cli_options["single"].value(false)) {
+        std::ofstream odds_outfile(output_prefix + ".single" + suffix);
+        auto          t = tournament_factory_single(teams);
         t.reset_win_probs(odds);
         auto wp = t.eval();
         odds_outfile << to_json(wp) << std::endl;
-      } else {
-        auto t = tournament_factory(teams);
+      }
+      if (cli_options["dynamic"].value(true)) {
+        std::ofstream odds_outfile(output_prefix + ".dynamic" + suffix);
+        auto          t = tournament_factory(teams);
         t.reset_win_probs(odds);
         auto wp = t.eval();
+        odds_outfile << to_json(wp) << std::endl;
+      }
+      if (cli_options["sim"].value(false)) {
+        std::ofstream odds_outfile(output_prefix + ".sim" + suffix);
+        auto          t = tournament_factory_simulation(teams);
+        t.reset_win_probs(odds);
+        size_t iters = cli_options["sim-iters"].value(1'000'000lu);
+        auto   wp    = t.eval(iters);
         odds_outfile << to_json(wp) << std::endl;
       }
     }
@@ -255,16 +291,27 @@ int main(int argc, char **argv) {
     if (cli_options["probs"].initialized()) {
       matrix_t probs = parse_prob_files(
           cli_options["probs"].value<std::string>(), team_name_map);
-      std::ofstream probs_outfile(output_prefix + ".probs.json");
-      if (cli_options["single"].value<bool>(false)) {
-        auto t = tournament_factory_single(teams);
+      std::string suffix = ".probs.json";
+      if (cli_options["single"].value(false)) {
+        std::ofstream probs_outfile(output_prefix + ".single" + suffix);
+        auto          t = tournament_factory_single(teams);
         t.reset_win_probs(probs);
         auto wp = t.eval();
         probs_outfile << to_json(wp) << std::endl;
-      } else {
-        auto t = tournament_factory(teams);
+      }
+      if (cli_options["dynamic"].value(true)) {
+        std::ofstream probs_outfile(output_prefix + ".dynamic" + suffix);
+        auto          t = tournament_factory(teams);
         t.reset_win_probs(probs);
         auto wp = t.eval();
+        probs_outfile << to_json(wp) << std::endl;
+      }
+      if (cli_options["sim"].value(false)) {
+        std::ofstream probs_outfile(output_prefix + ".sim" + suffix);
+        auto          t = tournament_factory_simulation(teams);
+        t.reset_win_probs(probs);
+        size_t iters = cli_options["sim-iters"].value(1'000'000lu);
+        auto   wp    = t.eval(iters);
         probs_outfile << to_json(wp) << std::endl;
       }
     }
