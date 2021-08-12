@@ -31,7 +31,7 @@ static void BM_tourney_single_eval(benchmark::State &state) {
 
 BENCHMARK(BM_tourney_single_eval)->RangeMultiplier(2)->Range(1 << 2, 1 << 3);
 
-static void BM_tourney_simulation_eval(benchmark::State &state) {
+static void BM_tourney_simulation100_eval(benchmark::State &state) {
   auto t = tournament_factory_simulation(state.range(0));
   auto m = uniform_matrix_factory(state.range(0));
   t.reset_win_probs(m);
@@ -39,7 +39,29 @@ static void BM_tourney_simulation_eval(benchmark::State &state) {
   for (auto _ : state) { benchmark::DoNotOptimize(t.eval(100)); }
 }
 
-BENCHMARK(BM_tourney_simulation_eval)
+static void BM_tourney_simulation1000_eval(benchmark::State &state) {
+  auto t = tournament_factory_simulation(state.range(0));
+  auto m = uniform_matrix_factory(state.range(0));
+  t.reset_win_probs(m);
+  t.relabel_indicies();
+  for (auto _ : state) { benchmark::DoNotOptimize(t.eval(1000)); }
+}
+
+static void BM_tourney_simulation1000000_eval(benchmark::State &state) {
+  auto t = tournament_factory_simulation(state.range(0));
+  auto m = uniform_matrix_factory(state.range(0));
+  t.reset_win_probs(m);
+  t.relabel_indicies();
+  for (auto _ : state) { benchmark::DoNotOptimize(t.eval(1000000)); }
+}
+
+BENCHMARK(BM_tourney_simulation100_eval)
+    ->RangeMultiplier(2)
+    ->Range(1 << 2, 1 << 4);
+BENCHMARK(BM_tourney_simulation1000_eval)
+    ->RangeMultiplier(2)
+    ->Range(1 << 2, 1 << 4);
+BENCHMARK(BM_tourney_simulation1000000_eval)
     ->RangeMultiplier(2)
     ->Range(1 << 2, 1 << 4);
 

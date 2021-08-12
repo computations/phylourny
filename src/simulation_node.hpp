@@ -24,7 +24,10 @@ public:
 
   ~simulation_node_t() = default;
 
-  size_t winner() const override { return _assigned_team; }
+  size_t winner() const override {
+    if (is_tip()) { return team().index; }
+    return _assigned_team;
+  }
 
   size_t loser() const override {
     if (is_tip()) { throw std::runtime_error{"Called loser on a tip"}; }
@@ -42,19 +45,18 @@ public:
 
   vector_t eval(const matrix_t &pmat, size_t tip_count, size_t iters) {
     std::vector<size_t> counts(tip_count, 0);
-    clock_tick_t        clock = 0;
+    clock_tick_t        clock = 1;
     random_engine_t     random_engine{std::random_device()()};
     for (size_t i = 0; i < iters; i++) {
+      clock = simulation_eval(pmat, random_engine, clock);
       clock++;
-      simulation_eval(pmat, random_engine, clock);
       counts[winner()] += 1;
     }
 
     vector_t results(tip_count);
 
     for (size_t i = 0; i < tip_count; i++) {
-      results[i] =
-          static_cast<double>(counts[i]) / static_cast<double>(tip_count);
+      results[i] = static_cast<double>(counts[i]) / static_cast<double>(iters);
     }
 
     return results;
@@ -68,8 +70,8 @@ private:
 
     if (clock < _last_eval) { return _assigned_team; }
 
-    clock = left_child().simulation_eval(pmat, random_engine, clock);
-    clock = right_child().simulation_eval(pmat, random_engine, clock);
+    auto lclock = left_child().simulation_eval(pmat, random_engine, clock);
+    auto rclock = right_child().simulation_eval(pmat, random_engine, clock);
 
     size_t lteam =
         children().left.is_win() ? left_child().winner() : left_child().loser();
@@ -80,6 +82,7 @@ private:
     std::bernoulli_distribution d(pmat[lteam][rteam]);
 
     _assigned_team = d(random_engine) ? lteam : rteam;
+    clock          = std::max(lclock, rclock);
     _last_eval     = clock++;
     return clock;
   }
