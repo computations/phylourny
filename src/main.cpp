@@ -16,6 +16,7 @@
 #include "dataset.hpp"
 #include "debug.h"
 #include "sampler.hpp"
+#include "single_node.hpp"
 #include "summary.hpp"
 #include "tournament.hpp"
 #include "tournament_factory.hpp"
@@ -194,42 +195,77 @@ int main(int argc, char **argv) {
     if (cli_options["matches"].initialized() ||
         cli_options["dummy"].initialized()) {
 
-      dataset_t                    ds{matches};
-      sampler_t<tournament_node_t> sampler{ds, tournament_factory(teams)};
+      if (cli_options["single"].value<bool>(false)) {
+        dataset_t                    ds{matches};
+        sampler_t<tournament_node_t> sampler{ds, tournament_factory(teams)};
 
-      debug_string(EMIT_LEVEL_PROGRESS, "Running MCMC sampler");
-      sampler.run_chain(10000000, seed);
-      auto summary = sampler.summary();
+        debug_string(EMIT_LEVEL_PROGRESS, "Running MCMC sampler");
+        sampler.run_chain(10000000, seed);
+        auto summary = sampler.summary();
 
-      std::ofstream outfile(output_prefix + ".samples.json");
-      summary.write_samples(outfile, 0, 1);
+        std::ofstream outfile(output_prefix + ".samples.json");
+        summary.write_samples(outfile, 0, 1);
 
-      std::ofstream mlp_outfile(output_prefix + ".mlp.json");
-      summary.write_mlp(mlp_outfile, 1000000);
+        std::ofstream mlp_outfile(output_prefix + ".mlp.json");
+        summary.write_mlp(mlp_outfile, 1000000);
 
-      std::ofstream mmpp_outfile(output_prefix + ".mmpp.json");
-      summary.write_mmpp(mmpp_outfile, 1000000);
+        std::ofstream mmpp_outfile(output_prefix + ".mmpp.json");
+        summary.write_mmpp(mmpp_outfile, 1000000);
+      } else {
+        /* This is an insane set of parameters for single mode. I suspect that
+         * it will never complete for the team size
+         */
+        dataset_t                ds{matches};
+        sampler_t<single_node_t> sampler{ds, tournament_factory_single(teams)};
+
+        debug_string(EMIT_LEVEL_PROGRESS, "Running MCMC sampler");
+        sampler.run_chain(1000, seed);
+        auto summary = sampler.summary();
+
+        std::ofstream outfile(output_prefix + ".samples.json");
+        summary.write_samples(outfile, 0, 1);
+
+        std::ofstream mlp_outfile(output_prefix + ".mlp.json");
+        summary.write_mlp(mlp_outfile, 10);
+
+        std::ofstream mmpp_outfile(output_prefix + ".mmpp.json");
+        summary.write_mmpp(mmpp_outfile, 10);
+      }
     }
 
     if (cli_options["odds"].initialized()) {
       matrix_t odds;
-      odds   = parse_odds_file(cli_options["odds"].value<std::string>(),
+      odds = parse_odds_file(cli_options["odds"].value<std::string>(),
                              team_name_map);
-      auto t = tournament_factory(teams);
-      t.reset_win_probs(odds);
-      auto          wp = t.eval();
       std::ofstream odds_outfile(output_prefix + ".odds.json");
-      odds_outfile << to_json(wp) << std::endl;
+      if (cli_options["single"].value<bool>(false)) {
+        auto t = tournament_factory(teams);
+        t.reset_win_probs(odds);
+        auto wp = t.eval();
+        odds_outfile << to_json(wp) << std::endl;
+      } else {
+        auto t = tournament_factory_single(teams);
+        t.reset_win_probs(odds);
+        auto wp = t.eval();
+        odds_outfile << to_json(wp) << std::endl;
+      }
     }
 
     if (cli_options["probs"].initialized()) {
       matrix_t probs = parse_prob_files(
           cli_options["probs"].value<std::string>(), team_name_map);
-      auto t = tournament_factory(teams);
-      t.reset_win_probs(probs);
-      auto          wp = t.eval();
       std::ofstream probs_outfile(output_prefix + ".probs.json");
-      probs_outfile << to_json(wp) << std::endl;
+      if (cli_options["single"].value<bool>(false)) {
+        auto t = tournament_factory(teams);
+        t.reset_win_probs(probs);
+        auto wp = t.eval();
+        probs_outfile << to_json(wp) << std::endl;
+      } else {
+        auto t = tournament_factory_single(teams);
+        t.reset_win_probs(probs);
+        auto wp = t.eval();
+        probs_outfile << to_json(wp) << std::endl;
+      }
     }
   } catch (cli_option_help &e) { return 1; } catch (cli_option_exception &e) {
     std::cout << e.what() << std::endl;
