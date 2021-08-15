@@ -45,8 +45,12 @@ public:
 
   vector_t eval(const matrix_t &pmat, size_t tip_count, size_t iters) {
     std::vector<size_t> counts(tip_count, 0);
-    clock_tick_t        clock = 1;
-    random_engine_t     random_engine{std::random_device()()};
+
+    clock_tick_t clock = 1;
+    reset_clocks();
+
+    random_engine_t random_engine{std::random_device()()};
+
     for (size_t i = 0; i < iters; i++) {
       clock = simulation_eval(pmat, random_engine, clock);
       clock++;
@@ -106,6 +110,13 @@ private:
 
   const simulation_node_t &right_child() const {
     return dynamic_cast<const simulation_node_t &>(*children().right);
+  }
+
+  void reset_clocks() {
+    _last_eval = 0;
+    if (is_tip()) { return; }
+    left_child().reset_clocks();
+    right_child().reset_clocks();
   }
 
   size_t       _assigned_team;

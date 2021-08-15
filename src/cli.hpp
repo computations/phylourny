@@ -253,6 +253,10 @@ cli_option_t args[] = {
                                  "Number of simulation iterations to run"),
     option_with_argument<bool>("dynamic",
                                "Enable or disable dynamic computation"),
+    option_with_argument<size_t>(
+        "samples", "Number of samples to take for the MCMC exploration"),
+    option_with_argument<double>(
+        "burnin", "Number of samples to discard for MCMC burnin"),
     option_flag("dummy", "Make dummy data"),
     option_flag("debug", "Enable debug output"),
 };

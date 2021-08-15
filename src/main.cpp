@@ -196,16 +196,19 @@ int main(int argc, char **argv) {
         cli_options["dummy"].initialized()) {
 
       std::string suffix = ".json";
+      dataset_t   ds{matches};
+
+      size_t mcmc_samples   = cli_options["samples"].value(10'000'000lu);
+      size_t burnin_samples = mcmc_samples * cli_options["burnin"].value(0.1);
 
       if (cli_options["single"].value(false)) {
         /* This is an insane set of parameters for single mode. I suspect that
          * it will never complete for the team size
          */
-        dataset_t                ds{matches};
         sampler_t<single_node_t> sampler{ds, tournament_factory_single(teams)};
 
-        debug_string(EMIT_LEVEL_PROGRESS, "Running MCMC sampler");
-        sampler.run_chain(1000, seed);
+        debug_string(EMIT_LEVEL_PROGRESS, "Running MCMC sampler (Single Mode)");
+        sampler.run_chain(mcmc_samples, seed);
         auto summary = sampler.summary();
 
         std::ofstream outfile(output_prefix + ".single.samples" + suffix);
@@ -219,43 +222,43 @@ int main(int argc, char **argv) {
       }
 
       if (cli_options["dynamic"].value(true)) {
-        dataset_t                    ds{matches};
         sampler_t<tournament_node_t> sampler{ds, tournament_factory(teams)};
 
-        debug_string(EMIT_LEVEL_PROGRESS, "Running MCMC sampler");
-        sampler.run_chain(10000000, seed);
+        debug_string(EMIT_LEVEL_PROGRESS,
+                     "Running MCMC sampler (Dynamic Mode)");
+        sampler.run_chain(mcmc_samples, seed);
         auto summary = sampler.summary();
 
         std::ofstream outfile(output_prefix + ".dynamic.samples" + suffix);
         summary.write_samples(outfile, 0, 1);
 
         std::ofstream mlp_outfile(output_prefix + ".dynamic.mlp" + suffix);
-        summary.write_mlp(mlp_outfile, 1000000);
+        summary.write_mlp(mlp_outfile, burnin_samples);
 
         std::ofstream mmpp_outfile(output_prefix + ".dynamic.mmpp" + suffix);
-        summary.write_mmpp(mmpp_outfile, 1000000);
+        summary.write_mmpp(mmpp_outfile, burnin_samples);
       }
 
       if (cli_options["sim"].value(false)) {
-        dataset_t                    ds{matches};
         sampler_t<simulation_node_t> sampler{
             ds, tournament_factory_simulation(teams)};
 
         sampler.set_simulation_iterations(
             cli_options["sim-iters"].value(1'000'000lu));
 
-        debug_string(EMIT_LEVEL_PROGRESS, "Running MCMC sampler");
-        sampler.run_chain(10000000, seed);
+        debug_string(EMIT_LEVEL_PROGRESS,
+                     "Running MCMC sampler (Simulation Mode)");
+        sampler.run_chain(mcmc_samples, seed);
         auto summary = sampler.summary();
 
         std::ofstream outfile(output_prefix + ".sim.samples" + suffix);
         summary.write_samples(outfile, 0, 1);
 
         std::ofstream mlp_outfile(output_prefix + ".sim.mlp" + suffix);
-        summary.write_mlp(mlp_outfile, 1000000);
+        summary.write_mlp(mlp_outfile, burnin_samples);
 
         std::ofstream mmpp_outfile(output_prefix + ".sim.mmpp" + suffix);
-        summary.write_mmpp(mmpp_outfile, 1000000);
+        summary.write_mmpp(mmpp_outfile, burnin_samples);
       }
     }
 

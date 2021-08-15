@@ -52,7 +52,8 @@ public:
   tournament_t(const T &) = delete;
 
   size_t tip_count() const { return _head->tip_count(); }
-  void   reset_win_probs(const matrix_t wp) {
+
+  void reset_win_probs(const matrix_t wp) {
     if (check_matrix_size(wp)) {
       _win_probs = wp;
     } else {

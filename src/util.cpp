@@ -6,6 +6,8 @@
 #include <numeric>
 #include <random>
 
+constexpr size_t JSON_PRECISION = 14;
+
 /**
  * TEST INFO FROM CPP
  */
@@ -55,7 +57,7 @@ double compute_perplexity(const vector_t &v) {
 
 std::string to_json(const matrix_t &m) {
   std::stringstream out;
-  out << std::setprecision(3);
+  out << std::setprecision(JSON_PRECISION);
   for (auto &i : m) {
     out << "[";
     for (auto &j : i) {
@@ -74,7 +76,7 @@ std::string to_json(const matrix_t &m) {
 
 std::string to_json(const vector_t &m) {
   std::stringstream out;
-  out << std::setprecision(3);
+  out << std::setprecision(JSON_PRECISION);
   out << "[";
   for (auto &i : m) {
     out << std::setw(3);
@@ -103,7 +105,7 @@ std::string to_json(const std::vector<size_t> &m) {
 
 std::string to_string(const matrix_t &m) {
   std::stringstream out;
-  out << std::setprecision(3);
+  out << std::setprecision(JSON_PRECISION);
   for (auto &i : m) {
     out << "[";
     for (auto &j : i) {
@@ -121,7 +123,7 @@ std::string to_string(const matrix_t &m) {
 
 std::string to_string(const vector_t &m) {
   std::stringstream out;
-  out << std::setprecision(3);
+  out << std::setprecision(JSON_PRECISION);
   out << "[";
   for (auto &i : m) {
     out << std::setw(3);
