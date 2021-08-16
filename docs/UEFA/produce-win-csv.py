@@ -35,10 +35,10 @@ for t1, t2 in itertools.product(enumerate(all_teams), enumerate(all_teams)):
         'team1': t1[1],
         'team2': t2[1],
         'prob-win-team1': win_prob,
-        })
+    })
 
 with open(args.output, 'w') as f:
-    csv_writer = csv.DictWriter(f, ['team1','team2','prob-win-team1'])
+    csv_writer = csv.DictWriter(f, ['team1', 'team2', 'prob-win-team1'])
     csv_writer.writeheader()
     for r in rows:
         csv_writer.writerow(r)
