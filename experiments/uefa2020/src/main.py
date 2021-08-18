@@ -11,9 +11,12 @@ import itertools
 import copy
 import random
 import csv
+import json
+from multiprocessing.pool import ThreadPool
+import multiprocessing
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--iters', default=100)
+parser.add_argument('--iters', default=1000)
 parser.add_argument('--teams', required=True)
 parser.add_argument('--win-probs', required=True)
 parser.add_argument('--exp-prefix', required=True)
@@ -150,6 +153,14 @@ class Experiment:
     def phylourny_logfile_path(self):
         return os.path.join(self._path, "output.log")
 
+    @property
+    def phylourny_results_path(self):
+        return self.pyhlourny_prefix + ".dynamic.probs.json"
+
+    @property
+    def path(self):
+        return self._path
+
     def makedir(self):
         os.makedirs(self._path)
 
@@ -163,6 +174,26 @@ class Experiment:
     def setup(self):
         self._winprobs.perturb()
 
+    def read_time(self):
+        with open(self.phylourny_logfile_path) as logfile:
+            for line in logfile:
+                if "Run Finished, time:" in line:
+                    return self._parse_time(line)
+
+    def read_results(self):
+        with open(self.phylourny_results_path) as results_file:
+            results_json = json.load(results_file)
+            results = {}
+            for t, wp in zip(self._winprobs.teams, results_json):
+                results[t] = wp
+
+            return results
+
+    @staticmethod
+    def _parse_time(line):
+        time_string = line.split()[-1].strip()
+        return float(time_string[:-1])
+
 
 class ExperimentList:
     def __init__(self, wp, iters, prefix):
@@ -175,14 +206,28 @@ class ExperimentList:
         for e in self._experiments:
             e.makedir()
 
+    def _makedirs_mp(self):
+        with ThreadPool() as p:
+            p.map(Experiment.makedir, self._experiments)
+
     def _runall(self, prog):
         for e in self._experiments:
             prog.run(e)
+
+    def _runall_mp(self, prog):
+        with multiprocessing.Pool() as p:
+            p.starmap(Phylourny.run,
+                      itertools.product([prog], self._experiments))
 
     def _writeall(self):
         self._makedirs()
         for e in self._experiments:
             e.write()
+
+    def _writeall_mp(self):
+        self._makedirs_mp()
+        with ThreadPool() as p:
+            p.map(Experiment.write, self._experiments)
 
     def _setup(self):
         for e in self._experiments:
@@ -190,8 +235,43 @@ class ExperimentList:
 
     def run(self, prog):
         self._setup()
-        self._writeall()
-        self._runall(prog)
+        self._writeall_mp()
+        self._runall_mp(prog)
+
+    def results(self):
+        results = []
+        for e in self._experiments:
+            exp_dict = {
+                'time': e.read_time(),
+                'result': e.read_results(),
+                'path': e.path
+            }
+            results.append(exp_dict)
+
+        return results
+
+    def summary(self):
+        results = {}
+        times = []
+        for e in self._experiments:
+            times.append(e.read_time())
+            e_results = e.read_results()
+            for k, v in e_results.items():
+                if not k in results:
+                    results[k] = []
+                results[k].append(v)
+
+        means = {}
+        std = {}
+        for k, v in results.items():
+            means[k] = numpy.mean(v)
+            std[k] = numpy.std(v)
+
+        return {
+            'average': means,
+            'std': std,
+            'average-time': numpy.mean(times)
+        }
 
 
 class Phylourny:
@@ -238,5 +318,11 @@ args.program = os.path.abspath(args.program)
 
 prog = Phylourny(args.program)
 
-el = ExperimentList(wp, 10, args.exp_prefix)
+el = ExperimentList(wp, args.iters, args.exp_prefix)
 el.run(prog)
+
+with open(os.path.join(args.exp_prefix, "results.json"), 'w') as results_file:
+    json.dump(el.results(), results_file)
+
+with open(os.path.join(args.exp_prefix, "summary.json"), 'w') as results_file:
+    json.dump(el.summary(), results_file)
