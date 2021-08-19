@@ -14,9 +14,12 @@ import csv
 import json
 from multiprocessing.pool import ThreadPool
 import multiprocessing
+import pandas
+import seaborn
+import matplotlib
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--iters', default=1000)
+parser.add_argument('--iters', default=100000)
 parser.add_argument('--teams', required=True)
 parser.add_argument('--win-probs', required=True)
 parser.add_argument('--exp-prefix', required=True)
@@ -273,6 +276,18 @@ class ExperimentList:
             'average-time': numpy.mean(times)
         }
 
+    def pandas_df(self):
+        df = pandas.DataFrame()
+        for e in self._experiments:
+            exp_dict = {'time': e.read_time(), 'path': e.path}
+            results = e.read_results()
+            for k, v in results.items():
+                exp_dict[k] = v
+
+            df = df.append(exp_dict, ignore_index=True)
+
+        return df
+
 
 class Phylourny:
     _teams = "--teams {}"
@@ -326,3 +341,41 @@ with open(os.path.join(args.exp_prefix, "results.json"), 'w') as results_file:
 
 with open(os.path.join(args.exp_prefix, "summary.json"), 'w') as results_file:
     json.dump(el.summary(), results_file)
+
+df = el.pandas_df()
+
+df_rank = df.loc[:, teams[0]:teams[-1]].rank(axis=1, ascending=False)
+
+tmp = []
+
+for index, row in df_rank.iterrows():
+    for k, v in row.items():
+        tmp.append({'team': k, 'rank': v})
+
+df_plots_rank = pandas.DataFrame(tmp)
+
+tmp = []
+
+for index, row in df.loc[:, teams[0]:teams[-1]].iterrows():
+    for k, v in row.items():
+        tmp.append({'team': k, 'prob': v})
+
+df_plots_prob = pandas.DataFrame(tmp)
+
+seaborn.set(rc={'figure.figsize': (10, 14)})
+
+plot = seaborn.boxplot(data=df_plots_rank, x='team', y='rank')
+matplotlib.pyplot.xticks(rotation=90)
+plot.set_yticks(range(1, 17))
+plot.set_yticklabels([str(i) for i in range(1, 17)])
+plot.set_xlabel("Team")
+plot.set_ylabel("Rank")
+plot.figure.savefig(os.path.join(args.exp_prefix, "rank.boxplot.png"))
+
+matplotlib.pyplot.clf()
+
+plot = seaborn.violinplot(data=df_plots_prob, x='team', y='prob')
+matplotlib.pyplot.xticks(rotation=90)
+plot.set_xlabel("Team")
+plot.set_ylabel("Probability")
+plot.figure.savefig(os.path.join(args.exp_prefix, "prob.violinplot.png"))
