@@ -6,6 +6,7 @@ import string
 import io
 import math
 import numpy
+import scipy
 import argparse
 import subprocess
 import itertools
@@ -20,12 +21,12 @@ import seaborn
 import matplotlib
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--iters', default=100000)
-parser.add_argument('--teams', required=True)
-parser.add_argument('--win-probs', required=True)
+parser.add_argument('--iters', default=1000)
+parser.add_argument('--teams')
+parser.add_argument('--win-probs')
 parser.add_argument('--exp-prefix', required=True)
 parser.add_argument('--program', required=True)
-parser.add_argument('--matches', required=True)
+parser.add_argument('--matches')
 args = parser.parse_args()
 
 
@@ -45,8 +46,39 @@ def base26_generator(maximum):
 class WinProbs:
     _teams = None
     _winprobs = None
+    _params = None
 
-    def __init__(self, teams, win_probs_csv):
+    def __init__(self, **kwargs):
+        if 'teams' in kwargs and 'win_probs_csv' in kwargs:
+            self._init_from_csv(kwargs['teams'], kwargs['win_probs_csv'])
+        elif 'params' in kwargs:
+            self._init_from_model(kwargs['teams'], kwargs['params'])
+
+    def _init_from_model(self, teams, params):
+        self._teams = teams
+        self._winprobs = numpy.zeros((len(self._teams), len(self._teams)))
+        self._params = params
+        for t1, t2 in itertools.combinations(self._teams, 2):
+            t1_index = self._teams.lookup(t1)
+            t2_index = self._teams.lookup(t2)
+            r1 = params[t1_index]
+            r2 = params[t2_index]
+
+            l1 = numpy.exp(r1 - r2)
+            l2 = numpy.exp(r2 - r1)
+
+            t1_prob = scipy.stats.skellam.cdf(-1, l2, l1)
+            t2_prob = scipy.stats.skellam.cdf(-1, l1, l2)
+
+            tie_prob = 1 - t1_prob - t2_prob
+
+            t1_prob += tie_prob / 2.0
+            t2_prob += tie_prob / 2.0
+
+            self._winprobs[t1_index][t2_index] = t1_prob
+            self._winprobs[t2_index][t1_index] = t2_prob
+
+    def _init_from_csv(self, teams, win_probs_csv):
         self._teams = teams
         self._winprobs = numpy.zeros((len(self._teams), len(self._teams)))
         for row in win_probs_csv:
@@ -57,7 +89,20 @@ class WinProbs:
             self._winprobs[t1_index][t2_index] = wp
             self._winprobs[t2_index][t1_index] = 1 - wp
 
-    def perturb(self, sigma=0.1):
+    def perturb(self, sigma=0.01):
+        if not self._params is None:
+            self._perturb_params(sigma)
+        else:
+            self._perturb_win_probs(sigma)
+
+    def _perturb_params(self, sigma=0.1):
+        params = []
+        for p in self._params:
+            delta = numpy.random.randn() * sigma
+            params.append(p + delta)
+        self._init_from_model(teams=self._teams, params=params)
+
+    def _perturb_win_probs(self, sigma=0.1):
         for t1_index, t2_index in itertools.combinations(
                 range(len(self._teams)), 2):
             delta = numpy.random.randn() * sigma
@@ -118,6 +163,9 @@ class Teams:
     def __len__(self):
         return len(self._teams)
 
+    def append(self, team):
+        self._teams.append(team)
+
     def lookup(self, team):
         for i, t in enumerate(self):
             if t == team:
@@ -132,6 +180,9 @@ class Teams:
     def to_buffer(self, filebuffer):
         for t in self._teams:
             filebuffer.write(t + "\n")
+
+    def __repr__(self):
+        return repr(self._teams)
 
 
 class Experiment:
@@ -319,6 +370,7 @@ class Phylourny:
         with open(exp.phylourny_logfile_path, 'w') as logfile:
             subprocess.run(args, stdout=logfile, stderr=logfile)
 
+
 class Match:
     _team1 = None
     _team2 = None
@@ -328,12 +380,18 @@ class Match:
     _goals_team2 = None
 
     def __init__(self, match_row, teams):
-        _team1 = match_row['team1']
-        _team2 = match_row['team2']
-        _team1_index = teams.lookup(_team1)
-        _team2_index = teams.lookup(_team2)
-        _goals_team1 = match_row['goals-team1']
-        _goals_team2 = match_row['goals-team2']
+        self._team1 = match_row['team1'].strip()
+        if not self._team1 in teams:
+            teams.append(self._team1)
+
+        self._team2 = match_row['team2'].strip()
+        if not self._team2 in teams:
+            teams.append(self._team2)
+
+        self._team1_index = teams.lookup(self._team1)
+        self._team2_index = teams.lookup(self._team2)
+        self._goals_team1 = int(match_row['goals-team1'])
+        self._goals_team2 = int(match_row['goals-team2'])
 
     def sublh(self, params):
         p1 = params[self._team1_index]
@@ -341,19 +399,91 @@ class Match:
         lambda_left = numpy.exp(p1 - p2)
         lambda_right = numpy.exp(p2 - p1)
 
-        term_left = (lambda_left ** self._goals_team1 /
-                math.factorial(self._goals_team1)) * numpy.exp(-lambda_left)
+        term_left = (
+            (lambda_left**self._goals_team1) /
+            math.factorial(self._goals_team1)) * numpy.exp(-lambda_left)
 
-        term_right = (lambda_right ** self._goals_team2 /
-                math.factorial(self._goals_team2)) * numpy.exp(-lambda_right)
-
+        term_right = (
+            (lambda_right**self._goals_team2) /
+            math.factorial(self._goals_team2)) * numpy.exp(-lambda_right)
 
         return term_left * term_right
 
-class MatchList:
-    pass
 
-def perturb_win_probs(args, teams):
+class MatchList:
+    _matches = None
+    _teams = None
+
+    def __init__(self, match_file):
+        self._matches = []
+        self._teams = Teams([])
+        for line in match_file:
+            self._matches.append(Match(line, self._teams))
+
+    def llh(self, params):
+        llh = 0
+        for m in self._matches:
+            llh += math.log(m.sublh(params))
+        return llh
+
+    @property
+    def teams(self):
+        return self._teams
+
+
+class PoissonModel:
+    _params = None
+    _match_list = None
+
+    def __init__(self, match_file):
+        self._match_list = MatchList(match_file)
+        # We have the constraint that the parameters sum to 0. This makes it a
+        # translated simplex, so we can reduce the number of parameters by 1.
+        self._params = numpy.zeros(len(self._match_list.teams) - 1)
+
+    @staticmethod
+    def expand_params(params):
+        expanded_params = []
+        reg = 0.0
+        for p in params:
+            expanded_params.append(p)
+            reg += p
+
+        expanded_params.append(-reg)
+
+        return numpy.array(expanded_params)
+
+    def select_params(self, select_teams):
+        selected_params = []
+        expanded_params = self.expand_params(self._params)
+        for t in select_teams:
+            index = self._match_list.teams.lookup(t)
+            selected_params.append(expanded_params[index])
+
+        return selected_params
+
+    def optimize(self):
+        opt_fun = lambda p: -self._match_list.llh(self.expand_params(p))
+
+        result = scipy.optimize.minimize(opt_fun, self._params)
+        self._params = result.x
+
+    def win_probs(self, selected_teams):
+        return WinProbs(teams=selected_teams,
+                        params=self.select_params(selected_teams))
+
+
+def read_teams_file(teams_file_path):
+    with open(teams_file_path) as infile:
+        teams = []
+        for line in infile:
+            teams.append(line.strip())
+        teams = Teams(teams)
+    return teams
+
+
+def perturb_win_probs(args):
+    teams = read_teams_file(args.teams)
 
     with open(args.win_probs) as infile:
         reader = csv.DictReader(infile)
@@ -367,10 +497,12 @@ def perturb_win_probs(args, teams):
     el = ExperimentList(wp, args.iters, args.exp_prefix)
     el.run(prog)
 
-    with open(os.path.join(args.exp_prefix, "results.json"), 'w') as results_file:
+    with open(os.path.join(args.exp_prefix, "results.json"),
+              'w') as results_file:
         json.dump(el.results(), results_file)
 
-    with open(os.path.join(args.exp_prefix, "summary.json"), 'w') as results_file:
+    with open(os.path.join(args.exp_prefix, "summary.json"),
+              'w') as results_file:
         json.dump(el.summary(), results_file)
 
     df = el.pandas_df()
@@ -412,12 +544,70 @@ def perturb_win_probs(args, teams):
     plot.figure.savefig(os.path.join(args.exp_prefix, "prob.violinplot.png"))
 
 
-def perturb_model(args, teams):
+def perturb_model(args):
+    with open(args.matches) as match_file:
+        reader = csv.DictReader(match_file)
+        model = PoissonModel(reader)
+
+    teams = read_teams_file(args.teams)
+
+    model.optimize()
+    wp = model.win_probs(teams)
+
+    args.exp_prefix = os.path.abspath(args.exp_prefix)
+    args.program = os.path.abspath(args.program)
+
+    prog = Phylourny(args.program)
+
+    el = ExperimentList(wp, args.iters, args.exp_prefix)
+    el.run(prog)
+
+    with open(os.path.join(args.exp_prefix, "results.json"),
+              'w') as results_file:
+        json.dump(el.results(), results_file)
+
+    with open(os.path.join(args.exp_prefix, "summary.json"),
+              'w') as results_file:
+        json.dump(el.summary(), results_file)
+
+    df = el.pandas_df()
+
+    df_rank = df.loc[:, teams[0]:teams[-1]].rank(axis=1, ascending=False)
+
+    tmp = []
+
+    for index, row in df_rank.iterrows():
+        for k, v in row.items():
+            tmp.append({'team': k, 'rank': v})
+
+    df_plots_rank = pandas.DataFrame(tmp)
+
+    tmp = []
+
+    for index, row in df.loc[:, teams[0]:teams[-1]].iterrows():
+        for k, v in row.items():
+            tmp.append({'team': k, 'prob': v})
+
+    df_plots_prob = pandas.DataFrame(tmp)
+
+    seaborn.set(rc={'figure.figsize': (10, 14)})
+
+    plot = seaborn.boxplot(data=df_plots_rank, x='team', y='rank')
+    matplotlib.pyplot.xticks(rotation=90)
+    plot.set_yticks(range(1, 17))
+    plot.set_yticklabels([str(i) for i in range(1, 17)])
+    plot.set_xlabel("Team")
+    plot.set_ylabel("Rank")
+    plot.figure.savefig(os.path.join(args.exp_prefix, "rank.boxplot.png"))
+
+    matplotlib.pyplot.clf()
+
+    plot = seaborn.violinplot(data=df_plots_prob, x='team', y='prob')
+    matplotlib.pyplot.xticks(rotation=90)
+    plot.set_xlabel("Team")
+    plot.set_ylabel("Probability")
+    plot.figure.savefig(os.path.join(args.exp_prefix, "prob.violinplot.png"))
 
 
-    
-with open(args.teams) as infile:
-    teams = []
-    for line in infile:
-        teams.append(line.strip())
-    teams = Teams(teams)
+if __name__ == "__main__":
+    perturb_model(args)
