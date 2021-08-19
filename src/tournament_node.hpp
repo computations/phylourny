@@ -267,6 +267,12 @@ public:
 
   virtual size_t loser() const { throw std::runtime_error{"Not implemented"}; }
 
+  void set_bestof(const std::function<size_t(size_t)> &b_func, size_t depth);
+
+  void set_bestof(size_t b) {
+    set_bestof([b](size_t) -> size_t { return b; }, 0);
+  }
+
   const std::string &internal_label() const { return _internal_label; }
 
 protected:

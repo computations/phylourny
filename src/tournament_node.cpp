@@ -331,3 +331,15 @@ void tournament_node_t::reset_saved_evals() {
     children().right->reset_saved_evals();
   }
 }
+
+void tournament_node_t::set_bestof(const std::function<size_t(size_t)> &b_func,
+                                   size_t                               depth) {
+  if (is_tip()) { return; }
+  children().bestof = b_func(depth);
+  if (children().left.is_win()) {
+    children().left->set_bestof(b_func, depth + 1);
+  }
+  if (children().right.is_win()) {
+    children().right->set_bestof(b_func, depth + 1);
+  }
+}
