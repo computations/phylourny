@@ -4,6 +4,7 @@ import os
 import math
 import string
 import io
+import math
 import numpy
 import argparse
 import subprocess
@@ -24,6 +25,7 @@ parser.add_argument('--teams', required=True)
 parser.add_argument('--win-probs', required=True)
 parser.add_argument('--exp-prefix', required=True)
 parser.add_argument('--program', required=True)
+parser.add_argument('--matches', required=True)
 args = parser.parse_args()
 
 
@@ -317,65 +319,105 @@ class Phylourny:
         with open(exp.phylourny_logfile_path, 'w') as logfile:
             subprocess.run(args, stdout=logfile, stderr=logfile)
 
+class Match:
+    _team1 = None
+    _team2 = None
+    _team1_index = None
+    _team2_index = None
+    _goals_team1 = None
+    _goals_team2 = None
 
+    def __init__(self, match_row, teams):
+        _team1 = match_row['team1']
+        _team2 = match_row['team2']
+        _team1_index = teams.lookup(_team1)
+        _team2_index = teams.lookup(_team2)
+        _goals_team1 = match_row['goals-team1']
+        _goals_team2 = match_row['goals-team2']
+
+    def sublh(self, params):
+        p1 = params[self._team1_index]
+        p2 = params[self._team2_index]
+        lambda_left = numpy.exp(p1 - p2)
+        lambda_right = numpy.exp(p2 - p1)
+
+        term_left = (lambda_left ** self._goals_team1 /
+                math.factorial(self._goals_team1)) * numpy.exp(-lambda_left)
+
+        term_right = (lambda_right ** self._goals_team2 /
+                math.factorial(self._goals_team2)) * numpy.exp(-lambda_right)
+
+
+        return term_left * term_right
+
+class MatchList:
+    pass
+
+def perturb_win_probs(args, teams):
+
+    with open(args.win_probs) as infile:
+        reader = csv.DictReader(infile)
+        wp = WinProbs(teams, reader)
+
+    args.exp_prefix = os.path.abspath(args.exp_prefix)
+    args.program = os.path.abspath(args.program)
+
+    prog = Phylourny(args.program)
+
+    el = ExperimentList(wp, args.iters, args.exp_prefix)
+    el.run(prog)
+
+    with open(os.path.join(args.exp_prefix, "results.json"), 'w') as results_file:
+        json.dump(el.results(), results_file)
+
+    with open(os.path.join(args.exp_prefix, "summary.json"), 'w') as results_file:
+        json.dump(el.summary(), results_file)
+
+    df = el.pandas_df()
+
+    df_rank = df.loc[:, teams[0]:teams[-1]].rank(axis=1, ascending=False)
+
+    tmp = []
+
+    for index, row in df_rank.iterrows():
+        for k, v in row.items():
+            tmp.append({'team': k, 'rank': v})
+
+    df_plots_rank = pandas.DataFrame(tmp)
+
+    tmp = []
+
+    for index, row in df.loc[:, teams[0]:teams[-1]].iterrows():
+        for k, v in row.items():
+            tmp.append({'team': k, 'prob': v})
+
+    df_plots_prob = pandas.DataFrame(tmp)
+
+    seaborn.set(rc={'figure.figsize': (10, 14)})
+
+    plot = seaborn.boxplot(data=df_plots_rank, x='team', y='rank')
+    matplotlib.pyplot.xticks(rotation=90)
+    plot.set_yticks(range(1, 17))
+    plot.set_yticklabels([str(i) for i in range(1, 17)])
+    plot.set_xlabel("Team")
+    plot.set_ylabel("Rank")
+    plot.figure.savefig(os.path.join(args.exp_prefix, "rank.boxplot.png"))
+
+    matplotlib.pyplot.clf()
+
+    plot = seaborn.violinplot(data=df_plots_prob, x='team', y='prob')
+    matplotlib.pyplot.xticks(rotation=90)
+    plot.set_xlabel("Team")
+    plot.set_ylabel("Probability")
+    plot.figure.savefig(os.path.join(args.exp_prefix, "prob.violinplot.png"))
+
+
+def perturb_model(args, teams):
+
+
+    
 with open(args.teams) as infile:
     teams = []
     for line in infile:
         teams.append(line.strip())
     teams = Teams(teams)
-
-with open(args.win_probs) as infile:
-    reader = csv.DictReader(infile)
-    wp = WinProbs(teams, reader)
-
-args.exp_prefix = os.path.abspath(args.exp_prefix)
-args.program = os.path.abspath(args.program)
-
-prog = Phylourny(args.program)
-
-el = ExperimentList(wp, args.iters, args.exp_prefix)
-el.run(prog)
-
-with open(os.path.join(args.exp_prefix, "results.json"), 'w') as results_file:
-    json.dump(el.results(), results_file)
-
-with open(os.path.join(args.exp_prefix, "summary.json"), 'w') as results_file:
-    json.dump(el.summary(), results_file)
-
-df = el.pandas_df()
-
-df_rank = df.loc[:, teams[0]:teams[-1]].rank(axis=1, ascending=False)
-
-tmp = []
-
-for index, row in df_rank.iterrows():
-    for k, v in row.items():
-        tmp.append({'team': k, 'rank': v})
-
-df_plots_rank = pandas.DataFrame(tmp)
-
-tmp = []
-
-for index, row in df.loc[:, teams[0]:teams[-1]].iterrows():
-    for k, v in row.items():
-        tmp.append({'team': k, 'prob': v})
-
-df_plots_prob = pandas.DataFrame(tmp)
-
-seaborn.set(rc={'figure.figsize': (10, 14)})
-
-plot = seaborn.boxplot(data=df_plots_rank, x='team', y='rank')
-matplotlib.pyplot.xticks(rotation=90)
-plot.set_yticks(range(1, 17))
-plot.set_yticklabels([str(i) for i in range(1, 17)])
-plot.set_xlabel("Team")
-plot.set_ylabel("Rank")
-plot.figure.savefig(os.path.join(args.exp_prefix, "rank.boxplot.png"))
-
-matplotlib.pyplot.clf()
-
-plot = seaborn.violinplot(data=df_plots_prob, x='team', y='prob')
-matplotlib.pyplot.xticks(rotation=90)
-plot.set_xlabel("Team")
-plot.set_ylabel("Probability")
-plot.figure.savefig(os.path.join(args.exp_prefix, "prob.violinplot.png"))
