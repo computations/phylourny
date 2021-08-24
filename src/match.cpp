@@ -6,10 +6,10 @@
  * Generate a boostrapped version of the list of matches.
  */
 std::vector<match_t> generate_bootstrap(const std::vector<match_t> &matches,
-                                        uint64_t seed) {
+                                        uint64_t                    seed) {
   std::vector<match_t> bs_matches;
   bs_matches.reserve(matches.size());
-  std::mt19937 gen(seed);
+  std::mt19937                    gen(seed);
   std::uniform_int_distribution<> boot_dis(0, matches.size() - 1);
 
   for (size_t i = 0; i < matches.size(); ++i) {
@@ -21,8 +21,8 @@ std::vector<match_t> generate_bootstrap(const std::vector<match_t> &matches,
 }
 
 match_winner_t operator!(match_winner_t mw) {
-  if (mw == match_winner_t::left)
-    return match_winner_t::right;
+  // if (mw == match_winner_t::tie) { return mw; }
+  if (mw == match_winner_t::left) { return match_winner_t::right; }
 
   return match_winner_t::left;
 }
