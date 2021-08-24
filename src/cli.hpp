@@ -160,6 +160,10 @@ public:
     return oss.str();
   }
 
+  template <typename T> inline void set_if_unset(const T &value) {
+    if (!initialized()) { _opt_val = value; }
+  }
+
 private:
   /**
    * Statically allocated name of the option. Also the text that is parsed on
@@ -315,7 +319,8 @@ public:
    * @param key The CLI option, as a string. No preceding characters (such as
    * '--').
    */
-  cli_option_t operator[](std::string key) { return *_opt_vals.at(key); }
+  cli_option_t operator[](const std::string &key) { return *_opt_vals.at(key); }
+  cli_option_t operator[](std::string key) const { return *_opt_vals.at(key); }
 
   static std::string help() {
     std::stringstream oss;
