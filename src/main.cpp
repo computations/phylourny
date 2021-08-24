@@ -151,6 +151,24 @@ matrix_t parse_prob_files(const std::string &    probs_filename,
   return win_probs;
 }
 
+void write_summary(const summary_t &  summary,
+                   const std::string &output_prefix,
+                   const std::string &output_infix,
+                   const std::string &output_suffix,
+                   size_t             burnin_samples) {
+  std::ofstream outfile(output_prefix + output_infix + ".samples" +
+                        output_suffix);
+  summary.write_samples(outfile, 0, 1);
+
+  std::ofstream mlp_outfile(output_prefix + output_infix + ".mlp" +
+                            output_suffix);
+  summary.write_mlp(mlp_outfile, burnin_samples);
+
+  std::ofstream mmpp_outfile(output_prefix + output_infix + ".mmpp" +
+                             output_suffix);
+  summary.write_mmpp(mmpp_outfile, burnin_samples);
+}
+
 void mcmc_run(const cli_options_t &           cli_options,
               const std::vector<std::string> &teams) {
   auto team_name_map = create_name_map(teams);
@@ -179,14 +197,11 @@ void mcmc_run(const cli_options_t &           cli_options,
     sampler.run_chain(mcmc_samples, cli_options["seed"].value<uint64_t>());
     auto summary = sampler.summary();
 
-    std::ofstream outfile(output_prefix + ".single.samples" + output_suffix);
-    summary.write_samples(outfile, 0, 1);
-
-    std::ofstream mlp_outfile(output_prefix + ".single.mlp" + output_suffix);
-    summary.write_mlp(mlp_outfile, burnin_samples);
-
-    std::ofstream mmpp_outfile(output_prefix + ".single.mmpp" + output_suffix);
-    summary.write_mmpp(mmpp_outfile, burnin_samples);
+    write_summary(summary,
+                  output_prefix,
+                  std::string{".single"},
+                  output_suffix,
+                  burnin_samples);
   }
 
   if (cli_options["dynamic"].value(true)) {
@@ -196,14 +211,11 @@ void mcmc_run(const cli_options_t &           cli_options,
     sampler.run_chain(mcmc_samples, cli_options["seed"].value<uint64_t>());
     auto summary = sampler.summary();
 
-    std::ofstream outfile(output_prefix + ".dynamic.samples" + output_suffix);
-    summary.write_samples(outfile, 0, 1);
-
-    std::ofstream mlp_outfile(output_prefix + ".dynamic.mlp" + output_suffix);
-    summary.write_mlp(mlp_outfile, burnin_samples);
-
-    std::ofstream mmpp_outfile(output_prefix + ".dynamic.mmpp" + output_suffix);
-    summary.write_mmpp(mmpp_outfile, burnin_samples);
+    write_summary(summary,
+                  output_prefix,
+                  std::string{".dynamic"},
+                  output_suffix,
+                  burnin_samples);
   }
 
   if (cli_options["sim"].value(false)) {
@@ -216,15 +228,11 @@ void mcmc_run(const cli_options_t &           cli_options,
     debug_string(EMIT_LEVEL_PROGRESS, "Running MCMC sampler (Simulation Mode)");
     sampler.run_chain(mcmc_samples, cli_options["seed"].value<uint64_t>());
     auto summary = sampler.summary();
-
-    std::ofstream outfile(output_prefix + ".sim.samples" + output_suffix);
-    summary.write_samples(outfile, 0, 1);
-
-    std::ofstream mlp_outfile(output_prefix + ".sim.mlp" + output_suffix);
-    summary.write_mlp(mlp_outfile, burnin_samples);
-
-    std::ofstream mmpp_outfile(output_prefix + ".sim.mmpp" + output_suffix);
-    summary.write_mmpp(mmpp_outfile, burnin_samples);
+    write_summary(summary,
+                  output_prefix,
+                  std::string{".sim"},
+                  output_suffix,
+                  burnin_samples);
   }
 }
 
@@ -315,9 +323,14 @@ int main(int argc, char **argv) {
 
     auto team_name_map = create_name_map(teams);
 
+    /*
+     * This janky if statement is so that we don't read from the random device
+     * if we don't need to. I know, it's not really that important, but it
+     * matters to me lol.
+     */
     if (!cli_options["seed"].initialized()) {
       std::random_device rd;
-      cli_options["seed"] = rd();
+      cli_options["seed"].set_if_unset(rd());
     }
 
     if (cli_options["matches"].initialized() ||
