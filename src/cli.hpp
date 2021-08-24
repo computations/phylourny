@@ -160,8 +160,12 @@ public:
     return oss.str();
   }
 
-  template <typename T> inline void set_if_unset(const T &value) {
-    if (!initialized()) { _opt_val = value; }
+  template <typename T> inline void set_if_unset(const T &new_value) {
+    if (!initialized()) { _opt_val = new_value; }
+    debug_print(EMIT_LEVEL_IMPORTANT,
+                "We have a value of %lu, %lu",
+                new_value,
+                value<T>());
   }
 
 private:
@@ -261,6 +265,8 @@ cli_option_t args[] = {
         "samples", "Number of samples to take for the MCMC exploration"),
     option_with_argument<double>(
         "burnin", "Number of samples to discard for MCMC burnin"),
+    option_with_argument<bool>(
+        "poisson", "Use a Poisson based liklihood model for the MCMC search"),
     option_flag("dummy", "Make dummy data"),
     option_flag("debug", "Enable debug output"),
 };
@@ -319,7 +325,8 @@ public:
    * @param key The CLI option, as a string. No preceding characters (such as
    * '--').
    */
-  cli_option_t operator[](const std::string &key) { return *_opt_vals.at(key); }
+  cli_option_t &operator[](std::string key) { return *_opt_vals.at(key); }
+
   cli_option_t operator[](std::string key) const { return *_opt_vals.at(key); }
 
   static std::string help() {
