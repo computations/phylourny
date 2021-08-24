@@ -4,6 +4,33 @@
 #include <debug.h>
 #include <tournament.hpp>
 
+const std::string graphiz_result_long =
+    R"(digraph {
+node [shape=record]
+j[label="0.25|0.25|0.25|0.25"]
+d -> j[style = dashed]
+g -> j[style = dashed]
+b[label="0.25|0.25|0.25|0.25"]
+c -> b[style = dashed]
+j -> b[style = solid]
+e[label=a]
+f[label=b]
+d[label="0.5|0.5|0|0"]
+e -> d[style = solid]
+f -> d[style = solid]
+h[label=c]
+i[label=d]
+g[label="0|0|0.5|0.5"]
+h -> g[style = solid]
+i -> g[style = solid]
+c[label="0.25|0.25|0.25|0.25"]
+d -> c[style = solid]
+g -> c[style = solid]
+a[label="0.25|0.25|0.25|0.25"]
+b -> a[style = solid]
+c -> a[style = solid]
+})";
+
 TEST_CASE("tournament_node_t basic tests: 4 teamn single elim",
           "[tournament_node_t]") {
   std::unique_ptr<tournament_node_t> team_a{new tournament_node_t};
@@ -540,31 +567,6 @@ e -> a[style = solid]
     t.eval();
 
     auto r = t.dump_state_graphviz();
-    CHECK(r ==
-          R"(digraph {
-node [shape=record]
-j[label=""]
-r -> j[style = dashed]
-u -> j[style = dashed]
-b[label=""]
-q -> b[style = dashed]
-j -> b[style = solid]
-s[label=a]
-t[label=b]
-r[label=""]
-s -> r[style = solid]
-t -> r[style = solid]
-v[label=c]
-w[label=d]
-u[label=""]
-v -> u[style = solid]
-w -> u[style = solid]
-q[label=""]
-r -> q[style = solid]
-u -> q[style = solid]
-a[label=""]
-b -> a[style = solid]
-q -> a[style = solid]
-})");
+    CHECK(r == graphiz_result_long);
   }
 }
