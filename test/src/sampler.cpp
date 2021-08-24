@@ -18,7 +18,7 @@ TEST_CASE("sampler_t simple case", "[sampler_t]") {
                     simple_likelihood_model_t(matches)),
                 std::move(t)};
     SECTION("Running the chain") {
-      s.run_chain(100, (rand() % 3));
+      s.run_chain(100, (rand() % 3), update_win_probs);
       auto r = s.report();
       CHECK(r.size() > 0);
       CHECK(r.size() <= 100);

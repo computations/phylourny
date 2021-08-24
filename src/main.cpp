@@ -201,7 +201,8 @@ void mcmc_run(const cli_options_t &           cli_options,
         tournament_factory_single(teams)};
 
     debug_string(EMIT_LEVEL_PROGRESS, "Running MCMC sampler (Single Mode)");
-    sampler.run_chain(mcmc_samples, cli_options["seed"].value<uint64_t>());
+    sampler.run_chain(
+        mcmc_samples, cli_options["seed"].value<uint64_t>(), update_win_probs);
     auto summary = sampler.summary();
 
     write_summary(summary,
@@ -218,7 +219,8 @@ void mcmc_run(const cli_options_t &           cli_options,
         tournament_factory(teams)};
 
     debug_string(EMIT_LEVEL_PROGRESS, "Running MCMC sampler (Dynamic Mode)");
-    sampler.run_chain(mcmc_samples, cli_options["seed"].value<uint64_t>());
+    sampler.run_chain(
+        mcmc_samples, cli_options["seed"].value<uint64_t>(), update_win_probs);
     auto summary = sampler.summary();
 
     write_summary(summary,
@@ -238,7 +240,8 @@ void mcmc_run(const cli_options_t &           cli_options,
         cli_options["sim-iters"].value(1'000'000lu));
 
     debug_string(EMIT_LEVEL_PROGRESS, "Running MCMC sampler (Simulation Mode)");
-    sampler.run_chain(mcmc_samples, cli_options["seed"].value<uint64_t>());
+    sampler.run_chain(
+        mcmc_samples, cli_options["seed"].value<uint64_t>(), update_win_probs);
     auto summary = sampler.summary();
     write_summary(summary,
                   output_prefix,
@@ -342,7 +345,9 @@ int main(int argc, char **argv) {
      */
     if (!cli_options["seed"].initialized()) {
       std::random_device rd;
-      cli_options["seed"].set_if_unset(rd());
+      cli_options["seed"].set_if_unset<uint64_t>(rd());
+      assert_string(cli_options["seed"].initialized(),
+                    "CLI Option seed shoudl be initilaized ehre");
     }
 
     if (cli_options["matches"].initialized() ||

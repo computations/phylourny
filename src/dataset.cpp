@@ -6,10 +6,10 @@
  */
 simple_likelihood_model_t::simple_likelihood_model_t(
     const std::vector<match_t> &matches) {
-  size_t team_count = count_teams(matches);
-  _win_matrix.reserve(team_count);
-  for (size_t i = 0; i < team_count; ++i) {
-    _win_matrix.emplace_back(team_count);
+  _team_count = count_teams(matches);
+  _win_matrix.reserve(_team_count);
+  for (size_t i = 0; i < _team_count; ++i) {
+    _win_matrix.emplace_back(_team_count);
   }
 
   for (auto &m : matches) {

@@ -7,8 +7,6 @@
 #include <random>
 #include <vector>
 
-typedef std::vector<double> params_t;
-
 class likelihood_model_t {
 public:
   virtual double likelihood(const params_t &) const = 0;
@@ -16,6 +14,8 @@ public:
   double log_likelihood(const params_t &p) const {
     return std::log(likelihood(p));
   }
+
+  virtual size_t param_count() const = 0;
 
   virtual ~likelihood_model_t() = default;
 };
@@ -33,8 +33,14 @@ public:
 
   virtual ~simple_likelihood_model_t() = default;
 
+  virtual size_t param_count() const {
+    return (_team_count * (_team_count + 1)) / 2;
+  }
+
 private:
   inline size_t count_teams(const std::vector<match_t> &matches) const;
+
   std::vector<std::vector<unsigned int>> _win_matrix;
+  size_t                                 _team_count;
 };
 #endif

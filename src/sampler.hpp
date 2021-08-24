@@ -5,38 +5,11 @@
 #include "debug.h"
 #include "summary.hpp"
 #include "tournament_node.hpp"
+#include <functional>
 #include <memory>
 #include <random>
 #include <utility>
 #include <vector>
-
-template <typename result_type> class beta_distribution {
-public:
-  beta_distribution() = delete;
-  beta_distribution(result_type alpha,
-                    result_type beta,
-                    result_type theta = 1.0) :
-      g1{alpha, theta}, g2{beta, theta} {}
-  template <class generator_type> result_type operator()(generator_type &gen) {
-    result_type x = g1(gen);
-    result_type y = g2(gen);
-    return x / (x + y);
-  }
-
-private:
-  std::gamma_distribution<result_type> g1;
-  std::gamma_distribution<result_type> g2;
-};
-
-/**
- * Generate an a and b suitable for configuring a beta distrbution. The median
- * of the distrbution will be `median`, and the concentration will be `k`.
- */
-constexpr inline std::pair<double, double> make_ab(double median, double k) {
-  double a = median * (k - 2) + 1;
-  double b = k - a;
-  return std::make_pair(a, b);
-}
 
 /**
  * Class which will perform the MCMC search given a dataset and a tournament.
@@ -54,13 +27,16 @@ public:
    */
   summary_t summary() const { return summary_t{_samples}; }
 
-  void run_chain(size_t iters, unsigned int seed) {
-    size_t   team_count = _tournament.tip_count();
-    params_t params(team_count);
+  void run_chain(
+      size_t       iters,
+      unsigned int seed,
+      const std::function<params_t(const params_t &, random_engine_t &gen)>
+          &update_func) {
+    params_t params(_lh_model->param_count());
     params_t temp_params{params};
     _samples.clear();
     _samples.reserve(iters);
-    std::mt19937_64                  gen(seed);
+    random_engine_t                  gen(seed);
     std::uniform_real_distribution<> coin(0.0, 1.0);
 
     {
@@ -73,16 +49,8 @@ public:
       if (i % 10000 == 0 && i != 0) {
         debug_print(EMIT_LEVEL_PROGRESS, "%lu samples", i);
       }
-      for (size_t j = 0; j < params.size(); ++j) {
-        auto [a, b] = make_ab(params[j], 5);
-        beta_distribution<double> bd(a, b);
-        temp_params[j] = bd(gen);
-        debug_print(EMIT_LEVEL_DEBUG,
-                    "used a: %f, b: %f to gen %f",
-                    a,
-                    b,
-                    temp_params[j]);
-      }
+
+      temp_params = update_func(params, gen);
 
       double next_lh = _lh_model->log_likelihood(temp_params);
       debug_print(

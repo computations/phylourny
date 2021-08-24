@@ -171,3 +171,13 @@ std::string compute_base26(size_t i) {
 
   return ret;
 }
+
+params_t update_win_probs(const params_t &params, random_engine_t &gen) {
+  params_t temp_params{params};
+  for (size_t j = 0; j < params.size(); ++j) {
+    auto [a, b] = make_ab(params[j], 5);
+    beta_distribution<double> bd(a, b);
+    temp_params[j] = bd(gen);
+  }
+  return temp_params;
+}
