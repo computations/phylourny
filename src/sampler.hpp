@@ -5,6 +5,7 @@
 #include "debug.h"
 #include "summary.hpp"
 #include "tournament_node.hpp"
+#include <memory>
 #include <random>
 #include <utility>
 #include <vector>
@@ -42,8 +43,8 @@ constexpr inline std::pair<double, double> make_ab(double median, double k) {
  */
 template <typename T> class sampler_t {
 public:
-  sampler_t(const dataset_t &ds, tournament_t<T> &&t) :
-      _dataset{ds}, _tournament{std::move(t)} {}
+  sampler_t(std::unique_ptr<likelihood_model_t> &&lhm, tournament_t<T> &&t) :
+      _lh_model{std::move(lhm)}, _tournament{std::move(t)} {}
 
   std::vector<result_t> report() const { return _samples; }
 
@@ -67,7 +68,7 @@ public:
       for (auto &f : params) { f = beta_dis(gen); }
     }
 
-    double cur_lh = _dataset.log_likelihood(params);
+    double cur_lh = _lh_model->log_likelihood(params);
     for (size_t i = 0; i < iters; ++i) {
       if (i % 10000 == 0 && i != 0) {
         debug_print(EMIT_LEVEL_PROGRESS, "%lu samples", i);
@@ -83,7 +84,7 @@ public:
                     temp_params[j]);
       }
 
-      double next_lh = _dataset.log_likelihood(temp_params);
+      double next_lh = _lh_model->log_likelihood(temp_params);
       debug_print(
           EMIT_LEVEL_DEBUG, "tmp_params: %s", to_string(temp_params).c_str());
       debug_print(EMIT_LEVEL_DEBUG,
@@ -118,18 +119,24 @@ private:
     return wp;
   }
 
-  vector_t run_simulation(const params_t &params);
+  vector_t run_simulation(const params_t &);
 
   void record_sample(const params_t &params, double llh) {
     result_t r{run_simulation(params), params, llh};
     _samples.emplace_back(r);
   }
 
-  dataset_t             _dataset;
-  tournament_t<T>       _tournament;
-  std::vector<result_t> _samples;
-  size_t                _simulation_iterations;
+  std::unique_ptr<likelihood_model_t> _lh_model;
+  tournament_t<T>                     _tournament;
+  std::vector<result_t>               _samples;
+  size_t                              _simulation_iterations;
 };
+
+template <typename T1>
+vector_t sampler_t<T1>::run_simulation(const params_t &params) {
+  _tournament.reset_win_probs(normalize_params(params));
+  return _tournament.eval();
+}
 
 template <>
 vector_t sampler_t<simulation_node_t>::run_simulation(const params_t &params) {
@@ -137,9 +144,4 @@ vector_t sampler_t<simulation_node_t>::run_simulation(const params_t &params) {
   return _tournament.eval(_simulation_iterations);
 }
 
-template <typename T>
-vector_t sampler_t<T>::run_simulation(const params_t &params) {
-  _tournament.reset_win_probs(normalize_params(params));
-  return _tournament.eval();
-}
 #endif

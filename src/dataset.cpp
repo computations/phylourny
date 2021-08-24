@@ -4,7 +4,8 @@
  * Construct a dataset class given a list of matches. The matches are of a
  * `match_t` type, and encode a match played between the two teams.
  */
-dataset_t::dataset_t(const std::vector<match_t> &matches) {
+simple_likelihood_model_t::simple_likelihood_model_t(
+    const std::vector<match_t> &matches) {
   size_t team_count = count_teams(matches);
   _win_matrix.reserve(team_count);
   for (size_t i = 0; i < team_count; ++i) {
@@ -21,7 +22,8 @@ dataset_t::dataset_t(const std::vector<match_t> &matches) {
  * Using the list of matches, this function computes the likelhood of the
  * proposed win probabilities.
  */
-double dataset_t::likelihood(const params_t &team_win_probs) const {
+double
+simple_likelihood_model_t::likelihood(const params_t &team_win_probs) const {
   double lh = 1.0;
   debug_print(EMIT_LEVEL_DEBUG,
               "team_win_probs: %s",
@@ -49,8 +51,8 @@ double dataset_t::likelihood(const params_t &team_win_probs) const {
   return lh;
 }
 
-inline size_t
-dataset_t::count_teams(const std::vector<match_t> &matches) const {
+inline size_t simple_likelihood_model_t::count_teams(
+    const std::vector<match_t> &matches) const {
   size_t cur_max = 0;
   for (auto m : matches) {
     cur_max = std::max(cur_max, m.l_team);

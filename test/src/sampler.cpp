@@ -3,6 +3,7 @@
 #include <cmath>
 #include <debug.h>
 #include <math.h>
+#include <memory>
 #include <numeric>
 #include <sampler.hpp>
 
@@ -13,8 +14,9 @@ TEST_CASE("sampler_t simple case", "[sampler_t]") {
   matches.push_back({0, 1, match_winner_t::right});
   SECTION("constructor") {
     auto      t = tournament_factory(2);
-    dataset_t ds(matches);
-    sampler_t s{ds, std::move(t)};
+    sampler_t s{std::make_unique<simple_likelihood_model_t>(
+                    simple_likelihood_model_t(matches)),
+                std::move(t)};
     SECTION("Running the chain") {
       s.run_chain(100, (rand() % 3));
       auto r = s.report();

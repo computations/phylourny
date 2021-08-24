@@ -112,10 +112,16 @@ std::vector<match_t> parse_match_file(const std::string &    match_filename,
                                       const team_name_map_t &name_map) {
   std::vector<match_t> match_history;
 
-  io::CSVReader<3> match_file(match_filename);
-  match_file.read_header(io::ignore_extra_column, "team1", "team2", "winner");
+  io::CSVReader<5> match_file(match_filename);
+  match_file.read_header(io::ignore_extra_column,
+                         "team1",
+                         "team2",
+                         "team1-goals",
+                         "team2-goals",
+                         "winner");
   std::string team1, team2, winner;
-  while (match_file.read_row(team1, team2, winner)) {
+  size_t      team1_goals, team2_goals;
+  while (match_file.read_row(team1, team2, team1_goals, team2_goals, winner)) {
     size_t index1       = name_map.at(team1);
     size_t index2       = name_map.at(team2);
     size_t winner_index = name_map.at(winner);
@@ -185,13 +191,14 @@ void mcmc_run(const cli_options_t &           cli_options,
   const std::string output_prefix = cli_options["prefix"].value<std::string>();
   const std::string output_suffix = ".json";
 
-  dataset_t ds{matches};
-
   size_t mcmc_samples   = cli_options["samples"].value(10'000'000lu);
   size_t burnin_samples = mcmc_samples * cli_options["burnin"].value(0.1);
 
   if (cli_options["single"].value(false)) {
-    sampler_t<single_node_t> sampler{ds, tournament_factory_single(teams)};
+    sampler_t<single_node_t> sampler{
+        std::make_unique<simple_likelihood_model_t>(
+            simple_likelihood_model_t(matches)),
+        tournament_factory_single(teams)};
 
     debug_string(EMIT_LEVEL_PROGRESS, "Running MCMC sampler (Single Mode)");
     sampler.run_chain(mcmc_samples, cli_options["seed"].value<uint64_t>());
@@ -205,7 +212,10 @@ void mcmc_run(const cli_options_t &           cli_options,
   }
 
   if (cli_options["dynamic"].value(true)) {
-    sampler_t<tournament_node_t> sampler{ds, tournament_factory(teams)};
+    sampler_t<tournament_node_t> sampler{
+        std::make_unique<simple_likelihood_model_t>(
+            simple_likelihood_model_t(matches)),
+        tournament_factory(teams)};
 
     debug_string(EMIT_LEVEL_PROGRESS, "Running MCMC sampler (Dynamic Mode)");
     sampler.run_chain(mcmc_samples, cli_options["seed"].value<uint64_t>());
@@ -213,14 +223,16 @@ void mcmc_run(const cli_options_t &           cli_options,
 
     write_summary(summary,
                   output_prefix,
-                  std::string{".dynamic"},
+                  std::string{".dynmic"},
                   output_suffix,
                   burnin_samples);
   }
 
   if (cli_options["sim"].value(false)) {
-    sampler_t<simulation_node_t> sampler{ds,
-                                         tournament_factory_simulation(teams)};
+    sampler_t<simulation_node_t> sampler{
+        std::make_unique<simple_likelihood_model_t>(
+            simple_likelihood_model_t(matches)),
+        tournament_factory_simulation(teams)};
 
     sampler.set_simulation_iterations(
         cli_options["sim-iters"].value(1'000'000lu));
