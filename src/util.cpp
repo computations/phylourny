@@ -203,6 +203,7 @@ double skellam_pmf(int k, double u1, double u2) {
 double skellam_cmf(int k, double u1, double u2) {
   constexpr double epsilon = std::numeric_limits<double>::epsilon();
   double           p       = 0.0;
+
   for (int i = k;; --i) {
     double total = skellam_pmf(i, u1, u2);
     p += total;

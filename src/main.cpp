@@ -46,10 +46,9 @@ void print_end_time(timepoint_t start_time, timepoint_t end_time) {
       EMIT_LEVEL_IMPORTANT, "Run Finished, time: %fs", duration.count());
 }
 
-std::vector<match_t> make_dummy_data(size_t team_count) {
+std::vector<match_t> make_dummy_data(size_t team_count, uint64_t seed) {
   std::vector<match_t>          matches;
-  std::random_device            rd;
-  std::mt19937_64               gen(rd());
+  std::mt19937_64               gen(seed);
   std::uniform_int_distribution team(0, static_cast<int>(team_count) - 1);
   std::exponential_distribution team_str_dist(0.75);
 
@@ -125,25 +124,21 @@ std::vector<match_t> parse_match_file(const std::string &    match_filename,
                                       const team_name_map_t &name_map) {
   std::vector<match_t> match_history;
 
-  io::CSVReader<5> match_file(match_filename);
-  match_file.read_header(io::ignore_extra_column,
-                         "team1",
-                         "team2",
-                         "team1-goals",
-                         "team2-goals",
-                         "winner");
-  std::string team1, team2, winner;
+  io::CSVReader<4> match_file(match_filename);
+  match_file.read_header(
+      io::ignore_extra_column, "team1", "team2", "team1-goals", "team2-goals");
+  std::string team1, team2;
   size_t      team1_goals, team2_goals;
-  while (match_file.read_row(team1, team2, team1_goals, team2_goals, winner)) {
-    size_t index1       = name_map.at(team1);
-    size_t index2       = name_map.at(team2);
-    size_t winner_index = name_map.at(winner);
+  while (match_file.read_row(team1, team2, team1_goals, team2_goals)) {
+    size_t index1 = name_map.at(team1);
+    size_t index2 = name_map.at(team2);
     match_history.push_back({index1,
                              index2,
-                             0,
-                             0,
-                             winner_index == index1 ? match_winner_t::right
-                                                    : match_winner_t::left});
+                             team1_goals,
+                             team2_goals,
+                             team1_goals < team2_goals
+                                 ? match_winner_t::left
+                                 : match_winner_t::right});
   }
 
   return match_history;
@@ -221,7 +216,8 @@ void mcmc_run(const cli_options_t &           cli_options,
                                team_name_map);
   } else if (cli_options["dummy"].value<bool>(false)) {
     debug_string(EMIT_LEVEL_IMPORTANT, "Making dummy data");
-    matches = make_dummy_data(teams.size());
+    matches =
+        make_dummy_data(teams.size(), cli_options["seed"].value<uint64_t>());
   }
 
   const std::string output_prefix = cli_options["prefix"].value<std::string>();
