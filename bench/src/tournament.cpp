@@ -2,6 +2,7 @@
 #include <bits/stdint-uintn.h>
 #include <cstddef>
 #include <tournament.hpp>
+#include <util.hpp>
 
 static void BM_tournament_factory(benchmark::State &state) {
   for (auto _ : state) {
@@ -208,3 +209,20 @@ static void BM_int_pow2(benchmark::State &state) {
 
 BENCHMARK(BM_int_pow1)->DenseRange(1, 11, 2);
 BENCHMARK(BM_int_pow2)->DenseRange(1, 11, 2);
+
+static void BM_skellam_pmf(benchmark::State &state) {
+  int    k  = state.range(0);
+  double u1 = 1.0;
+  double u2 = 1.0;
+  for (auto _ : state) { benchmark::DoNotOptimize(skellam_pmf(k, u1, u2)); }
+}
+
+static void BM_skellam_cmf(benchmark::State &state) {
+  int    k  = state.range(0);
+  double u1 = 1.0;
+  double u2 = 1.0;
+  for (auto _ : state) { benchmark::DoNotOptimize(skellam_cmf(k, u1, u2)); }
+}
+
+BENCHMARK(BM_skellam_pmf)->DenseRange(-3, 3, 1);
+BENCHMARK(BM_skellam_cmf)->DenseRange(-3, 3, 1);

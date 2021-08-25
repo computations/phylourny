@@ -6,11 +6,9 @@
 #include <iostream>
 #include <json.hpp>
 #include <memory>
-#include <optional>
 #include <random>
 #include <string>
 #include <unordered_map>
-#include <unordered_set>
 
 #include "cli.hpp"
 #include "dataset.hpp"
@@ -21,6 +19,7 @@
 #include "tournament.hpp"
 #include "tournament_factory.hpp"
 #include "tournament_node.hpp"
+#include "util.hpp"
 int __VERBOSE__ = EMIT_LEVEL_PROGRESS;
 
 #define STRING(s) #s
@@ -48,24 +47,38 @@ void print_end_time(timepoint_t start_time, timepoint_t end_time) {
 }
 
 std::vector<match_t> make_dummy_data(size_t team_count) {
-  std::vector<match_t>             matches;
-  std::random_device               rd;
-  std::mt19937_64                  gen(rd());
-  std::uniform_real_distribution<> coin(0.0, 1.0);
-  std::uniform_int_distribution    team(0, static_cast<int>(team_count) - 1);
+  std::vector<match_t>          matches;
+  std::random_device            rd;
+  std::mt19937_64               gen(rd());
+  std::uniform_int_distribution team(0, static_cast<int>(team_count) - 1);
+  std::exponential_distribution team_str_dist(0.75);
 
   std::vector<double> params(team_count);
-  for (auto &p : params) { p = coin(gen); }
+  for (auto &p : params) { p = team_str_dist(gen); }
+
+  debug_print(
+      EMIT_LEVEL_IMPORTANT, "Team strengths are %s", to_json(params).c_str());
 
   for (size_t i = 0; i < 40; ++i) {
     size_t t1 = team(gen);
     size_t t2 = t1;
     while (t2 == t1) { t2 = team(gen); }
-    double prob = params[t1] / (params[t1] + params[t2]);
+
+    std::poisson_distribution<size_t> t1d(params[t1]);
+    std::poisson_distribution<size_t> t2d(params[t2]);
+
+    size_t goals1 = 0, goals2 = 0;
+    while (goals1 == goals2) {
+      goals1 = t1d(gen);
+      goals2 = t2d(gen);
+    }
+
     matches.push_back(
         {t1,
          t2,
-         coin(gen) < prob ? match_winner_t::left : match_winner_t::right});
+         goals1,
+         goals2,
+         goals1 < goals2 ? match_winner_t::left : match_winner_t::right});
   }
 
   return matches;
@@ -127,6 +140,8 @@ std::vector<match_t> parse_match_file(const std::string &    match_filename,
     size_t winner_index = name_map.at(winner);
     match_history.push_back({index1,
                              index2,
+                             0,
+                             0,
                              winner_index == index1 ? match_winner_t::right
                                                     : match_winner_t::left});
   }
@@ -175,6 +190,27 @@ void write_summary(const summary_t &  summary,
   summary.write_mmpp(mmpp_outfile, burnin_samples);
 }
 
+std::pair<std::unique_ptr<likelihood_model_t>,
+          std::function<params_t(const params_t &, random_engine_t &)>>
+get_lh_model(const cli_options_t &       cli_options,
+             const std::vector<match_t> &matches) {
+  if (cli_options["poisson"].value(true)) {
+    debug_string(EMIT_LEVEL_IMPORTANT, "Using a Poisson likelihood model");
+    std::unique_ptr<likelihood_model_t> lhm =
+        std::make_unique<poisson_likelihood_model_t>(
+            poisson_likelihood_model_t(matches));
+    auto update_func = update_poission_model_factory(1.0);
+    return std::make_pair(std::move(lhm), update_func);
+  } else {
+    debug_string(EMIT_LEVEL_IMPORTANT, "Using the simple likelihood model");
+    std::unique_ptr<likelihood_model_t> lhm =
+        std::make_unique<simple_likelihood_model_t>(
+            simple_likelihood_model_t(matches));
+    auto update_func = update_win_probs;
+    return std::make_pair(std::move(lhm), update_func);
+  }
+}
+
 void mcmc_run(const cli_options_t &           cli_options,
               const std::vector<std::string> &teams) {
   auto team_name_map = create_name_map(teams);
@@ -195,10 +231,9 @@ void mcmc_run(const cli_options_t &           cli_options,
   size_t burnin_samples = mcmc_samples * cli_options["burnin"].value(0.1);
 
   if (cli_options["single"].value(false)) {
-    sampler_t<single_node_t> sampler{
-        std::make_unique<simple_likelihood_model_t>(
-            simple_likelihood_model_t(matches)),
-        tournament_factory_single(teams)};
+    auto [lhm, update_func] = get_lh_model(cli_options, matches);
+    sampler_t<single_node_t> sampler{std::move(lhm),
+                                     tournament_factory_single(teams)};
 
     debug_string(EMIT_LEVEL_PROGRESS, "Running MCMC sampler (Single Mode)");
     sampler.run_chain(
@@ -213,10 +248,9 @@ void mcmc_run(const cli_options_t &           cli_options,
   }
 
   if (cli_options["dynamic"].value(true)) {
-    sampler_t<tournament_node_t> sampler{
-        std::make_unique<simple_likelihood_model_t>(
-            simple_likelihood_model_t(matches)),
-        tournament_factory(teams)};
+    auto [lhm, update_func] = get_lh_model(cli_options, matches);
+    sampler_t<tournament_node_t> sampler{std::move(lhm),
+                                         tournament_factory(teams)};
 
     debug_string(EMIT_LEVEL_PROGRESS, "Running MCMC sampler (Dynamic Mode)");
     sampler.run_chain(
@@ -231,10 +265,9 @@ void mcmc_run(const cli_options_t &           cli_options,
   }
 
   if (cli_options["sim"].value(false)) {
-    sampler_t<simulation_node_t> sampler{
-        std::make_unique<simple_likelihood_model_t>(
-            simple_likelihood_model_t(matches)),
-        tournament_factory_simulation(teams)};
+    auto [lhm, update_func] = get_lh_model(cli_options, matches);
+    sampler_t<simulation_node_t> sampler{std::move(lhm),
+                                         tournament_factory_simulation(teams)};
 
     sampler.set_simulation_iterations(
         cli_options["sim-iters"].value(1'000'000lu));

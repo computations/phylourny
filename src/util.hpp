@@ -1,6 +1,7 @@
 #ifndef UTIL_HPP
 #define UTIL_HPP
 
+#include <functional>
 #include <random>
 #include <string>
 #include <sul/dynamic_bitset.hpp>
@@ -64,5 +65,10 @@ constexpr inline std::pair<double, double> make_ab(double median, double k) {
 }
 
 params_t update_win_probs(const params_t &params, random_engine_t &gen);
+std::function<params_t(const params_t &, random_engine_t &)>
+update_poission_model_factory(double sigma);
+
+double skellam_pmf(int k, double u1, double u2);
+double skellam_cmf(int k, double u1, double u2);
 
 #endif // UTIL_HPP

@@ -1,3 +1,5 @@
+#include "debug.h"
+#include "factorial.hpp"
 #include "util.hpp"
 
 #include <algorithm>
@@ -180,4 +182,42 @@ params_t update_win_probs(const params_t &params, random_engine_t &gen) {
     temp_params[j] = bd(gen);
   }
   return temp_params;
+}
+
+double skellam_pmf(int k, double u1, double u2) {
+  double           p       = 0.0;
+  constexpr double epsilon = std::numeric_limits<double>::epsilon();
+
+  for (size_t i = std::max(0, -k);; ++i) {
+    double numerator   = std::pow(u1, k + i) * std::pow(u2, i);
+    double denominator = factorial(i) * factorial(k + i);
+
+    double total = numerator / denominator;
+    p += total;
+    if (total < epsilon) { break; }
+  }
+  double factor = std::exp(-(u1 + u2));
+  return p * factor;
+}
+
+double skellam_cmf(int k, double u1, double u2) {
+  constexpr double epsilon = std::numeric_limits<double>::epsilon();
+  double           p       = 0.0;
+  for (int i = k;; --i) {
+    double total = skellam_pmf(i, u1, u2);
+    p += total;
+    if (total < epsilon) { break; }
+  }
+  return p;
+}
+
+std::function<params_t(const params_t &, random_engine_t &gen)>
+update_poission_model_factory(double sigma) {
+  auto l = [sigma](const params_t &p, random_engine_t &gen) -> params_t {
+    std::normal_distribution<double> dis(0.0, sigma);
+    params_t                         tmp(p);
+    for (auto &f : tmp) { f += dis(gen); }
+    return tmp;
+  };
+  return l;
 }

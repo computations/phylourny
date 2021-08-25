@@ -1,4 +1,8 @@
 #include "dataset.hpp"
+#include "match.hpp"
+#include "util.hpp"
+#include <cmath>
+#include <numeric>
 
 /**
  * Construct a dataset class given a list of matches. The matches are of a
@@ -51,13 +55,76 @@ simple_likelihood_model_t::likelihood(const params_t &team_win_probs) const {
   return lh;
 }
 
-inline size_t simple_likelihood_model_t::count_teams(
-    const std::vector<match_t> &matches) const {
-  size_t cur_max = 0;
-  for (auto m : matches) {
-    cur_max = std::max(cur_max, m.l_team);
-    cur_max = std::max(cur_max, m.r_team);
+double
+poisson_likelihood_model_t::log_likelihood(const params_t &team_strs) const {
+  double llh = 0.0;
+
+  double last_str = -std::accumulate(team_strs.begin(), team_strs.end(), 0.0);
+
+  for (auto &m : _matches) {
+    double param1, param2;
+    param1 = team_strs[m.l_team];
+    param2 = team_strs[m.r_team];
+
+    double lambda_l = std::exp(param1 - param2);
+    double lambda_r = std::exp(param2 - param1);
+
+    double term_l = std::pow(lambda_l, m.l_goals) / factorial(m.l_goals) *
+                    std::exp(-lambda_l);
+
+    double term_r = std::pow(lambda_r, m.r_goals) / factorial(m.r_goals) *
+                    std::exp(-lambda_r);
+
+    llh += std::log(term_r * term_l);
   }
-  debug_print(EMIT_LEVEL_DEBUG, "found %lu teams", cur_max);
-  return cur_max + 1;
+
+  return llh;
+}
+
+matrix_t
+simple_likelihood_model_t::generate_win_probs(const params_t &params) const {
+  matrix_t wp;
+  wp.reserve(_team_count);
+  for (size_t i = 0; i < _team_count; ++i) { wp.emplace_back(_team_count); }
+  for (size_t i = 0; i < _team_count; ++i) {
+    for (size_t j = i + 1; j < _team_count; ++j) {
+      double w = params[i] / (params[i] + params[j]);
+      wp[i][j] = w;
+      wp[j][i] = 1 - w;
+    }
+  }
+  return wp;
+}
+
+matrix_t
+poisson_likelihood_model_t::generate_win_probs(const params_t &params) const {
+  matrix_t wp;
+  wp.reserve(_team_count);
+  for (size_t i = 0; i < _team_count; ++i) { wp.emplace_back(_team_count); }
+
+  double last_str = -std::accumulate(params.begin(), params.end(), 0.0);
+
+  for (size_t i = 0; i < _team_count; i++) {
+    for (size_t j = i + 1; j < _team_count; j++) {
+      double param1, param2;
+      param1 = params[i];
+      param2 = params[j];
+
+      double lamda1 = std::exp(param1 - param2);
+      double lamda2 = std::exp(param2 - param1);
+
+      double t1_prob = skellam_cmf(-1, lamda2, lamda1);
+      double t2_prob = skellam_cmf(-1, lamda1, lamda2);
+
+      double tie_prob = 1 - t1_prob - t2_prob;
+
+      t1_prob += tie_prob / 2.0;
+      t2_prob += tie_prob / 2.0;
+
+      wp[i][j] = t1_prob;
+      wp[j][i] = t2_prob;
+    }
+  }
+
+  return wp;
 }

@@ -26,3 +26,12 @@ match_winner_t operator!(match_winner_t mw) {
 
   return match_winner_t::left;
 }
+
+size_t count_teams(const std::vector<match_t> &matches) {
+  size_t cur_max = 0;
+  for (auto m : matches) {
+    cur_max = std::max(cur_max, m.l_team);
+    cur_max = std::max(cur_max, m.r_team);
+  }
+  return cur_max + 1;
+}

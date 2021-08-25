@@ -1,6 +1,7 @@
 set(CMAKE_BUILD_TYPE Debug)
 add_executable(phylourny_test
     main.cpp
+    util.cpp
     tournament.cpp
     dataset.cpp
     sampler.cpp

@@ -39,15 +39,13 @@ public:
     random_engine_t                  gen(seed);
     std::uniform_real_distribution<> coin(0.0, 1.0);
 
-    {
-      beta_distribution<double> beta_dis(1, 1);
-      for (auto &f : params) { f = beta_dis(gen); }
-    }
+    params = update_func(params, gen);
 
     double cur_lh = _lh_model->log_likelihood(params);
-    for (size_t i = 0; i < iters; ++i) {
+    for (size_t i = 0; _samples.size() < iters; ++i) {
       if (i % 10000 == 0 && i != 0) {
-        debug_print(EMIT_LEVEL_PROGRESS, "%lu samples", i);
+        debug_print(
+            EMIT_LEVEL_PROGRESS, "%lu iters, %lu samples", i, _samples.size());
       }
 
       temp_params = update_func(params, gen);
@@ -102,13 +100,13 @@ private:
 
 template <typename T1>
 vector_t sampler_t<T1>::run_simulation(const params_t &params) {
-  _tournament.reset_win_probs(normalize_params(params));
+  _tournament.reset_win_probs(_lh_model->generate_win_probs(params));
   return _tournament.eval();
 }
 
 template <>
 vector_t sampler_t<simulation_node_t>::run_simulation(const params_t &params) {
-  _tournament.reset_win_probs(normalize_params(params));
+  _tournament.reset_win_probs(_lh_model->generate_win_probs(params));
   return _tournament.eval(_simulation_iterations);
 }
 

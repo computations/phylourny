@@ -11,6 +11,7 @@
 #include <cstring>
 #include <exception>
 #include <functional>
+#include <optional>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -162,10 +163,6 @@ public:
 
   template <typename T> inline void set_if_unset(const T &new_value) {
     if (!initialized()) { _opt_val = new_value; }
-    debug_print(EMIT_LEVEL_IMPORTANT,
-                "We have a value of %lu, %lu",
-                new_value,
-                value<T>());
   }
 
 private:

@@ -9,19 +9,35 @@
 
 TEST_CASE("sampler_t simple case", "[sampler_t]") {
   std::vector<match_t> matches;
-  matches.push_back({0, 1, match_winner_t::left});
-  matches.push_back({0, 1, match_winner_t::right});
-  matches.push_back({0, 1, match_winner_t::right});
-  SECTION("constructor") {
-    auto      t = tournament_factory(2);
-    sampler_t s{std::make_unique<simple_likelihood_model_t>(
-                    simple_likelihood_model_t(matches)),
-                std::move(t)};
-    SECTION("Running the chain") {
-      s.run_chain(100, (rand() % 3), update_win_probs);
-      auto r = s.report();
-      CHECK(r.size() > 0);
-      CHECK(r.size() <= 100);
+  matches.push_back({0, 1, 1, 0, match_winner_t::left});
+  matches.push_back({0, 1, 0, 1, match_winner_t::right});
+  matches.push_back({0, 1, 0, 1, match_winner_t::right});
+  SECTION("Simple likelihood model") {
+    SECTION("constructor") {
+      auto      t = tournament_factory(2);
+      sampler_t s{std::make_unique<simple_likelihood_model_t>(
+                      simple_likelihood_model_t(matches)),
+                  std::move(t)};
+      SECTION("Running the chain") {
+        s.run_chain(100, (rand() % 3), update_win_probs);
+        auto r = s.report();
+        CHECK(r.size() > 0);
+        CHECK(r.size() <= 100);
+      }
+    }
+  }
+  SECTION("Poisson likelihood model") {
+    SECTION("constructor") {
+      auto      t = tournament_factory(2);
+      sampler_t s{std::make_unique<poisson_likelihood_model_t>(
+                      poisson_likelihood_model_t(matches)),
+                  std::move(t)};
+      SECTION("Running the chain") {
+        s.run_chain(100, (rand() % 3), update_poission_model_factory(0.5));
+        auto r = s.report();
+        CHECK(r.size() > 0);
+        CHECK(r.size() <= 100);
+      }
     }
   }
 }

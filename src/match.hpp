@@ -12,12 +12,14 @@ enum struct match_winner_t {
 };
 
 struct match_t {
-  size_t l_team;
-  size_t r_team;
-  // size_t         l_goals;
-  // size_t         r_goals;
+  size_t         l_team;
+  size_t         r_team;
+  size_t         l_goals;
+  size_t         r_goals;
   match_winner_t winner;
 };
+
+size_t count_teams(const std::vector<match_t> &matches);
 
 match_winner_t operator!(match_winner_t mw);
 
