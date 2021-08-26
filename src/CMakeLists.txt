@@ -17,6 +17,10 @@ add_executable(phylourny
     main.cpp
 )
 
+find_package(OpenMP)
+
+target_link_libraries(phylourny_lib pthread $<$<CONFIG:Release>:OpenMP::OpenMP_CXX>)
+
 set_target_properties(phylourny_lib PROPERTIES
     CXX_STANDARD 17
     CXX_STANDARD_REQUIRED YES
@@ -28,7 +32,8 @@ set_target_properties(phylourny PROPERTIES
     INTERPROCEDURAL_OPTIMIZATION TRUE
 )
 
-target_link_libraries(phylourny ${LINK_LIBS} phylourny_lib pthread)
+
+target_link_libraries(phylourny ${LINK_LIBS} phylourny_lib pthread $<$<CONFIG:Release>:OpenMP::OpenMP_CXX>)
 target_compile_options(phylourny PRIVATE -Wall -Wextra -Wshadow
     -Wdouble-promotion -Wmissing-include-dirs -pedantic)
 target_compile_definitions(phylourny PRIVATE

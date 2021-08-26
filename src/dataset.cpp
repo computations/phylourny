@@ -3,6 +3,7 @@
 #include "util.hpp"
 #include <cmath>
 #include <numeric>
+#include <omp.h>
 
 /**
  * Construct a dataset class given a list of matches. The matches are of a
@@ -104,6 +105,9 @@ poisson_likelihood_model_t::generate_win_probs(const params_t &params) const {
 
   double last_str = -std::accumulate(params.begin(), params.end(), 0.0);
 
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
   for (size_t i = 0; i < _team_count; i++) {
     for (size_t j = i + 1; j < _team_count; j++) {
       double param1, param2;
@@ -113,10 +117,9 @@ poisson_likelihood_model_t::generate_win_probs(const params_t &params) const {
       double lamda1 = std::exp(param1 - param2);
       double lamda2 = std::exp(param2 - param1);
 
-      double t1_prob = skellam_cmf(-1, lamda2, lamda1);
-      double t2_prob = skellam_cmf(-1, lamda1, lamda2);
-
-      double tie_prob = 1 - t1_prob - t2_prob;
+      double t1_prob  = skellam_cmf(-1, lamda2, lamda1);
+      double tie_prob = skellam_pmf(0, lamda2, lamda1);
+      double t2_prob  = 1 - t1_prob - tie_prob;
 
       t1_prob += tie_prob / 2.0;
       t2_prob += tie_prob / 2.0;

@@ -44,8 +44,11 @@ public:
     double cur_lh = _lh_model->log_likelihood(params);
     for (size_t i = 0; _samples.size() < iters; ++i) {
       if (i % 10000 == 0 && i != 0) {
-        debug_print(
-            EMIT_LEVEL_PROGRESS, "%lu iters, %lu samples", i, _samples.size());
+        debug_print(EMIT_LEVEL_PROGRESS,
+                    "%lu iters, %lu samples, ETC: %.2fh",
+                    i,
+                    _samples.size(),
+                    progress_macro(_samples.size(), iters));
       }
 
       temp_params = update_func(params, gen);

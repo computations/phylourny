@@ -6,6 +6,7 @@
 #include <iostream>
 #include <json.hpp>
 #include <memory>
+#include <omp.h>
 #include <random>
 #include <string>
 #include <unordered_map>
@@ -38,6 +39,16 @@ void print_version() {
   debug_print(EMIT_LEVEL_IMPORTANT, "Version: %s", GIT_REV_STRING);
   debug_print(EMIT_LEVEL_IMPORTANT, "Build Commit: %s", GIT_COMMIT_STRING);
   debug_print(EMIT_LEVEL_IMPORTANT, "Build Date: %s", BUILD_DATE_STRING);
+#ifdef _OPENMP
+#pragma omp parallel
+  {
+    if (omp_get_thread_num() == 0) {
+      debug_print(EMIT_LEVEL_IMPORTANT,
+                  "Running with %u threads",
+                  omp_get_num_threads());
+    }
+  }
+#endif
 }
 
 void print_end_time(timepoint_t start_time, timepoint_t end_time) {

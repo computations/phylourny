@@ -2,6 +2,7 @@
 #define __PHYLOURNY_DEBUG__
 
 #include <cassert>
+#include <chrono>
 #include <cstdio>
 #include <cstdlib>
 #include <execinfo.h>
@@ -9,9 +10,9 @@
 #include <time.h>
 #include <unistd.h>
 
-const clock_t CLOCK_START = clock();
-extern bool   __PROGRESS_BAR_FLAG__;
-extern int    __VERBOSE__;
+const auto  CLOCK_START = std::chrono::high_resolution_clock::now();
+extern bool __PROGRESS_BAR_FLAG__;
+extern int  __VERBOSE__;
 
 #define DEBUG_IF_FLAG 1
 
@@ -28,10 +29,16 @@ extern int    __VERBOSE__;
 #define EMIT_LEVEL_INFO 4
 #define EMIT_LEVEL_DEBUG 5
 
+#define progress_macro(i, k)                                                   \
+  (((std::chrono::high_resolution_clock::now() - CLOCK_START).count() /        \
+    static_cast<double>(i)) *                                                  \
+   (static_cast<double>(k - i)) / 1e9 / 3600.0)
+
 #define print_clock                                                            \
   do {                                                                         \
-    fprintf(                                                                   \
-        stdout, "[%.2f] ", ((double)clock() - CLOCK_START) / CLOCKS_PER_SEC);  \
+    std::chrono::duration<double> diff =                                       \
+        std::chrono::high_resolution_clock::now() - CLOCK_START;               \
+    printf("[%.2f] ", diff.count());                                           \
   } while (0)
 
 #define debug_print(level, fmt, ...)                                           \
