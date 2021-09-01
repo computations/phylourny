@@ -6,7 +6,6 @@
 #include "tournament_node.hpp"
 #include "util.hpp"
 #include <algorithm>
-#include <bits/stdint-uintn.h>
 #include <cstdlib>
 #include <stdint.h>
 

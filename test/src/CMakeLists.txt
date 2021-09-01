@@ -14,11 +14,9 @@ set_target_properties(phylourny_test PROPERTIES
     CXX_STANDARD_REQUIRED YES
 )
 
-find_package (Eigen3 3.3 REQUIRED NO_MODULE)
-
 find_package(OpenMP)
 
-set(TEST_LINK_LIBS Catch2::Catch2 asan Eigen3::Eigen)
+set(TEST_LINK_LIBS Catch2::Catch2 asan)
 target_compile_options(phylourny_test PRIVATE -Wall -Wextra -pedantic
     -fno-omit-frame-pointer
     -fsanitize=address)
