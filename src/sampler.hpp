@@ -5,6 +5,7 @@
 #include "debug.h"
 #include "summary.hpp"
 #include "tournament_node.hpp"
+#include "util.hpp"
 #include <functional>
 #include <memory>
 #include <random>

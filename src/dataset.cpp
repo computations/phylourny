@@ -27,13 +27,14 @@ simple_likelihood_model_t::simple_likelihood_model_t(
  * Using the list of matches, this function computes the likelhood of the
  * proposed win probabilities.
  */
-double
-simple_likelihood_model_t::likelihood(const params_t &team_win_probs) const {
+double simple_likelihood_model_t::log_likelihood(
+    const params_t &team_win_probs) const {
   double lh = 1.0;
   debug_print(EMIT_LEVEL_DEBUG,
               "team_win_probs: %s",
               to_string(team_win_probs).c_str());
   debug_print(EMIT_LEVEL_DEBUG, "win matrix size: %lu", _win_matrix.size());
+
   for (size_t i = 0; i < _win_matrix.size(); ++i) {
     for (size_t j = i + 1; j < _win_matrix.size(); ++j) {
       double l_wp = team_win_probs[i] / (team_win_probs[i] + team_win_probs[j]);
@@ -46,10 +47,11 @@ simple_likelihood_model_t::likelihood(const params_t &team_win_probs) const {
                   r_wp,
                   i,
                   j);
-      lh *= int_pow(l_wp, _win_matrix[i][j]) *
-            int_pow(r_wp, _win_matrix[j][i]) *
-            combinations(_win_matrix[i][j] + _win_matrix[j][i],
-                         _win_matrix[i][j]);
+      double tmp_lh = int_pow(l_wp, _win_matrix[i][j]) *
+                      int_pow(r_wp, _win_matrix[j][i]) *
+                      combinations(_win_matrix[i][j] + _win_matrix[j][i],
+                                   _win_matrix[i][j]);
+      lh += std::log(tmp_lh);
     }
   }
   debug_print(EMIT_LEVEL_DEBUG, "computed lh: %f", lh);
@@ -62,6 +64,7 @@ poisson_likelihood_model_t::log_likelihood(const params_t &team_strs) const {
 
   double last_str = -std::accumulate(team_strs.begin(), team_strs.end(), 0.0);
 
+#pragma omp parallel for
   for (auto &m : _matches) {
     double param1, param2;
     param1 = team_strs[m.l_team];
@@ -76,6 +79,7 @@ poisson_likelihood_model_t::log_likelihood(const params_t &team_strs) const {
     double term_r = std::pow(lambda_r, m.r_goals) / factorial(m.r_goals) *
                     std::exp(-lambda_r);
 
+#pragma omp critical
     llh += std::log(term_r * term_l);
   }
 

@@ -33,7 +33,11 @@ public:
   simple_likelihood_model_t(const std::vector<match_t> &matches);
   virtual ~simple_likelihood_model_t() = default;
 
-  virtual double likelihood(const params_t &team_win_probs) const;
+  virtual double likelihood(const params_t &team_strs) const {
+    return std::exp(log_likelihood(team_strs));
+  }
+
+  virtual double log_likelihood(const params_t &team_win_probs) const;
 
   virtual size_t param_count() const {
     return (_team_count * (_team_count + 1)) / 2;
