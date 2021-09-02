@@ -39,6 +39,12 @@ void print_version() {
   debug_print(EMIT_LEVEL_IMPORTANT, "Version: %s", GIT_REV_STRING);
   debug_print(EMIT_LEVEL_IMPORTANT, "Build Commit: %s", GIT_COMMIT_STRING);
   debug_print(EMIT_LEVEL_IMPORTANT, "Build Date: %s", BUILD_DATE_STRING);
+}
+
+void print_run_info(const cli_options_t &cli_options) {
+  debug_print(EMIT_LEVEL_IMPORTANT,
+              "Using Seed: %lu",
+              cli_options["seed"].value<uint64_t>());
 #ifdef _OPENMP
 #pragma omp parallel
   {
@@ -389,6 +395,8 @@ int main(int argc, char **argv) {
       assert_string(cli_options["seed"].initialized(),
                     "CLI Option seed shoudl be initilaized ehre");
     }
+
+    print_run_info(cli_options);
 
     if (cli_options["matches"].initialized() ||
         cli_options["dummy"].initialized()) {
