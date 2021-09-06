@@ -5,6 +5,7 @@
 #include <string>
 
 vector_t single_node_t::eval(const matrix_t &pmatrix, size_t tip_count) {
+  reset_stale();
   vector_t results(tip_count);
   for (tick_result_t tr = tick_result_t::success; tr != tick_result_t::finished;
        tr               = tick()) {
@@ -20,27 +21,32 @@ vector_t single_node_t::eval_debug(const matrix_t &   pmatrix,
   size_t   filename_counter = 0;
   for (tick_result_t tr = tick_result_t::success; tr != tick_result_t::finished;
        tr               = tick()) {
-    std::string filename =
-        filename_prefix + std::to_string(filename_counter) + ".dot";
+    if (valid()) {
+      std::string filename =
+          filename_prefix + std::to_string(filename_counter) + ".dot";
 
-    std::ofstream ofs(filename);
+      std::ofstream ofs(filename);
 
-    debug_graphviz(ofs);
-    filename_counter++;
+      debug_graphviz(ofs);
+      filename_counter++;
 
-    if (valid()) { results[winner()] += single_eval(pmatrix, true); }
+      results[winner()] += single_eval(pmatrix, true);
+    }
   }
   return results;
 }
 
-double single_node_t::single_eval(const matrix_t &pmatrix,
-                                  bool            is_winner) const {
+double single_node_t::single_eval(const matrix_t &pmatrix, bool is_winner) {
   if (is_tip()) { return is_winner ? 1.0 : 0.0; }
   if (!is_winner) { return 1.0; }
+  if (!_stale) { return _saved_val; }
 
-  return left_child().single_eval(pmatrix, children().left.is_win()) *
-         right_child().single_eval(pmatrix, children().right.is_win()) *
-         (is_winner ? pmatrix[winner()][loser()] : pmatrix[loser()][winner()]);
+  _saved_val =
+      left_child().single_eval(pmatrix, children().left.is_win()) *
+      right_child().single_eval(pmatrix, children().right.is_win()) *
+      (is_winner ? pmatrix[winner()][loser()] : pmatrix[loser()][winner()]);
+  _stale = false;
+  return _saved_val;
 }
 
 bool single_node_t::is_cherry() const {
@@ -63,6 +69,7 @@ void single_node_t::assign_team_reset() {
 }
 
 tick_result_t single_node_t::tick() {
+  _stale = true;
   if (is_tip()) { return tick_result_t::finished; }
 
   auto valid_teams        = get_tip_bitset();

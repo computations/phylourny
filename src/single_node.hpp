@@ -85,13 +85,24 @@ private:
     return dynamic_cast<const single_node_t &>(*children().right);
   }
 
-  double single_eval(const matrix_t &pmatrix, bool winner) const;
+  void reset_stale() {
+    _stale = true;
+    if (is_tip()) { return; }
+
+    left_child().reset_stale();
+    right_child().reset_stale();
+  }
+
+  double single_eval(const matrix_t &pmatrix, bool winner);
 
   void   assign_team(size_t t) { _assigned_team = t; }
   void   assign_team_reset();
   double internal_eval(const matrix_t &pmatrix, size_t tip_count);
 
   size_t _assigned_team;
+
+  double _saved_val;
+  bool   _stale;
 };
 
 #endif
