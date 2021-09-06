@@ -29,7 +29,7 @@ simple_likelihood_model_t::simple_likelihood_model_t(
  */
 double simple_likelihood_model_t::log_likelihood(
     const params_t &team_win_probs) const {
-  double lh = 1.0;
+  double lh = 0.0;
   debug_print(EMIT_LEVEL_DEBUG,
               "team_win_probs: %s",
               to_string(team_win_probs).c_str());
