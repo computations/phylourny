@@ -39,7 +39,7 @@ TEST_CASE("Simulation, basics, larger", "[simulation]") {
   t.relabel_indicies();
 
   SECTION("Eval") {
-    auto r   = t.eval(100000);
+    auto r   = t.eval(10000);
     auto sum = std::accumulate(r.begin(), r.end(), 0.0);
     CHECK(sum == Approx(1.0));
     CHECK(r[0] == Approx(0.125).margin(0.1));
