@@ -6,6 +6,7 @@
 #include <cstddef>
 #include <memory>
 #include <stdexcept>
+
 enum class tick_result_t {
   failure,
   success,
@@ -37,18 +38,16 @@ public:
 
   size_t winner() const override { return _assigned_team; }
 
-  size_t loser() const override {
-    if (is_tip()) { throw std::runtime_error{"Called loser on a tip"}; }
+  size_t loser() const override { return returned_team(false); }
 
-    if (!is_cherry() && (left_child().winner() == left_child().loser() ||
-                         right_child().winner() == right_child().loser())) {
-      throw std::runtime_error{"Winner and loser is the same for some reason"};
-    }
+  size_t returned_team(bool winner) const {
+    if (winner) { return _assigned_team; }
 
-    if (children().left->winner() == _assigned_team) {
-      return children().right->winner();
-    }
-    return children().left->winner();
+    if (is_tip()) { throw std::runtime_error{"Called team on a tip"}; }
+
+    if (left_team() == _assigned_team) { return right_team(); }
+
+    return left_team();
   }
 
   void init_assigned_teams();
@@ -85,12 +84,12 @@ private:
     return dynamic_cast<const single_node_t &>(*children().right);
   }
 
-  void reset_stale() {
-    _stale = true;
-    if (is_tip()) { return; }
+  size_t left_team() const {
+    return left_child().returned_team(children().left.is_win());
+  }
 
-    left_child().reset_stale();
-    right_child().reset_stale();
+  size_t right_team() const {
+    return right_child().returned_team(children().right.is_win());
   }
 
   double single_eval(const matrix_t &pmatrix, bool winner);
@@ -102,7 +101,6 @@ private:
   size_t _assigned_team;
 
   double _saved_val;
-  bool   _stale;
 };
 
 #endif

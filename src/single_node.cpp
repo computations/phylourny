@@ -5,7 +5,7 @@
 #include <string>
 
 vector_t single_node_t::eval(const matrix_t &pmatrix, size_t tip_count) {
-  reset_stale();
+  init_assigned_teams();
   vector_t results(tip_count);
   for (tick_result_t tr = tick_result_t::success; tr != tick_result_t::finished;
        tr               = tick()) {
@@ -22,6 +22,8 @@ vector_t single_node_t::eval_debug(const matrix_t &   pmatrix,
   for (tick_result_t tr = tick_result_t::success; tr != tick_result_t::finished;
        tr               = tick()) {
     if (valid()) {
+      results[winner()] += single_eval(pmatrix, true);
+
       std::string filename =
           filename_prefix + std::to_string(filename_counter) + ".dot";
 
@@ -29,8 +31,6 @@ vector_t single_node_t::eval_debug(const matrix_t &   pmatrix,
 
       debug_graphviz(ofs);
       filename_counter++;
-
-      results[winner()] += single_eval(pmatrix, true);
     }
   }
   return results;
@@ -38,14 +38,15 @@ vector_t single_node_t::eval_debug(const matrix_t &   pmatrix,
 
 double single_node_t::single_eval(const matrix_t &pmatrix, bool is_winner) {
   if (is_tip()) { return is_winner ? 1.0 : 0.0; }
-  if (!is_winner) { return 1.0; }
-  if (!_stale) { return _saved_val; }
+  if (!is_winner) {
+    _saved_val = 1.0;
+    return _saved_val;
+  }
 
   _saved_val =
       left_child().single_eval(pmatrix, children().left.is_win()) *
       right_child().single_eval(pmatrix, children().right.is_win()) *
       (is_winner ? pmatrix[winner()][loser()] : pmatrix[loser()][winner()]);
-  _stale = false;
   return _saved_val;
 }
 
@@ -69,7 +70,6 @@ void single_node_t::assign_team_reset() {
 }
 
 tick_result_t single_node_t::tick() {
-  _stale = true;
   if (is_tip()) { return tick_result_t::finished; }
 
   auto valid_teams        = get_tip_bitset();

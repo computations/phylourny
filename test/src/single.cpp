@@ -340,5 +340,20 @@ TEST_CASE("Double elim tournament with tournament_t",
       CHECK(r[2] == Approx(1.0 / team_count));
       CHECK(r[3] == Approx(1.0 / team_count));
     }
+
+    SECTION("Non-uniform matrix") {
+      auto pmat = random_matrix_factory(team_count, 90431816788);
+
+      tourny.reset_win_probs(pmat);
+
+      auto   r   = tourny.eval();
+      double sum = std::accumulate(r.begin(), r.end(), 0.0);
+
+      CHECK(sum == Approx(1.0));
+      CHECK(r[0] == Approx(0.250823227));
+      CHECK(r[1] == Approx(0.4298458008));
+      CHECK(r[2] == Approx(0.2350951371));
+      CHECK(r[3] == Approx(0.0842358351));
+    }
   }
 }
