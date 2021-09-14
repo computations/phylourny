@@ -386,17 +386,36 @@ TEST_CASE("4 team tournament with losers bracket, single mode", "[single]") {
 
   t.relabel_indicies();
   size_t tip_count = t.tip_count();
-  auto   m         = uniform_matrix_factory(tip_count);
-  t.reset_win_probs(m);
-  t.set_single_mode();
 
-  auto   r   = t.eval();
-  double sum = 0.0;
-  for (auto f : r) {
-    sum += f;
-    CHECK(f == Approx(1.0 / tip_count));
+  SECTION("Uniform Matrix") {
+    auto m = uniform_matrix_factory(tip_count);
+    t.reset_win_probs(m);
+
+    auto   r   = t.eval();
+    double sum = 0.0;
+    for (auto f : r) {
+      sum += f;
+      CHECK(f == Approx(1.0 / tip_count));
+    }
+    CHECK(sum == Approx(1.0));
   }
-  CHECK(sum == Approx(1.0));
+
+  /*
+  SECTION("Non-uniform matrix") {
+    auto pmat = random_matrix_factory(tip_count, 90431816788);
+
+    t.reset_win_probs(pmat);
+
+    auto   r   = t.eval();
+    double sum = std::accumulate(r.begin(), r.end(), 0.0);
+
+    CHECK(sum == Approx(1.0));
+    CHECK(r[0] == Approx(0.250823227));
+    CHECK(r[1] == Approx(0.4298458008));
+    CHECK(r[2] == Approx(0.2350951371));
+    CHECK(r[3] == Approx(0.0842358351));
+  }
+  */
 }
 
 TEST_CASE("Best tests", "[bestof_n]") {
@@ -456,22 +475,6 @@ TEST_CASE("Simple Checks", "[simple]") {
     auto t = tournament_node_factory(8);
     CHECK(t->is_simple());
   }
-}
-
-TEST_CASE("Single evaluation", "[single_eval]") {
-  auto t  = tournament_factory(4);
-  auto m1 = uniform_matrix_factory(4);
-  t.reset_win_probs(m1);
-
-  t.set_single_mode();
-
-  auto   r   = t.eval();
-  double sum = 0.0;
-  for (auto &&f : r) {
-    sum += f;
-    CHECK(f == Approx(1.0 / 4.0));
-  }
-  CHECK(sum == Approx(1.0));
 }
 
 TEST_CASE("Graphviz output", "[graphviz]") {
@@ -562,7 +565,6 @@ e -> a[style = solid]
     size_t tip_count = t.tip_count();
     auto   m         = uniform_matrix_factory(tip_count);
     t.reset_win_probs(m);
-    t.set_single_mode();
 
     t.eval();
 
