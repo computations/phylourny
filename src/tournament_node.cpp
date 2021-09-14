@@ -85,12 +85,6 @@ vector_t tournament_node_t::eval(const matrix_t &pmatrix, size_t tip_count) {
 
   if (eval_saved()) { return _memoized_values; }
 
-  /* This will be correct, but inefficient, as it does not take into account
-   * that the match might have already been evaluated. A future optimization
-   * would be to include a "evaluated" flag so that the evaluation of the
-   * current node can be skipped. Right now, since we are computing the
-   * results for a single elimination tournament, we don't need to do this.
-   */
   auto l_wpv  = children().left.eval(pmatrix, tip_count);
   auto r_wpv  = children().right.eval(pmatrix, tip_count);
   auto bestof = children().bestof;
@@ -144,142 +138,14 @@ vector_t tournament_node_t::fold(const vector_t &x,
      * The problem is, this isn't correct. From a standpoint about the
      * probabiltiy, it doesn't make any sense. So, I need to do something about
      * this.
+     *
+     * Specifically, the part that doesn't make sense is the 1.0 - y[m1]. This
+     * will always be 1.0, since y will be zero.
      */
     r[m1] *= x[m1] / (1.0 - y[m1]);
+    // r[m1] *= x[m1] + y[m1] / (y.size() - 1);
   }
   return r;
-}
-
-double tournament_node_t::single_eval(const matrix_t &pmatrix,
-                                      size_t          eval_index,
-                                      tip_bitset_t    include) {
-
-  _scratchpad.eval_index = eval_index;
-  _scratchpad.include    = include;
-
-  if (!include[eval_index]) {
-    debug_print(EMIT_LEVEL_DEBUG,
-                "[%s] eval_index (%lu) is not in include (%s)",
-                _internal_label.c_str(),
-                eval_index,
-                include.to_string().c_str());
-    _scratchpad.fold_l = 0.0;
-    _scratchpad.fold_r = 0.0;
-    _scratchpad.result = 0.0;
-    return 0.0;
-  }
-
-  if (!is_subtip(eval_index)) {
-    debug_print(EMIT_LEVEL_DEBUG,
-                "[%s] eval_index (%lu) is not in tip bitset (%s)",
-                _internal_label.c_str(),
-                eval_index,
-                _tip_bitset.to_string().c_str());
-    _scratchpad.fold_l = 0.0;
-    _scratchpad.fold_r = 0.0;
-    _scratchpad.result = 0.0;
-    return 0.0;
-  }
-
-  if (is_tip()) {
-    if (eval_index == team().index) {
-      debug_print(EMIT_LEVEL_DEBUG,
-                  "[%s] We are a tip, returning 1.0",
-                  _internal_label.c_str());
-      _scratchpad.fold_l = 0.0;
-      _scratchpad.fold_r = 0.0;
-      _scratchpad.result = 1.0;
-      return 1.0;
-    }
-    debug_print(EMIT_LEVEL_DEBUG,
-                "[%s] We are a tip, returning 0.0",
-                _internal_label.c_str());
-    _scratchpad.fold_l = 0.0;
-    _scratchpad.fold_r = 0.0;
-    _scratchpad.result = 0.0;
-    return 0.0;
-  }
-
-  if ((_tip_bitset & include).count() == 1) {
-    debug_print(EMIT_LEVEL_DEBUG,
-                "[%s] _tip_bitset (%s) & include (%s) == 1",
-                _internal_label.c_str(),
-                _tip_bitset.to_string().c_str(),
-                include.to_string().c_str());
-    _scratchpad.fold_l = 0.0;
-    _scratchpad.fold_r = 0.0;
-    _scratchpad.result = 1.0;
-    return 1.0;
-  }
-
-  std::string filename =
-      _internal_label + "." + std::to_string(eval_index) + ".dot";
-
-  std::ofstream outfile(filename);
-
-  _scratchpad.fold_l = single_fold(
-      pmatrix, eval_index, include, children().left, children().right);
-
-  _scratchpad.fold_r = single_fold(
-      pmatrix, eval_index, include, children().right, children().left);
-
-  _scratchpad.result = _scratchpad.fold_l + _scratchpad.fold_r;
-
-  debug_graphviz(outfile);
-  return _scratchpad.result;
-}
-
-double tournament_node_t::single_fold(const matrix_t &    pmatrix,
-                                      size_t              eval_index,
-                                      const tip_bitset_t &include,
-                                      tournament_edge_t & child1,
-                                      tournament_edge_t & child2) {
-
-  assert(include.any());
-
-  double result = 0.0;
-  for (size_t i = 0; i < include.size(); i++) {
-    if (i == eval_index) { continue; }
-
-    auto c1_include        = child1->get_tip_bitset() & include;
-    c1_include[eval_index] = false;
-
-    auto c2_include = include & child2->get_tip_bitset();
-    c2_include[i]   = false;
-
-    double tmp_pmat  = include[i] ? pmatrix[eval_index][i] : 1.0;
-    double tmp_c1    = child1->single_eval(pmatrix, i, c1_include);
-    double tmp_c2    = child2->single_eval(pmatrix, eval_index, c2_include);
-    double tmp_total = tmp_pmat * tmp_c1 * tmp_c2;
-
-    debug_print(
-        EMIT_LEVEL_DEBUG,
-        "[%s (%s, %s)] total: %f, c1: %f, c2: %f, i: %lu, eval_index: %lu, "
-        "include: %s, c1_include: %s, c2_include: %s",
-        _internal_label.c_str(),
-        child1->_internal_label.c_str(),
-        child2->_internal_label.c_str(),
-        tmp_total,
-        tmp_c1,
-        tmp_c2,
-        i,
-        eval_index,
-        include.to_string().c_str(),
-        c1_include.to_string().c_str(),
-        c2_include.to_string().c_str());
-    result += tmp_total;
-  }
-
-  debug_print(EMIT_LEVEL_DEBUG,
-              "[%s (%s, %s)] returning %f from single_fold eval_index: %lu, "
-              "include: %s",
-              _internal_label.c_str(),
-              child1->_internal_label.c_str(),
-              child2->_internal_label.c_str(),
-              result,
-              eval_index,
-              include.to_string().c_str());
-  return result;
 }
 
 vector_t tournament_edge_t::eval(const matrix_t &pmatrix,

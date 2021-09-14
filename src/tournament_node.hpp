@@ -157,9 +157,6 @@ public:
                 uint64_t        bestof,
                 const matrix_t &pmatrix) const;
 
-  double
-  single_eval(const matrix_t &pmatrix, size_t eval_index, tip_bitset_t include);
-
   tip_bitset_t set_tip_bitset(size_t tip_count);
   tip_bitset_t get_tip_bitset() const { return _tip_bitset; };
 
@@ -286,12 +283,6 @@ protected:
   inline team_t &      team() { return std::get<team_t>(_children); }
 
 private:
-  double single_fold(const matrix_t &    pmatrix,
-                     size_t              eval_index,
-                     const tip_bitset_t &include,
-                     tournament_edge_t & child1,
-                     tournament_edge_t & child2);
-
   bool eval_saved() const { return _memoized_values.size() != 0; }
 
   size_t team_count() const { return _tip_bitset.size(); }

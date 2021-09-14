@@ -35,15 +35,13 @@ public:
    * will delete it.
    */
   tournament_t() :
-      _head{
-          new T{tournament_edge_t{new T, tournament_edge_t::edge_type_e::win},
-                tournament_edge_t{new T, tournament_edge_t::edge_type_e::win}}},
-      _single_mode{false} {
+      _head{new T{
+          tournament_edge_t{new T, tournament_edge_t::edge_type_e::win},
+          tournament_edge_t{new T, tournament_edge_t::edge_type_e::win}}} {
     relabel_indicies();
   }
 
-  tournament_t(std::unique_ptr<T> &&head) :
-      _head{std::move(head)}, _single_mode{false} {
+  tournament_t(std::unique_ptr<T> &&head) : _head{std::move(head)} {
     relabel_indicies();
   }
 
@@ -105,11 +103,16 @@ public:
     return _head->eval(_win_probs, tip_count());
   }
 
+  vector_t eval_debug(const std::string &prefix) {
+    if (!check_matrix_size(_win_probs)) {
+      throw std::runtime_error("Initialize the win probs before calling eval");
+    }
+    _head->reset_saved_evals();
+
+    return _head->eval_debug(_win_probs, tip_count(), prefix);
+  }
+
   vector_t eval(size_t iters);
-
-  void set_single_mode() { _single_mode = true; }
-
-  void set_single_mode(bool m) { _single_mode = m; }
 
   std::string dump_state_graphviz() const {
     std::ostringstream oss;
@@ -216,7 +219,6 @@ private:
 
   std::unique_ptr<T> _head;
   matrix_t           _win_probs;
-  bool               _single_mode;
 };
 
 #endif
