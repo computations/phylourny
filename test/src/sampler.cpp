@@ -19,7 +19,7 @@ TEST_CASE("sampler_t simple case", "[sampler_t]") {
                       simple_likelihood_model_t(matches)),
                   std::move(t)};
       SECTION("Running the chain") {
-        s.run_chain(100, (rand() % 3), update_win_probs);
+        s.run_chain(100, static_cast<uint64_t>(rand() % 3), update_win_probs);
         auto r = s.report();
         CHECK(r.size() > 0);
         CHECK(r.size() <= 100);
@@ -33,7 +33,9 @@ TEST_CASE("sampler_t simple case", "[sampler_t]") {
                       poisson_likelihood_model_t(matches)),
                   std::move(t)};
       SECTION("Running the chain") {
-        s.run_chain(100, (rand() % 3), update_poission_model_factory(0.5));
+        s.run_chain(100,
+                    static_cast<uint64_t>(rand() % 3),
+                    update_poission_model_factory(0.5));
         auto r = s.report();
         CHECK(r.size() > 0);
         CHECK(r.size() <= 100);
@@ -43,7 +45,7 @@ TEST_CASE("sampler_t simple case", "[sampler_t]") {
 }
 
 TEST_CASE("beta distribution", "[beta_distribution]") {
-  std::mt19937_64 gen(rand());
+  std::mt19937_64 gen(static_cast<uint64_t>(rand()));
   SECTION("uniform") {
     double                    a = 1.0, b = 1.0;
     beta_distribution<double> beta_dis(a, b);

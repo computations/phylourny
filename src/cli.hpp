@@ -142,7 +142,7 @@ public:
    * @param align Controls the gap between the options and help text. Behaves
    * like a "tab stop".
    */
-  std::string help(int align = 20) const {
+  std::string help(size_t align = 20) const {
     std::stringstream oss;
     oss << "--" << _name;
 
@@ -152,7 +152,7 @@ public:
       align -= 8;
     }
 
-    for (int i = 0; i < align; i++) { oss << " "; }
+    for (size_t i = 0; i < align; i++) { oss << " "; }
 
     oss << _description;
 

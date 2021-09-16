@@ -62,8 +62,6 @@ double
 poisson_likelihood_model_t::log_likelihood(const params_t &team_strs) const {
   double llh = 0.0;
 
-  double last_str = -std::accumulate(team_strs.begin(), team_strs.end(), 0.0);
-
 #pragma omp parallel for
   for (auto &m : _matches) {
     double param1, param2;
@@ -106,8 +104,6 @@ poisson_likelihood_model_t::generate_win_probs(const params_t &params) const {
   matrix_t wp;
   wp.reserve(_team_count);
   for (size_t i = 0; i < _team_count; ++i) { wp.emplace_back(_team_count); }
-
-  double last_str = -std::accumulate(params.begin(), params.end(), 0.0);
 
 #ifdef _OPENMP
 #pragma omp parallel for

@@ -9,11 +9,11 @@ std::vector<match_t> generate_bootstrap(const std::vector<match_t> &matches,
                                         uint64_t                    seed) {
   std::vector<match_t> bs_matches;
   bs_matches.reserve(matches.size());
-  std::mt19937                    gen(seed);
-  std::uniform_int_distribution<> boot_dis(0, matches.size() - 1);
+  std::mt19937                          gen(seed);
+  std::uniform_int_distribution<size_t> boot_dis(0, matches.size() - 1);
 
   for (size_t i = 0; i < matches.size(); ++i) {
-    auto &m = matches[boot_dis(gen)];
+    auto &m = matches[static_cast<size_t>(boot_dis(gen))];
     bs_matches.push_back(m);
   }
 

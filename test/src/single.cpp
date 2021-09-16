@@ -76,7 +76,7 @@ TEST_CASE("single node basic tests", "[single_node]") {
     }
 
     SECTION("Testing eval, random matrix") {
-      auto pmat = random_matrix_factory(2, rand());
+      auto pmat = random_matrix_factory(2, static_cast<uint64_t>(rand()));
       auto r    = n1->eval(pmat, 2);
 
       auto sum = std::accumulate(r.begin(), r.end(), 0.0);
@@ -147,8 +147,9 @@ TEST_CASE("4 Team tournament tests", "[single_node]") {
       CHECK(r[3] == Approx(1.0 / team_count));
     }
     SECTION("Random matrix") {
-      auto pmat = random_matrix_factory(team_count, rand());
-      auto r    = t->eval(pmat, team_count);
+      auto pmat =
+          random_matrix_factory(team_count, static_cast<uint64_t>(rand()));
+      auto r = t->eval(pmat, team_count);
 
       auto sum = std::accumulate(r.begin(), r.end(), 0.0);
       CHECK(sum == Approx(1.0));

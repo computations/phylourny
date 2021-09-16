@@ -171,7 +171,7 @@ TEST_CASE("tournament_t larger cases", "[tournament_t]") {
       CHECK(sum == Approx(1.0));
     }
     SECTION("Random win probs") {
-      auto m = random_matrix_factory(tsize, rand());
+      auto m = random_matrix_factory(tsize, static_cast<size_t>(rand()));
       t.reset_win_probs(m);
       auto   r   = t.eval();
       double sum = 0.0;
@@ -194,7 +194,7 @@ TEST_CASE("tournament_t larger cases", "[tournament_t]") {
       CHECK(sum == Approx(1.0));
     }
     SECTION("Random win probs") {
-      auto m = random_matrix_factory(tsize, rand());
+      auto m = random_matrix_factory(tsize, static_cast<size_t>(rand()));
       t.reset_win_probs(m);
       auto   r   = t.eval();
       double sum = 0.0;
@@ -222,7 +222,7 @@ TEST_CASE("tournament_t, unbalanced", "[tournament_t]") {
     }
 
     SECTION("random rate matrix") {
-      auto m1 = random_matrix_factory((total_size), rand());
+      auto m1 = random_matrix_factory(total_size, static_cast<size_t>(rand()));
       t1.reset_win_probs(m1);
       auto   r1  = t1.eval();
       double sum = 0.0;
@@ -248,7 +248,7 @@ TEST_CASE("tournament_t, unbalanced", "[tournament_t]") {
     }
 
     SECTION("random rate matrix") {
-      auto m1 = random_matrix_factory((total_size), rand());
+      auto m1 = random_matrix_factory(total_size, static_cast<size_t>(rand()));
       t1.reset_win_probs(m1);
       auto   r1  = t1.eval();
       double sum = 0.0;

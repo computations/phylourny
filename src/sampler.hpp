@@ -29,8 +29,8 @@ public:
   summary_t summary() const { return summary_t{_samples}; }
 
   void run_chain(
-      size_t       iters,
-      unsigned int seed,
+      size_t   iters,
+      uint64_t seed,
       const std::function<params_t(const params_t &, random_engine_t &gen)>
           &update_func) {
     params_t params(_lh_model->param_count());

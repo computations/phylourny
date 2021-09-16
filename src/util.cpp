@@ -148,16 +148,6 @@ std::string to_string(const std::vector<size_t> &m) {
   return out.str();
 }
 
-vector_t softmax(const vector_t &v) {
-  auto ret = v;
-
-  double sum = std::reduce(ret.begin(), ret.end(), 0.0);
-  if (sum == 0) { return v; }
-  std::for_each(ret.begin(), ret.end(), [sum](double &f) { f /= sum; });
-
-  return ret;
-}
-
 std::string compute_base26(size_t i) {
   size_t length =
       std::max(static_cast<size_t>(std::ceil(
@@ -188,9 +178,10 @@ double skellam_pmf(int k, double u1, double u2) {
   double           p       = 0.0;
   constexpr double epsilon = std::numeric_limits<double>::epsilon();
 
-  for (size_t i = std::max(0, -k);; ++i) {
+  for (int i = std::max(0, -k);; ++i) {
     double numerator   = std::pow(u1, k + i) * std::pow(u2, i);
-    double denominator = factorial(i) * factorial(k + i);
+    double denominator = factorial(static_cast<uint64_t>(i)) *
+                         factorial(static_cast<uint64_t>(k + i));
 
     double total = numerator / denominator;
     p += total;

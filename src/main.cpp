@@ -64,10 +64,10 @@ void print_end_time(timepoint_t start_time, timepoint_t end_time) {
 }
 
 std::vector<match_t> make_dummy_data(size_t team_count, uint64_t seed) {
-  std::vector<match_t>          matches;
-  std::mt19937_64               gen(seed);
-  std::uniform_int_distribution team(0, static_cast<int>(team_count) - 1);
-  std::exponential_distribution team_str_dist(0.75);
+  std::vector<match_t>                  matches;
+  std::mt19937_64                       gen(seed);
+  std::uniform_int_distribution<size_t> team(0, team_count - 1);
+  std::exponential_distribution         team_str_dist(0.75);
 
   std::vector<double> params(team_count);
   for (auto &p : params) { p = team_str_dist(gen); }
@@ -241,7 +241,8 @@ void mcmc_run(const cli_options_t &           cli_options,
   const std::string output_suffix = ".json";
 
   size_t mcmc_samples   = cli_options["samples"].value(10'000'000lu);
-  size_t burnin_samples = mcmc_samples * cli_options["burnin"].value(0.1);
+  size_t burnin_samples = static_cast<size_t>(
+      static_cast<double>(mcmc_samples) * cli_options["burnin"].value(0.1));
 
   if (cli_options["single"].value(false)) {
     auto [lhm, update_func] = get_lh_model(cli_options, matches);
