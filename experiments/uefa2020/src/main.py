@@ -21,12 +21,13 @@ import seaborn
 import matplotlib
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--iters', default=1000)
+parser.add_argument('--iters', default=1000, type=int)
 parser.add_argument('--teams')
 parser.add_argument('--win-probs')
 parser.add_argument('--exp-prefix', required=True)
 parser.add_argument('--program', required=True)
 parser.add_argument('--matches')
+parser.add_argument('--single', action='store_true', default=False)
 args = parser.parse_args()
 
 
@@ -263,7 +264,7 @@ class ExperimentList:
             e.makedir()
 
     def _makedirs_mp(self):
-        with ThreadPool() as p:
+        with ThreadPool(6) as p:
             p.map(Experiment.makedir, self._experiments)
 
     def _runall(self, prog):
@@ -360,15 +361,22 @@ class Phylourny:
 
     def __init__(self, program_path):
         self._program_path = program_path
+        self._args = [self._program_path]
 
     def run(self, exp):
-        args = [self._program_path]
+        args = copy.deepcopy(self._args)
         args.extend(self._teams.format(exp.teams_file_path).split())
         args.extend(self._prefix.format(exp.pyhlourny_prefix).split())
         args.extend(self._probs.format(exp.win_probs_file_path).split())
 
         with open(exp.phylourny_logfile_path, 'w') as logfile:
             subprocess.run(args, stdout=logfile, stderr=logfile)
+
+    def set_dynamic(self, on):
+        self._args.extend(self._dynamic.format("on" if on else "off").split())
+
+    def set_single(self):
+        self._args.append(self._single)
 
 
 class Match:
@@ -390,8 +398,8 @@ class Match:
 
         self._team1_index = teams.lookup(self._team1)
         self._team2_index = teams.lookup(self._team2)
-        self._goals_team1 = int(match_row['goals-team1'])
-        self._goals_team2 = int(match_row['goals-team2'])
+        self._goals_team1 = int(match_row['team1-goals'])
+        self._goals_team2 = int(match_row['team2-goals'])
 
     def sublh(self, params):
         p1 = params[self._team1_index]
@@ -558,6 +566,9 @@ def perturb_model(args):
     args.program = os.path.abspath(args.program)
 
     prog = Phylourny(args.program)
+    if (args.single):
+        prog.set_dynamic(False)
+        prog.set_single()
 
     el = ExperimentList(wp, args.iters, args.exp_prefix)
     el.run(prog)
