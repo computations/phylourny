@@ -9,6 +9,7 @@
 #include <functional>
 #include <memory>
 #include <random>
+#include <stdexcept>
 #include <utility>
 #include <vector>
 
@@ -36,6 +37,11 @@ public:
       uint64_t seed,
       const std::function<params_t(const params_t &, random_engine_t &gen)>
           &update_func) {
+
+    if (iters == 0) {
+      throw std::runtime_error{"Iters should be greater than 0"};
+    }
+
     params_t params(_lh_model->param_count());
     params_t temp_params{params};
     _samples.clear();

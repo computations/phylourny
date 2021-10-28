@@ -3,6 +3,7 @@
 #include <catch2/catch.hpp>
 #include <debug.h>
 #include <numeric>
+#include <random>
 #include <tournament.hpp>
 
 const std::string graphiz_result_long =
@@ -435,7 +436,8 @@ TEST_CASE("Best tests", "[bestof_n]") {
   SECTION("Grid search for inverse complimentarity") {
     for (size_t i = 1; i < 16; ++i) {
       for (size_t j = 1; j < 16; ++j) {
-        double p = static_cast<double>(i) / static_cast<double>(j);
+        double p = static_cast<double>(i) /
+                   (static_cast<double>(i) + static_cast<double>(j));
         for (size_t n = 1; n < 16; ++n) {
           CHECK(bestof_n(p, 1 - p, n) == Approx(1 - bestof_n(1 - p, p, n)));
         }
@@ -444,10 +446,13 @@ TEST_CASE("Best tests", "[bestof_n]") {
   }
 
   SECTION("Fuzzed tests") {
+    std::random_device                     rd;
+    std::uniform_real_distribution<double> uni_dist(0.0, 1.0);
+    std::mt19937_64                        gen(rd());
     for (size_t i = 0; i < 1e4; ++i) {
-      double p = rand();
-      for (size_t n = 1; n < 16; ++n) {
-        CHECK(bestof_n(p, 1 - p, n) == Approx(1 - bestof_n(1 - p, p, n)));
+      double p = uni_dist(gen);
+      for (size_t n = 1; n < 16; n += 2) {
+        CHECK((bestof_n(p, 1 - p, n) + bestof_n(1 - p, p, n)) == Approx(1.0));
       }
     }
   }

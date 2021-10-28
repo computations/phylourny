@@ -1,7 +1,9 @@
 #ifndef FACTORIAL_HPP
 #define FACTORIAL_HPP
 
+#include "debug.h"
 #include <array>
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
 
@@ -51,6 +53,14 @@ constexpr inline double int_pow(double base, uint64_t k) {
 }
 
 constexpr inline double bestof_n(double wp1, double wp2, uint64_t n) {
+  assert_string(wp1 <= 1.0, "Win prob is not well formed");
+  assert_string(wp2 <= 1.0, "Win prob is not well formed");
+
+  assert_string(wp1 >= 0.0, "Win prob is not well formed");
+  assert_string(wp2 >= 0.0, "Win prob is not well formed");
+
+  assert_string(fabs(wp1 + wp2 - 1.0) < 1e-14, "Win prob is not well formed");
+
   uint64_t k    = (n + 1) / 2;
   double   sum  = 0.0;
   double   wpp1 = int_pow(wp1, k);

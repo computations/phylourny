@@ -1,4 +1,5 @@
 #include "dataset.hpp"
+#include "debug.h"
 #include "match.hpp"
 #include "util.hpp"
 #include <cmath>
@@ -29,7 +30,7 @@ simple_likelihood_model_t::simple_likelihood_model_t(
  */
 double simple_likelihood_model_t::log_likelihood(
     const params_t &team_win_probs) const {
-  double lh = 0.0;
+  double llh = 0.0;
   debug_print(EMIT_LEVEL_DEBUG,
               "team_win_probs: %s",
               to_string(team_win_probs).c_str());
@@ -51,11 +52,12 @@ double simple_likelihood_model_t::log_likelihood(
                       int_pow(r_wp, _win_matrix[j][i]) *
                       combinations(_win_matrix[i][j] + _win_matrix[j][i],
                                    _win_matrix[i][j]);
-      lh += std::log(tmp_lh);
+      llh += std::log(tmp_lh);
     }
   }
-  debug_print(EMIT_LEVEL_DEBUG, "computed lh: %f", lh);
-  return lh;
+  debug_print(EMIT_LEVEL_DEBUG, "computed llh: %f", llh);
+  assert_string(!std::isnan(llh), "LH computed is NaN");
+  return llh;
 }
 
 double
@@ -81,6 +83,7 @@ poisson_likelihood_model_t::log_likelihood(const params_t &team_strs) const {
     llh += std::log(term_r * term_l);
   }
 
+  assert_string(!std::isnan(llh), "LH computed is NaN");
   return llh;
 }
 
@@ -92,6 +95,8 @@ simple_likelihood_model_t::generate_win_probs(const params_t &params) const {
   for (size_t i = 0; i < _team_count; ++i) {
     for (size_t j = i + 1; j < _team_count; ++j) {
       double w = params[i] / (params[i] + params[j]);
+      assert_string(w <= 1.0, "Win prob is well formed");
+      assert_string(w >= 0.0, "Win prob is well formed");
       wp[i][j] = w;
       wp[j][i] = 1 - w;
     }
@@ -122,6 +127,12 @@ poisson_likelihood_model_t::generate_win_probs(const params_t &params) const {
 
       t1_prob += tie_prob / 2.0;
       t2_prob += tie_prob / 2.0;
+
+      assert_string(t1_prob <= 1.0, "Generated probabilities are well formed");
+      assert_string(t1_prob >= 0.0, "Generated probabilities are well formed");
+
+      assert_string(t2_prob <= 1.0, "Generated probabilities are well formed");
+      assert_string(t2_prob >= 0.0, "Generated probabilities are well formed");
 
       wp[i][j] = t1_prob;
       wp[j][i] = t2_prob;

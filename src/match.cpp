@@ -21,7 +21,6 @@ std::vector<match_t> generate_bootstrap(const std::vector<match_t> &matches,
 }
 
 match_winner_t operator!(match_winner_t mw) {
-  // if (mw == match_winner_t::tie) { return mw; }
   if (mw == match_winner_t::left) { return match_winner_t::right; }
 
   return match_winner_t::left;

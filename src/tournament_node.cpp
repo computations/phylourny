@@ -115,6 +115,7 @@ vector_t tournament_node_t::fold(const vector_t &x,
   for (size_t m1 = 0; m1 < x.size(); ++m1) {
     if (x[m1] == 0.0) { continue; }
     for (size_t m2 = 0; m2 < y.size(); ++m2) {
+      if (m1 == m2) { continue; }
       r[m1] += bestof_n(pmatrix[m1][m2], pmatrix[m2][m1], bestof) * y[m2];
     }
 
