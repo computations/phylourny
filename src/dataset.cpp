@@ -110,9 +110,8 @@ poisson_likelihood_model_t::generate_win_probs(const params_t &params) const {
 #endif
   for (size_t i = 0; i < _team_count; i++) {
     for (size_t j = i + 1; j < _team_count; j++) {
-      double param1, param2;
-      param1 = params[i];
-      param2 = params[j];
+      double param1 = params[i];
+      double param2 = params[j];
 
       double lamda1 = std::exp(param1 - param2);
       double lamda2 = std::exp(param2 - param1);

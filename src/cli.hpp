@@ -6,6 +6,7 @@
 #define CLI_HPP
 
 #include "debug.h"
+#include <algorithm>
 #include <any>
 #include <cctype>
 #include <cstring>
@@ -156,7 +157,7 @@ public:
     align -= (2 + strlen(_name));
     if (_argument) {
       oss << " <VALUE>";
-      align -= 8;
+      align -= _align_offset;
     }
 
     for (size_t i = 0; i < align; i++) { oss << " "; }
@@ -197,6 +198,8 @@ private:
    * Optional custom parser for the value.
    */
   std::optional<std::function<std::any(const char *)>> _opt_parser;
+
+  static constexpr size_t _align_offset = 8;
 };
 
 template <typename T>
@@ -227,9 +230,10 @@ template <>
 cli_option_t option_with_argument<bool>(const char *name, const char *desc) {
   return cli_option_t{name, desc, true, [](const char *o) -> bool {
                         std::string arg(o);
-                        for (size_t i = 0; i < arg.size(); i++) {
-                          arg[i] = tolower(arg[i]);
-                        }
+                        std::transform(arg.begin(),
+                                       arg.end(),
+                                       arg.begin(),
+                                       [](char c) { return tolower(c); });
                         if (arg == "off") { return false; }
                         if (arg == "on") { return true; }
                         throw cli_option_argument_not_found{
@@ -307,9 +311,8 @@ public:
           }
           args[k].consume(argv[++i]);
           break;
-        } else {
-          args[k].set_flag();
         }
+        args[k].set_flag();
       }
       if (!found) {
         debug_print(EMIT_LEVEL_IMPORTANT,
@@ -329,9 +332,13 @@ public:
    * @param key The CLI option, as a string. No preceding characters (such as
    * '--').
    */
-  cli_option_t &operator[](std::string key) { return *_opt_vals.at(key); }
+  cli_option_t &operator[](const std::string &key) {
+    return *_opt_vals.at(key);
+  }
 
-  cli_option_t operator[](std::string key) const { return *_opt_vals.at(key); }
+  cli_option_t operator[](const std::string &key) const {
+    return *_opt_vals.at(key);
+  }
 
   static std::string help() {
     std::stringstream oss;

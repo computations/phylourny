@@ -21,7 +21,7 @@
 #include "tournament_factory.hpp"
 #include "tournament_node.hpp"
 #include "util.hpp"
-int __VERBOSE__ = EMIT_LEVEL_PROGRESS;
+int DEBUG_VERBOSITY_LEVEL = EMIT_LEVEL_PROGRESS;
 
 #define STRING(s) #s
 #define STRINGIFY(s) STRING(s)
@@ -64,7 +64,7 @@ static void print_end_time(timepoint_t start_time, timepoint_t end_time) {
 }
 
 static std::vector<match_t> make_dummy_data(size_t team_count, uint64_t seed) {
-  std::vector<match_t>                  matches;
+  std::vector<match_t>                  matches{};
   std::mt19937_64                       gen(seed);
   std::uniform_int_distribution<size_t> team(0, team_count - 1);
   std::exponential_distribution         team_str_dist(0.75);
@@ -85,7 +85,8 @@ static std::vector<match_t> make_dummy_data(size_t team_count, uint64_t seed) {
     std::poisson_distribution<size_t> t1d(params[t1]);
     std::poisson_distribution<size_t> t2d(params[t2]);
 
-    size_t goals1 = 0, goals2 = 0;
+    size_t goals1 = 0;
+    size_t goals2 = 0;
     while (goals1 == goals2) {
       goals1 = t1d(gen);
       goals2 = t2d(gen);
@@ -365,14 +366,14 @@ static void compute_tournament(const cli_options_t &           cli_options,
 }
 
 int main(int argc, char **argv) {
-  __VERBOSE__     = EMIT_LEVEL_PROGRESS;
-  auto start_time = std::chrono::high_resolution_clock::now();
+  DEBUG_VERBOSITY_LEVEL = EMIT_LEVEL_PROGRESS;
+  auto start_time       = std::chrono::high_resolution_clock::now();
   print_version();
   try {
     cli_options_t cli_options{argc, argv};
 
     if (cli_options["debug"].value<bool>(false)) {
-      __VERBOSE__ = EMIT_LEVEL_DEBUG;
+      DEBUG_VERBOSITY_LEVEL = EMIT_LEVEL_DEBUG;
     }
 
     std::vector<std::string> teams;

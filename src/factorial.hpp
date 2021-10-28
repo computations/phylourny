@@ -1,10 +1,13 @@
 #ifndef FACTORIAL_HPP
 #define FACTORIAL_HPP
 
+#include <array>
 #include <cstddef>
 #include <cstdint>
 
-constexpr double factorial_table[] = {
+constexpr size_t factorial_table_size = 11;
+
+constexpr std::array<double, factorial_table_size> factorial_table = {
     1,
     1,
     2,
@@ -18,14 +21,11 @@ constexpr double factorial_table[] = {
     3628800,
 };
 
-constexpr size_t factorial_table_size =
-    sizeof(factorial_table) / sizeof(double);
-
 /**
  * Compute a factorial. Uses a lookup table to accelerate computation.
  */
 constexpr inline double factorial(uint64_t i) {
-  if (i < factorial_table_size) { return factorial_table[i]; }
+  if (i < factorial_table_size) { return factorial_table.at(i); }
   double f = factorial_table[factorial_table_size - 1];
   for (size_t k = factorial_table_size; k <= i; ++k) {
     f *= static_cast<double>(k);
