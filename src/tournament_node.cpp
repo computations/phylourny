@@ -14,7 +14,7 @@ bool tournament_node_t::is_tip() const {
 }
 
 size_t tournament_node_t::tip_count() const {
-  if (is_tip()) return 1;
+  if (is_tip()) { return 1; }
   size_t t_c = 0;
   if (children().left.is_win()) { t_c += children().left->tip_count(); }
   if (children().right.is_win()) { t_c += children().right->tip_count(); }
@@ -46,7 +46,7 @@ void tournament_node_t::label_map(
   children().right->label_map(lm);
 }
 
-void tournament_node_t::relabel_tips(const std::vector<std::string> labels) {
+void tournament_node_t::relabel_tips(const std::vector<std::string> &labels) {
   if (is_tip()) {
     team().label = labels[team().index];
     return;
@@ -59,20 +59,6 @@ bool tournament_node_t::is_member(size_t index) const {
   if (is_tip()) { return team().index == index; }
   return children().left->is_member(index) ||
          children().right->is_member(index);
-}
-
-std::vector<size_t> tournament_node_t::members(size_t node_count) const {
-  std::vector<size_t> members;
-  members.reserve(node_count);
-  size_t total_members = 0;
-  for (size_t i = 0; i < node_count; ++i) {
-    if (is_member(i)) {
-      members.push_back(i);
-      total_members++;
-    }
-  }
-  members.resize(total_members);
-  return members;
 }
 
 vector_t tournament_node_t::eval(const matrix_t &pmatrix, size_t tip_count) {
@@ -174,20 +160,6 @@ tip_bitset_t tournament_node_t::set_tip_bitset(size_t tip_count) {
                   children().right->set_tip_bitset(tip_count);
   }
   return _tip_bitset;
-}
-
-inline bool tournament_node_t::is_subtip(size_t index) const {
-  return _tip_bitset[index];
-}
-
-inline bool tournament_node_t::can_optimize(const tip_bitset_t &sub_include) {
-  return false;
-  debug_print(EMIT_LEVEL_DEBUG,
-              "_tip_bitset: %s, ~sub_include: %s, can_optimize: %s",
-              _tip_bitset.to_string().c_str(),
-              (~sub_include).to_string().c_str(),
-              (_tip_bitset & ~sub_include).to_string().c_str());
-  return !(_tip_bitset & ~sub_include).any();
 }
 
 void tournament_node_t::reset_saved_evals() {

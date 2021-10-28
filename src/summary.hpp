@@ -17,8 +17,8 @@ std::ostream &operator<<(std::ostream &os, const result_t &r);
 
 class summary_t {
 public:
-  summary_t(const std::vector<result_t> &r) : _results{r} {}
-  summary_t(std::vector<result_t> &&r) : _results{std::move(r)} {}
+  explicit summary_t(const std::vector<result_t> &r) : _results{r} {}
+  explicit summary_t(std::vector<result_t> &&r) : _results{std::move(r)} {}
 
   void write_samples(std::ostream &os, size_t burnin, size_t sample_iter) const;
   void write_mlp(std::ostream &os, size_t burnin) const;

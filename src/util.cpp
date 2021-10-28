@@ -210,6 +210,10 @@ update_poission_model_factory(double sigma) {
   auto l = [sigma](const params_t &p, random_engine_t &gen) -> params_t {
     std::normal_distribution<double> dis(0.0, sigma);
     params_t                         tmp(p);
+    std::transform(tmp.begin(),
+                   tmp.end(),
+                   tmp.begin(),
+                   [&](double f) -> double { return f + dis(gen); });
     for (auto &f : tmp) { f += dis(gen); }
     return tmp;
   };
