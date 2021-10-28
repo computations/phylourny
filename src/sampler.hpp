@@ -18,7 +18,10 @@
 template <typename T> class sampler_t {
 public:
   sampler_t(std::unique_ptr<likelihood_model_t> &&lhm, tournament_t<T> &&t) :
-      _lh_model{std::move(lhm)}, _tournament{std::move(t)} {}
+      _lh_model{std::move(lhm)},
+      _tournament{std::move(t)},
+      _samples{},
+      _simulation_iterations{0} {}
 
   std::vector<result_t> report() const { return _samples; }
 

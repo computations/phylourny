@@ -125,8 +125,8 @@ public:
                     const std::shared_ptr<tournament_node_t> &r,
                     tournament_edge_t::edge_type_e            rt) :
       tournament_node_t{tournament_edge_t{l, lt}, tournament_edge_t{r, rt}} {}
-  tournament_node_t(const std::shared_ptr<tournament_node_t> &l,
-                    const std::shared_ptr<tournament_node_t> &r) :
+  explicit tournament_node_t(const std::shared_ptr<tournament_node_t> &l,
+                             const std::shared_ptr<tournament_node_t> &r) :
       tournament_node_t{l,
                         tournament_edge_t::edge_type_e::win,
                         r,
@@ -151,7 +151,7 @@ public:
    *
    * @param labels Map of team indices to team labels.
    */
-  void relabel_tips(const std::vector<std::string> labels);
+  void relabel_tips(const std::vector<std::string> &labels);
 
   /**
    * Relabel the team indices starting at `index`. Traverses the tree in a
@@ -160,18 +160,9 @@ public:
   size_t relabel_indicies(size_t index);
 
   /**
-   * Get a list of all the children of this node, and return it as a vector.
-   */
-  inline std::vector<size_t> members(size_t node_count) const;
-
-  /**
    * Determines if the current node can be computed using a simple method.
    */
   bool is_simple() const;
-
-  inline bool is_subtip(size_t index) const;
-
-  inline bool can_optimize(const tip_bitset_t &sub_include);
 
   void reset_saved_evals();
 

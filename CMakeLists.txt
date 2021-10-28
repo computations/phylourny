@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.9)
 project(phylourny)
 
+option(PHYLOURNY_BUILD_TESTS "Build tests" ON)
+option(PHYLOURNY_BUILD_BENCH "Build benchmarks" ON)
+
 find_package(Git)
 if(GIT_FOUND)
     if(EXISTS ${CMAKE_SOURCE_DIR})
@@ -62,8 +65,10 @@ add_subdirectory(src)
 add_subdirectory(lib)
 
 find_library(ASAN_FOUND asan)
-if(ASAN_FOUND)
+if(ASAN_FOUND AND PHYLOURNY_BUILD_TESTS)
     add_subdirectory(test)
 endif()
 
-add_subdirectory(bench EXCLUDE_FROM_ALL)
+if(PHYLOURNY_BUILD_BENCH)
+  add_subdirectory(bench EXCLUDE_FROM_ALL)
+endif()

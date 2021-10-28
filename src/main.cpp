@@ -70,7 +70,9 @@ static std::vector<match_t> make_dummy_data(size_t team_count, uint64_t seed) {
   std::exponential_distribution         team_str_dist(0.75);
 
   std::vector<double> params(team_count);
-  for (auto &p : params) { p = team_str_dist(gen); }
+  std::generate(
+      params.begin(), params.end(), [&]() { return team_str_dist(gen); });
+  // for (auto &p : params) { p = team_str_dist(gen); }
 
   debug_print(
       EMIT_LEVEL_IMPORTANT, "Team strengths are %s", to_json(params).c_str());

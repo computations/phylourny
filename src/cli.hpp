@@ -96,8 +96,13 @@ public:
       _required{false},
       _argument{argument},
       _opt_parser{parser} {}
+
   cli_option_t(const char *name, const char *desc, bool argument) :
-      _name{name}, _description{desc}, _argument{argument} {}
+      _name{name},
+      _description{desc},
+      _optarg{nullptr},
+      _required{false},
+      _argument{argument} {}
 
   bool has_argument() const { return _argument; }
 

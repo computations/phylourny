@@ -35,18 +35,18 @@ public:
    * Default constructor currently makes a 2 node tournament. In the future I
    * will delete it.
    */
-  tournament_t() :
+  explicit tournament_t() :
       _head{new T{
           tournament_edge_t{new T, tournament_edge_t::edge_type_e::win},
           tournament_edge_t{new T, tournament_edge_t::edge_type_e::win}}} {
     relabel_indicies();
   }
 
-  tournament_t(std::unique_ptr<T> &&head) : _head{std::move(head)} {
+  explicit tournament_t(std::unique_ptr<T> &&head) : _head{std::move(head)} {
     relabel_indicies();
   }
 
-  tournament_t(T *head) : tournament_t{std::unique_ptr<T>{head}} {}
+  explicit tournament_t(T *head) : tournament_t{std::unique_ptr<T>{head}} {}
 
   tournament_t(const T &) = delete;
 

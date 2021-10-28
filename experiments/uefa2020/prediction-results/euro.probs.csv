@@ -1,0 +1,121 @@
+team1,team2,prob-win-team1
+Czech Republic,Ukraine,0.536667205035453
+Wales,Ukraine,0.535951767923138
+Wales,Czech Republic,0.520788186111236
+Sweden,Ukraine,0.549787228777558
+Sweden,Czech Republic,0.532062325438813
+Sweden,Wales,0.535998554924307
+Austria,Ukraine,0.588041792254396
+Austria,Czech Republic,0.582214155106912
+Austria,Wales,0.555765419606666
+Austria,Sweden,0.530331343831954
+Switzerland,Ukraine,0.61813446394193
+Switzerland,Czech Republic,0.618778081895135
+Switzerland,Wales,0.571795864253691
+Switzerland,Sweden,0.538771862137727
+Switzerland,Austria,0.507452982421236
+Croatia,Ukraine,0.647825448448803
+Croatia,Czech Republic,0.653957917367524
+Croatia,Wales,0.601926402238693
+Croatia,Sweden,0.569218232893537
+Croatia,Austria,0.563987356228401
+Croatia,Switzerland,0.52576520807072
+Croatia,Denmark,0.518634407236934
+Denmark,Ukraine,0.707568380873934
+Denmark,Czech Republic,0.706775964547874
+Denmark,Wales,0.614504850398738
+Denmark,Sweden,0.595543059441852
+Denmark,Austria,0.600657089611906
+Denmark,Switzerland,0.568412163860976
+Netherlands,Ukraine,0.731546443257664
+Netherlands,Czech Republic,0.678116411538437
+Netherlands,Wales,0.612985056211459
+Netherlands,Sweden,0.573012013193326
+Netherlands,Austria,0.623613154426724
+Netherlands,Switzerland,0.585979369768175
+Netherlands,Croatia,0.543352576455892
+Netherlands,Denmark,0.502111548759671
+Italy,Ukraine,0.777745843756322
+Italy,Czech Republic,0.726650764895029
+Italy,Wales,0.719144417659601
+Italy,Sweden,0.656090216777854
+Italy,Austria,0.666931657702216
+Italy,Switzerland,0.629716451385969
+Italy,Croatia,0.597416893240385
+Italy,Denmark,0.578986822606837
+Italy,Netherlands,0.511098824082847
+Italy,Belgium,0.515636766011573
+Belgium,Ukraine,0.751631496891249
+Belgium,Czech Republic,0.707295055081827
+Belgium,Wales,0.70754112442067
+Belgium,Sweden,0.683581387279838
+Belgium,Austria,0.684646243870882
+Belgium,Switzerland,0.639419208305263
+Belgium,Croatia,0.61017975055557
+Belgium,Denmark,0.57346473548824
+Belgium,Netherlands,0.535398770611965
+Germany,Ukraine,0.811566256490486
+Germany,Czech Republic,0.808419626401887
+Germany,Wales,0.770977887038388
+Germany,Sweden,0.728642911102335
+Germany,Austria,0.686100393660999
+Germany,Switzerland,0.650394210589175
+Germany,Croatia,0.635726814759041
+Germany,Denmark,0.585874372862961
+Germany,Netherlands,0.529129917360101
+Germany,Italy,0.544369400203583
+Germany,Belgium,0.551315949549626
+Portugal,Ukraine,0.778536440864175
+Portugal,Czech Republic,0.757516520534101
+Portugal,Wales,0.730211136986719
+Portugal,Sweden,0.662790601528288
+Portugal,Austria,0.702515284037649
+Portugal,Switzerland,0.629280477929591
+Portugal,Croatia,0.622324196587528
+Portugal,Denmark,0.586455243881199
+Portugal,Netherlands,0.579390136920849
+Portugal,Italy,0.548420859558014
+Portugal,Belgium,0.588407745278598
+Portugal,Germany,0.502175591586248
+Spain,Ukraine,0.843421025668188
+Spain,Czech Republic,0.788022111708706
+Spain,Wales,0.796586090829529
+Spain,Sweden,0.729722164506024
+Spain,Austria,0.729329415201743
+Spain,Switzerland,0.653372888119938
+Spain,Croatia,0.631908742768644
+Spain,Denmark,0.611738450649736
+Spain,Netherlands,0.587389928200482
+Spain,Italy,0.566723468047129
+Spain,Belgium,0.55610689349161
+Spain,Germany,0.519951433760696
+Spain,Portugal,0.520473100160628
+England,Ukraine,0.835302416143405
+England,Czech Republic,0.813989989270632
+England,Wales,0.816583186809623
+England,Sweden,0.789713382548107
+England,Austria,0.752558280518567
+England,Switzerland,0.726975420470974
+England,Croatia,0.659537243396948
+England,Denmark,0.648893740513799
+England,Netherlands,0.629576757732005
+England,Italy,0.579999468245645
+England,Belgium,0.570368625567298
+England,Germany,0.534521219812149
+England,Portugal,0.542266345572583
+England,Spain,0.527279696696231
+France,Ukraine,0.832189959789576
+France,Czech Republic,0.807056888425514
+France,Wales,0.819591187411541
+France,Sweden,0.769362320686969
+France,Austria,0.733097960288709
+France,Switzerland,0.724790868380968
+France,Croatia,0.660456612304669
+France,Denmark,0.610442200899625
+France,Netherlands,0.585697277923487
+France,Italy,0.599480219880678
+France,Belgium,0.555293175315349
+France,Germany,0.563418339745794
+France,Portugal,0.516805634398761
+France,Spain,0.556978968010158
+France,England,0.525114977801214
