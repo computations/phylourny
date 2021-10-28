@@ -7,20 +7,20 @@
 
 class simulation_node_t : public tournament_node_t {
 public:
-  explicit simulation_node_t()                 = default;
-  simulation_node_t(simulation_node_t &&)      = default;
-  simulation_node_t(const simulation_node_t &) = default;
+  explicit simulation_node_t()                          = default;
+  explicit simulation_node_t(simulation_node_t &&)      = default;
+  explicit simulation_node_t(const simulation_node_t &) = default;
 
-  simulation_node_t(const std::shared_ptr<simulation_node_t> &l,
-                    const std::shared_ptr<simulation_node_t> &r) :
+  explicit simulation_node_t(const std::shared_ptr<simulation_node_t> &l,
+                             const std::shared_ptr<simulation_node_t> &r) :
       tournament_node_t{l, r} {}
-  simulation_node_t(const std::shared_ptr<simulation_node_t> &l,
-                    tournament_edge_t::edge_type_e            lt,
-                    const std::shared_ptr<simulation_node_t> &r,
-                    tournament_edge_t::edge_type_e            rt) :
+  explicit simulation_node_t(const std::shared_ptr<simulation_node_t> &l,
+                             tournament_edge_t::edge_type_e            lt,
+                             const std::shared_ptr<simulation_node_t> &r,
+                             tournament_edge_t::edge_type_e            rt) :
       tournament_node_t{tournament_edge_t{l, lt}, tournament_edge_t{r, rt}} {}
 
-  simulation_node_t(std::string s) : tournament_node_t{s} {}
+  explicit simulation_node_t(std::string s) : tournament_node_t{std::move(s)} {}
 
   ~simulation_node_t() override = default;
 

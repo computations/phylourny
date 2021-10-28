@@ -203,7 +203,6 @@ update_poission_model_factory(double sigma) {
                    tmp.end(),
                    tmp.begin(),
                    [&](double f) -> double { return f + dis(gen); });
-    for (auto &f : tmp) { f += dis(gen); }
     return tmp;
   };
   return l;

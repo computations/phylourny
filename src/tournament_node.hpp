@@ -50,11 +50,11 @@ public:
     loss,
   };
 
-  tournament_edge_t() : _node{nullptr}, _edge_type{edge_type_e::win} {}
-  tournament_edge_t(const std::shared_ptr<tournament_node_t> &node,
-                    edge_type_e                               edge_type) :
+  explicit tournament_edge_t() : _node{nullptr}, _edge_type{edge_type_e::win} {}
+  explicit tournament_edge_t(const std::shared_ptr<tournament_node_t> &node,
+                             edge_type_e edge_type) :
       _node{std::move(node)}, _edge_type{edge_type} {}
-  tournament_edge_t(tournament_node_t *node, edge_type_e edge_type) :
+  explicit tournament_edge_t(tournament_node_t *node, edge_type_e edge_type) :
       _node{node}, _edge_type{edge_type} {}
 
   tournament_node_t &      operator*() { return *_node; }
@@ -90,40 +90,41 @@ struct match_parameters_t {
 
 class tournament_node_t {
 public:
-  tournament_node_t() :
+  explicit tournament_node_t() :
       _children{team_t()},
       _memoized_values{},
       _tip_bitset{},
       _internal_label{},
       _scratchpad{} {}
-  tournament_node_t(const team_t &t) :
+  explicit tournament_node_t(const team_t &t) :
       _children{t},
       _memoized_values{},
       _tip_bitset{},
       _internal_label{},
       _scratchpad{} {}
 
-  tournament_node_t(const std::string &team_name) :
+  explicit tournament_node_t(const std::string &team_name) :
       _children{team_t{team_name, 0}},
       _memoized_values{},
       _tip_bitset{},
       _internal_label{},
       _scratchpad{} {}
 
-  tournament_node_t(const match_parameters_t &c) :
+  explicit tournament_node_t(const match_parameters_t &c) :
       _children{c},
       _memoized_values{},
       _tip_bitset{},
       _internal_label{},
       _scratchpad{} {}
 
-  tournament_node_t(const tournament_edge_t &l, const tournament_edge_t &r) :
+  explicit tournament_node_t(const tournament_edge_t &l,
+                             const tournament_edge_t &r) :
       tournament_node_t{match_parameters_t{l, r}} {}
 
-  tournament_node_t(const std::shared_ptr<tournament_node_t> &l,
-                    tournament_edge_t::edge_type_e            lt,
-                    const std::shared_ptr<tournament_node_t> &r,
-                    tournament_edge_t::edge_type_e            rt) :
+  explicit tournament_node_t(const std::shared_ptr<tournament_node_t> &l,
+                             tournament_edge_t::edge_type_e            lt,
+                             const std::shared_ptr<tournament_node_t> &r,
+                             tournament_edge_t::edge_type_e            rt) :
       tournament_node_t{tournament_edge_t{l, lt}, tournament_edge_t{r, rt}} {}
   explicit tournament_node_t(const std::shared_ptr<tournament_node_t> &l,
                              const std::shared_ptr<tournament_node_t> &r) :

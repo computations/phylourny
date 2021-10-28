@@ -112,22 +112,22 @@ TEST_CASE("4 Team tournament tests", "[single_node]") {
 
   SECTION("Testing valid") {
 
-    bool valids[] = {true,
-                     false,
-                     true,
-                     false,
-                     true,
-                     false,
-                     false,
-                     true,
-                     false,
-                     true,
-                     true,
-                     false,
-                     false,
-                     true,
-                     false,
-                     true};
+    constexpr bool valids[] = {true,
+                               false,
+                               true,
+                               false,
+                               true,
+                               false,
+                               false,
+                               true,
+                               false,
+                               true,
+                               true,
+                               false,
+                               false,
+                               true,
+                               false,
+                               true};
 
     for (size_t i = 0; i < (1 << team_count); i++) {
       CHECK(t->valid() == valids[i]);

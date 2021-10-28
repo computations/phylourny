@@ -2,6 +2,7 @@
 #include "util.hpp"
 #include <catch2/catch.hpp>
 #include <debug.h>
+#include <numeric>
 #include <tournament.hpp>
 
 const std::string graphiz_result_long =
@@ -174,8 +175,7 @@ TEST_CASE("tournament_t larger cases", "[tournament_t]") {
       auto m = random_matrix_factory(tsize, static_cast<size_t>(rand()));
       t.reset_win_probs(m);
       auto   r   = t.eval();
-      double sum = 0.0;
-      for (auto f : r) { sum += f; }
+      double sum = std::accumulate(r.begin(), r.end(), 0.0);
       CHECK(sum == Approx(1.0));
     }
   }
@@ -197,8 +197,7 @@ TEST_CASE("tournament_t larger cases", "[tournament_t]") {
       auto m = random_matrix_factory(tsize, static_cast<size_t>(rand()));
       t.reset_win_probs(m);
       auto   r   = t.eval();
-      double sum = 0.0;
-      for (auto f : r) { sum += f; }
+      double sum = std::accumulate(r.begin(), r.end(), 0.0);
       CHECK(sum == Approx(1.0));
     }
   }
@@ -216,8 +215,7 @@ TEST_CASE("tournament_t, unbalanced", "[tournament_t]") {
       auto m1 = uniform_matrix_factory((total_size));
       t1.reset_win_probs(m1);
       auto   r1  = t1.eval();
-      double sum = 0.0;
-      for (auto f : r1) { sum += f; }
+      double sum = std::accumulate(r1.begin(), r1.end(), 0.0);
       CHECK(sum == Approx(1.0));
     }
 
@@ -225,8 +223,7 @@ TEST_CASE("tournament_t, unbalanced", "[tournament_t]") {
       auto m1 = random_matrix_factory(total_size, static_cast<size_t>(rand()));
       t1.reset_win_probs(m1);
       auto   r1  = t1.eval();
-      double sum = 0.0;
-      for (auto f : r1) { sum += f; }
+      double sum = std::accumulate(r1.begin(), r1.end(), 0.0);
       CHECK(sum == Approx(1.0));
     }
   }
@@ -242,8 +239,7 @@ TEST_CASE("tournament_t, unbalanced", "[tournament_t]") {
       auto m1 = uniform_matrix_factory((total_size));
       t1.reset_win_probs(m1);
       auto   r1  = t1.eval();
-      double sum = 0.0;
-      for (auto f : r1) { sum += f; }
+      double sum = std::accumulate(r1.begin(), r1.end(), 0.0);
       CHECK(sum == Approx(1.0));
     }
 
@@ -251,8 +247,7 @@ TEST_CASE("tournament_t, unbalanced", "[tournament_t]") {
       auto m1 = random_matrix_factory(total_size, static_cast<size_t>(rand()));
       t1.reset_win_probs(m1);
       auto   r1  = t1.eval();
-      double sum = 0.0;
-      for (auto f : r1) { sum += f; }
+      double sum = std::accumulate(r1.begin(), r1.end(), 0.0);
       CHECK(sum == Approx(1.0));
     }
   }

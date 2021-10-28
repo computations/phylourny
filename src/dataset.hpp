@@ -30,7 +30,7 @@ public:
  */
 class simple_likelihood_model_t final : public likelihood_model_t {
 public:
-  simple_likelihood_model_t(const std::vector<match_t> &matches);
+  explicit simple_likelihood_model_t(const std::vector<match_t> &matches);
   virtual ~simple_likelihood_model_t() override = default;
 
   virtual double likelihood(const params_t &team_strs) const override {
@@ -52,7 +52,7 @@ private:
 
 class poisson_likelihood_model_t final : public likelihood_model_t {
 public:
-  poisson_likelihood_model_t(const std::vector<match_t> &matches) :
+  explicit poisson_likelihood_model_t(const std::vector<match_t> &matches) :
       _team_count{count_teams(matches)}, _matches{matches} {}
   virtual ~poisson_likelihood_model_t() override = default;
 
