@@ -1,5 +1,5 @@
-#ifndef __SIMULATION_NODE_HPP__
-#define __SIMULATION_NODE_HPP__
+#ifndef SIMULATION_NODE_HPP
+#define SIMULATION_NODE_HPP
 
 #include "tournament_node.hpp"
 #include "util.hpp"
@@ -7,7 +7,7 @@
 
 class simulation_node_t : public tournament_node_t {
 public:
-  simulation_node_t()                          = default;
+  explicit simulation_node_t()                 = default;
   simulation_node_t(simulation_node_t &&)      = default;
   simulation_node_t(const simulation_node_t &) = default;
 
@@ -22,7 +22,7 @@ public:
 
   simulation_node_t(std::string s) : tournament_node_t{s} {}
 
-  ~simulation_node_t() = default;
+  ~simulation_node_t() override = default;
 
   size_t winner() const override {
     if (is_tip()) { return team().index; }
@@ -119,8 +119,8 @@ private:
     right_child().reset_clocks();
   }
 
-  size_t       _assigned_team;
-  clock_tick_t _last_eval = 0;
+  size_t       _assigned_team = 0;
+  clock_tick_t _last_eval     = 0;
 };
 
 #endif

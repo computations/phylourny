@@ -1,5 +1,6 @@
-#ifndef __TOURNAMENT_HPP__
-#define __TOURNAMENT_HPP__
+#ifndef TOURNAMENT_HPP
+#define TOURNAMENT_HPP
+
 #include "debug.h"
 #include "factorial.hpp"
 #include "single_node.hpp"
@@ -63,7 +64,9 @@ public:
    * Relabel the indices of the tree. Should be called after adding or removing
    * tips.
    */
-  void relabel_indicies();
+  void relabel_indicies() {
+    throw std::runtime_error{"This function is not implemented"};
+  }
 
   /**
    * Relabel the tips based on an index to label map.
@@ -220,5 +223,7 @@ private:
   std::unique_ptr<T> _head;
   matrix_t           _win_probs;
 };
+
+template <> vector_t tournament_t<simulation_node_t>::eval(size_t iters);
 
 #endif

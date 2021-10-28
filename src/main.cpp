@@ -25,23 +25,23 @@ int __VERBOSE__ = EMIT_LEVEL_PROGRESS;
 
 #define STRING(s) #s
 #define STRINGIFY(s) STRING(s)
-#define GIT_REV_STRING STRINGIFY(GIT_REV)
-#define GIT_COMMIT_STRING STRINGIFY(GIT_COMMIT)
-#define BUILD_DATE_STRING STRINGIFY(BUILD_DATE)
+constexpr char GIT_REV_STRING[]    = STRINGIFY(GIT_REV);
+constexpr char GIT_COMMIT_STRING[] = STRINGIFY(GIT_COMMIT);
+constexpr char BUILD_DATE_STRING[] = STRINGIFY(BUILD_DATE);
 
 typedef std::chrono::time_point<std::chrono::high_resolution_clock> timepoint_t;
 typedef std::chrono::duration<double>                               duration_t;
 
 typedef std::unordered_map<std::string, size_t> team_name_map_t;
 
-void print_version() {
+static void print_version() {
   debug_string(EMIT_LEVEL_IMPORTANT, "Running Phylourny");
   debug_print(EMIT_LEVEL_IMPORTANT, "Version: %s", GIT_REV_STRING);
   debug_print(EMIT_LEVEL_IMPORTANT, "Build Commit: %s", GIT_COMMIT_STRING);
   debug_print(EMIT_LEVEL_IMPORTANT, "Build Date: %s", BUILD_DATE_STRING);
 }
 
-void print_run_info(const cli_options_t &cli_options) {
+static void print_run_info(const cli_options_t &cli_options) {
   debug_print(EMIT_LEVEL_IMPORTANT,
               "Using Seed: %lu",
               cli_options["seed"].value<uint64_t>());
@@ -57,13 +57,13 @@ void print_run_info(const cli_options_t &cli_options) {
 #endif
 }
 
-void print_end_time(timepoint_t start_time, timepoint_t end_time) {
+static void print_end_time(timepoint_t start_time, timepoint_t end_time) {
   duration_t duration = end_time - start_time;
   debug_print(
       EMIT_LEVEL_IMPORTANT, "Run Finished, time: %fs", duration.count());
 }
 
-std::vector<match_t> make_dummy_data(size_t team_count, uint64_t seed) {
+static std::vector<match_t> make_dummy_data(size_t team_count, uint64_t seed) {
   std::vector<match_t>                  matches;
   std::mt19937_64                       gen(seed);
   std::uniform_int_distribution<size_t> team(0, team_count - 1);
@@ -100,7 +100,7 @@ std::vector<match_t> make_dummy_data(size_t team_count, uint64_t seed) {
   return matches;
 }
 
-team_name_map_t create_name_map(std::vector<std::string> team_names) {
+static team_name_map_t create_name_map(std::vector<std::string> team_names) {
   team_name_map_t name_map;
 
   for (size_t i = 0; i < team_names.size(); i++) {
@@ -110,8 +110,8 @@ team_name_map_t create_name_map(std::vector<std::string> team_names) {
   return name_map;
 }
 
-matrix_t parse_odds_file(const std::string &    odds_filename,
-                         const team_name_map_t &name_map) {
+static matrix_t parse_odds_file(const std::string &    odds_filename,
+                                const team_name_map_t &name_map) {
 
   matrix_t odds;
 
@@ -137,8 +137,8 @@ matrix_t parse_odds_file(const std::string &    odds_filename,
   return odds;
 }
 
-std::vector<match_t> parse_match_file(const std::string &    match_filename,
-                                      const team_name_map_t &name_map) {
+static std::vector<match_t> parse_match_file(const std::string &match_filename,
+                                             const team_name_map_t &name_map) {
   std::vector<match_t> match_history;
 
   io::CSVReader<4> match_file(match_filename);
@@ -161,8 +161,8 @@ std::vector<match_t> parse_match_file(const std::string &    match_filename,
   return match_history;
 }
 
-matrix_t parse_prob_files(const std::string &    probs_filename,
-                          const team_name_map_t &name_map) {
+static matrix_t parse_prob_files(const std::string &    probs_filename,
+                                 const team_name_map_t &name_map) {
 
   matrix_t win_probs;
   win_probs.resize(name_map.size());
@@ -173,7 +173,7 @@ matrix_t parse_prob_files(const std::string &    probs_filename,
   probs_file.read_header(
       io::ignore_extra_column, "team1", "team2", "prob-win-team1");
   std::string team1, team2;
-  double      win_prob;
+  double      win_prob = 0.0;
   while (probs_file.read_row(team1, team2, win_prob)) {
     size_t team1_index                  = name_map.at(team1);
     size_t team2_index                  = name_map.at(team2);
@@ -184,11 +184,11 @@ matrix_t parse_prob_files(const std::string &    probs_filename,
   return win_probs;
 }
 
-void write_summary(const summary_t &  summary,
-                   const std::string &output_prefix,
-                   const std::string &output_infix,
-                   const std::string &output_suffix,
-                   size_t             burnin_samples) {
+static void write_summary(const summary_t &  summary,
+                          const std::string &output_prefix,
+                          const std::string &output_infix,
+                          const std::string &output_suffix,
+                          size_t             burnin_samples) {
   std::ofstream outfile(output_prefix + output_infix + ".samples" +
                         output_suffix);
   summary.write_samples(outfile, 0, 1);
@@ -202,8 +202,8 @@ void write_summary(const summary_t &  summary,
   summary.write_mmpp(mmpp_outfile, burnin_samples);
 }
 
-std::pair<std::unique_ptr<likelihood_model_t>,
-          std::function<params_t(const params_t &, random_engine_t &)>>
+static std::pair<std::unique_ptr<likelihood_model_t>,
+                 std::function<params_t(const params_t &, random_engine_t &)>>
 get_lh_model(const cli_options_t &       cli_options,
              const std::vector<match_t> &matches) {
   if (cli_options["poisson"].value(true)) {
@@ -223,8 +223,8 @@ get_lh_model(const cli_options_t &       cli_options,
   }
 }
 
-void mcmc_run(const cli_options_t &           cli_options,
-              const std::vector<std::string> &teams) {
+static void mcmc_run(const cli_options_t &           cli_options,
+                     const std::vector<std::string> &teams) {
   auto team_name_map = create_name_map(teams);
 
   std::vector<match_t> matches;
@@ -298,8 +298,8 @@ void mcmc_run(const cli_options_t &           cli_options,
   }
 }
 
-void compute_tournament(const cli_options_t &           cli_options,
-                        const std::vector<std::string> &teams) {
+static void compute_tournament(const cli_options_t &           cli_options,
+                               const std::vector<std::string> &teams) {
   auto team_name_map = create_name_map(teams);
 
   const std::string output_prefix = cli_options["prefix"].value<std::string>();
@@ -409,7 +409,10 @@ int main(int argc, char **argv) {
       compute_tournament(cli_options, teams);
     }
 
-  } catch (cli_option_help &e) { return 1; } catch (cli_option_exception &e) {
+  } catch (cli_option_help &e) {
+    (void)e;
+    return 1;
+  } catch (cli_option_exception &e) {
     std::cout << e.what() << std::endl;
     std::cout << cli_options_t::help();
     return 1;

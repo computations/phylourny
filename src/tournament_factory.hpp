@@ -1,5 +1,5 @@
-#ifndef __TOURNAMENT_FACTORY_HPP__
-#define __TOURNAMENT_FACTORY_HPP__
+#ifndef TOURNAMENT_FACTORY_HPP
+#define TOURNAMENT_FACTORY_HPP
 
 #include "simulation_node.hpp"
 #include "single_node.hpp"

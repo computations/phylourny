@@ -8,7 +8,6 @@
 enum struct match_winner_t {
   left  = 1,
   right = 0,
-  // tie,
 };
 
 struct match_t {
@@ -25,4 +24,4 @@ match_winner_t operator!(match_winner_t mw);
 
 std::vector<match_t> generate_bootstrap(const std::vector<match_t> &matches,
                                         uint64_t                    seed);
-#endif // MATCH_HPP
+#endif

@@ -74,21 +74,6 @@ public:
   void set_simulation_iterations(size_t s) { _simulation_iterations = s; }
 
 private:
-  matrix_t normalize_params(const params_t &params) {
-    matrix_t wp;
-    size_t   tip_count = _tournament.tip_count();
-    wp.reserve(tip_count);
-    for (size_t i = 0; i < tip_count; ++i) { wp.emplace_back(tip_count); }
-    for (size_t i = 0; i < tip_count; ++i) {
-      for (size_t j = i + 1; j < tip_count; ++j) {
-        double w = params[i] / (params[i] + params[j]);
-        wp[i][j] = w;
-        wp[j][i] = 1 - w;
-      }
-    }
-    return wp;
-  }
-
   vector_t run_simulation(const params_t &);
 
   void record_sample(const params_t &params, double llh) {

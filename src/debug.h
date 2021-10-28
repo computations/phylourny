@@ -1,5 +1,5 @@
-#ifndef __PHYLOURNY_DEBUG__
-#define __PHYLOURNY_DEBUG__
+#ifndef PHYLOURNY_DEBUG
+#define PHYLOURNY_DEBUG
 
 #include <cassert>
 #include <chrono>

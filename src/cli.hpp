@@ -2,8 +2,8 @@
  * CLI option parser. Header only and templated. Currently is not in a great
  * state, as the library is very unergonomic to consume.
  */
-#ifndef __CLIHPP__
-#define __CLIHPP__
+#ifndef CLI_HPP
+#define CLI_HPP
 
 #include "debug.h"
 #include <any>
@@ -34,7 +34,7 @@ class cli_option_exception : public std::exception {};
  */
 class cli_option_not_recognized : public cli_option_exception {
 public:
-  cli_option_not_recognized(std::string m) : _what{m} {}
+  explicit cli_option_not_recognized(std::string m) : _what{std::move(m)} {}
   const char *what() const noexcept override { return _what.c_str(); }
 
 private:
@@ -48,7 +48,7 @@ private:
  */
 class cli_option_argument_not_found : public cli_option_exception {
 public:
-  cli_option_argument_not_found(std::string m) : _what{m} {}
+  explicit cli_option_argument_not_found(std::string m) : _what{std::move(m)} {}
   const char *what() const noexcept override { return _what.c_str(); }
 
 private:
@@ -62,7 +62,7 @@ private:
  */
 class cli_option_not_initialized : public cli_option_exception {
 public:
-  cli_option_not_initialized(std::string m) : _what{m} {}
+  explicit cli_option_not_initialized(std::string m) : _what{std::move(m)} {}
   const char *what() const noexcept override { return _what.c_str(); }
 
 private:
@@ -92,6 +92,8 @@ public:
                std::function<std::any(const char *)> parser) :
       _name{name},
       _description{desc},
+      _optarg{nullptr},
+      _required{false},
       _argument{argument},
       _opt_parser{parser} {}
   cli_option_t(const char *name, const char *desc, bool argument) :
@@ -230,7 +232,7 @@ cli_option_t option_with_argument<bool>(const char *name, const char *desc) {
                       }};
 }
 
-cli_option_t option_flag(const char *name, const char *desc) {
+static cli_option_t option_flag(const char *name, const char *desc) {
   return cli_option_t{
       name,
       desc,
@@ -241,7 +243,7 @@ cli_option_t option_flag(const char *name, const char *desc) {
 /**
  * Actual CLI options for the program.
  */
-cli_option_t args[] = {
+static cli_option_t args[] = {
     option_with_argument<std::string>("teams", "File with the team names")
         .required(),
     option_with_argument<std::string>("prefix", "Output files prefix")
@@ -314,7 +316,7 @@ public:
     for (size_t i = 0; i < _option_count; ++i) {
       _opt_vals[args[i].name()] = args + i;
     }
-  };
+  }
 
   /**
    * Use this function to access the parsed CLI options.

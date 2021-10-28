@@ -31,19 +31,19 @@ public:
 class simple_likelihood_model_t final : public likelihood_model_t {
 public:
   simple_likelihood_model_t(const std::vector<match_t> &matches);
-  virtual ~simple_likelihood_model_t() = default;
+  virtual ~simple_likelihood_model_t() override = default;
 
-  virtual double likelihood(const params_t &team_strs) const {
+  virtual double likelihood(const params_t &team_strs) const override {
     return std::exp(log_likelihood(team_strs));
   }
 
-  virtual double log_likelihood(const params_t &team_win_probs) const;
+  virtual double log_likelihood(const params_t &team_win_probs) const override;
 
-  virtual size_t param_count() const {
+  virtual size_t param_count() const override {
     return (_team_count * (_team_count + 1)) / 2;
   }
 
-  virtual matrix_t generate_win_probs(const params_t &params) const;
+  virtual matrix_t generate_win_probs(const params_t &params) const override;
 
 private:
   std::vector<std::vector<unsigned int>> _win_matrix;
@@ -54,17 +54,17 @@ class poisson_likelihood_model_t final : public likelihood_model_t {
 public:
   poisson_likelihood_model_t(const std::vector<match_t> &matches) :
       _team_count{count_teams(matches)}, _matches{matches} {}
-  virtual ~poisson_likelihood_model_t() = default;
+  virtual ~poisson_likelihood_model_t() override = default;
 
-  virtual double likelihood(const params_t &team_strs) const {
+  virtual double likelihood(const params_t &team_strs) const override {
     return std::exp(log_likelihood(team_strs));
   }
 
-  virtual double log_likelihood(const params_t &team_strs) const;
+  virtual double log_likelihood(const params_t &team_strs) const override;
 
-  virtual size_t param_count() const { return _team_count; }
+  virtual size_t param_count() const override { return _team_count; }
 
-  virtual matrix_t generate_win_probs(const params_t &params) const;
+  virtual matrix_t generate_win_probs(const params_t &params) const override;
 
 private:
   size_t               _team_count;

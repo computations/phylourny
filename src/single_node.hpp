@@ -30,7 +30,7 @@ public:
 
   single_node_t(std::string s) : tournament_node_t{s} {}
 
-  ~single_node_t() = default;
+  ~single_node_t() override = default;
 
   vector_t eval(const matrix_t &pmatrix, size_t tip_count);
   vector_t
@@ -98,9 +98,9 @@ private:
   void   assign_team_reset();
   double internal_eval(const matrix_t &pmatrix, size_t tip_count);
 
-  size_t _assigned_team;
+  size_t _assigned_team = 0;
 
-  double _saved_val;
+  double _saved_val = 0;
 };
 
 #endif

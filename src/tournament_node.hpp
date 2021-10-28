@@ -1,5 +1,5 @@
-#ifndef __TOURNAMENT_NODE_HPP__
-#define __TOURNAMENT_NODE_HPP__
+#ifndef TOURNAMENT_NODE_HPP
+#define TOURNAMENT_NODE_HPP
 
 #include "util.hpp"
 #include <memory>
@@ -17,6 +17,7 @@ struct team_t {
 };
 
 struct scratchpad_t {
+  scratchpad_t() : fold_l{}, fold_r{}, result{}, include{}, eval_index{} {}
   double fold_l = 0.0;
   double fold_r = 0.0;
 
@@ -89,13 +90,36 @@ struct match_parameters_t {
 
 class tournament_node_t {
 public:
-  tournament_node_t() : _children{team_t()} {}
-  tournament_node_t(team_t t) : _children{t} {}
-  tournament_node_t(std::string team_name) : _children{team_t{team_name, 0}} {}
+  tournament_node_t() :
+      _children{team_t()},
+      _memoized_values{},
+      _tip_bitset{},
+      _internal_label{},
+      _scratchpad{} {}
+  tournament_node_t(const team_t &t) :
+      _children{t},
+      _memoized_values{},
+      _tip_bitset{},
+      _internal_label{},
+      _scratchpad{} {}
 
-  tournament_node_t(const match_parameters_t &c) : _children{c} {}
+  tournament_node_t(const std::string &team_name) :
+      _children{team_t{team_name, 0}},
+      _memoized_values{},
+      _tip_bitset{},
+      _internal_label{},
+      _scratchpad{} {}
+
+  tournament_node_t(const match_parameters_t &c) :
+      _children{c},
+      _memoized_values{},
+      _tip_bitset{},
+      _internal_label{},
+      _scratchpad{} {}
+
   tournament_node_t(const tournament_edge_t &l, const tournament_edge_t &r) :
       tournament_node_t{match_parameters_t{l, r}} {}
+
   tournament_node_t(const std::shared_ptr<tournament_node_t> &l,
                     tournament_edge_t::edge_type_e            lt,
                     const std::shared_ptr<tournament_node_t> &r,
@@ -158,7 +182,7 @@ public:
                 const matrix_t &pmatrix) const;
 
   tip_bitset_t set_tip_bitset(size_t tip_count);
-  tip_bitset_t get_tip_bitset() const { return _tip_bitset; };
+  tip_bitset_t get_tip_bitset() const { return _tip_bitset; }
 
   virtual void assign_internal_labels() { assign_internal_labels(0); }
 
