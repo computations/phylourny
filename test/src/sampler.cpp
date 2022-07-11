@@ -104,7 +104,7 @@ TEST_CASE("beta distribution", "[beta_distribution]") {
     auto [a, b] = make_ab(0.25, 5);
     beta_distribution<double> beta_dis(a, b);
     std::vector<double>       samples;
-    for (size_t i = 0; i < 1e5; ++i) { samples.push_back(beta_dis(gen)); }
+    for (size_t i = 0; i < 1e6; ++i) { samples.push_back(beta_dis(gen)); }
     double acc           = std::accumulate(samples.begin(), samples.end(), 0.0);
     double expected_mean = a / (a + b);
     double mean          = acc / samples.size();
@@ -131,7 +131,7 @@ TEST_CASE("beta distribution", "[beta_distribution]") {
     auto [a, b] = make_ab(0.75, 5);
     beta_distribution<double> beta_dis(a, b);
     std::vector<double>       samples;
-    for (size_t i = 0; i < 1e5; ++i) { samples.push_back(beta_dis(gen)); }
+    for (size_t i = 0; i < 1e6; ++i) { samples.push_back(beta_dis(gen)); }
     double acc           = std::accumulate(samples.begin(), samples.end(), 0.0);
     double expected_mean = a / (a + b);
     double mean          = acc / samples.size();

@@ -46,17 +46,6 @@ matrix_t random_matrix_factory(size_t n, uint64_t seed) {
   return matrix;
 }
 
-double compute_entropy(const vector_t &v) {
-  double ent = 0.0;
-  for (auto f : v) { ent += -f * log2(f); }
-  return ent;
-}
-
-double compute_perplexity(const vector_t &v) {
-  double ent = compute_entropy(v);
-  return pow(2.0, ent);
-}
-
 std::string to_json(const matrix_t &m) {
   std::stringstream out;
   out << std::setprecision(JSON_PRECISION);
@@ -210,7 +199,10 @@ update_poission_model_factory(double sigma) {
   auto l = [sigma](const params_t &p, random_engine_t &gen) -> params_t {
     std::normal_distribution<double> dis(0.0, sigma);
     params_t                         tmp(p);
-    for (auto &f : tmp) { f += dis(gen); }
+    std::transform(tmp.begin(),
+                   tmp.end(),
+                   tmp.begin(),
+                   [&](double f) -> double { return f + dis(gen); });
     return tmp;
   };
   return l;

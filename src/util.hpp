@@ -20,10 +20,6 @@ typedef size_t                           clock_tick_t;
 matrix_t uniform_matrix_factory(size_t n);
 matrix_t random_matrix_factory(size_t n, uint64_t seed);
 
-double compute_entropy(const vector_t &v);
-
-double compute_perplexity(const vector_t &v);
-
 std::string to_json(const matrix_t &m);
 std::string to_json(const vector_t &m);
 std::string to_json(const std::vector<size_t> &m);

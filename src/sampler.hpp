@@ -9,6 +9,7 @@
 #include <functional>
 #include <memory>
 #include <random>
+#include <stdexcept>
 #include <utility>
 #include <vector>
 
@@ -18,7 +19,10 @@
 template <typename T> class sampler_t {
 public:
   sampler_t(std::unique_ptr<likelihood_model_t> &&lhm, tournament_t<T> &&t) :
-      _lh_model{std::move(lhm)}, _tournament{std::move(t)} {}
+      _lh_model{std::move(lhm)},
+      _tournament{std::move(t)},
+      _samples{},
+      _simulation_iterations{0} {}
 
   std::vector<result_t> report() const { return _samples; }
 
@@ -33,6 +37,11 @@ public:
       uint64_t seed,
       const std::function<params_t(const params_t &, random_engine_t &gen)>
           &update_func) {
+
+    if (iters == 0) {
+      throw std::runtime_error{"Iters should be greater than 0"};
+    }
+
     params_t params(_lh_model->param_count());
     params_t temp_params{params};
     _samples.clear();
@@ -74,21 +83,6 @@ public:
   void set_simulation_iterations(size_t s) { _simulation_iterations = s; }
 
 private:
-  matrix_t normalize_params(const params_t &params) {
-    matrix_t wp;
-    size_t   tip_count = _tournament.tip_count();
-    wp.reserve(tip_count);
-    for (size_t i = 0; i < tip_count; ++i) { wp.emplace_back(tip_count); }
-    for (size_t i = 0; i < tip_count; ++i) {
-      for (size_t j = i + 1; j < tip_count; ++j) {
-        double w = params[i] / (params[i] + params[j]);
-        wp[i][j] = w;
-        wp[j][i] = 1 - w;
-      }
-    }
-    return wp;
-  }
-
   vector_t run_simulation(const params_t &);
 
   void record_sample(const params_t &params, double llh) {

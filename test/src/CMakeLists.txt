@@ -14,7 +14,7 @@ set_target_properties(phylourny_test PROPERTIES
     CXX_STANDARD_REQUIRED YES
 )
 
-find_package(OpenMP)
+find_package(OpenMP REQUIRED)
 
 set(TEST_LINK_LIBS Catch2::Catch2 asan)
 target_compile_options(phylourny_test PRIVATE -Wall -Wextra -pedantic

@@ -34,3 +34,7 @@ template <> vector_t tournament_t<simulation_node_t>::eval(size_t iters) {
   }
   return _head->eval(_win_probs, tip_count(), iters);
 }
+
+extern template class tournament_t<tournament_node_t>;
+extern template class tournament_t<single_node_t>;
+extern template class tournament_t<simulation_node_t>;

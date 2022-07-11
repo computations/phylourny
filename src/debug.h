@@ -1,5 +1,5 @@
-#ifndef __PHYLOURNY_DEBUG__
-#define __PHYLOURNY_DEBUG__
+#ifndef PHYLOURNY_DEBUG
+#define PHYLOURNY_DEBUG
 
 #include <cassert>
 #include <chrono>
@@ -10,9 +10,8 @@
 #include <time.h>
 #include <unistd.h>
 
-const auto  CLOCK_START = std::chrono::high_resolution_clock::now();
-extern bool __PROGRESS_BAR_FLAG__;
-extern int  __VERBOSE__;
+const auto CLOCK_START = std::chrono::high_resolution_clock::now();
+extern int DEBUG_VERBOSITY_LEVEL;
 
 #define DEBUG_IF_FLAG 1
 
@@ -32,7 +31,7 @@ extern int  __VERBOSE__;
 #define progress_macro(i, k)                                                   \
   (((std::chrono::high_resolution_clock::now() - CLOCK_START).count() /        \
     static_cast<double>(i)) *                                                  \
-   (static_cast<double>(k - i)) / 1e9 / 3600.0)
+   (static_cast<double>((k) - (i))) / 1e9 / 3600.0)
 
 #define print_clock                                                            \
   do {                                                                         \
@@ -43,9 +42,9 @@ extern int  __VERBOSE__;
 
 #define debug_print(level, fmt, ...)                                           \
   do {                                                                         \
-    if (DEBUG_IF_FLAG && __VERBOSE__ >= level) {                               \
+    if (DEBUG_IF_FLAG && DEBUG_VERBOSITY_LEVEL >= level) {                     \
       print_clock;                                                             \
-      if (__VERBOSE__ >= EMIT_LEVEL_DEBUG) {                                   \
+      if (DEBUG_VERBOSITY_LEVEL >= EMIT_LEVEL_DEBUG) {                         \
         fprintf(stdout, "[%s:%d]: ", __func__, __LINE__);                      \
       }                                                                        \
       fprintf(stdout, fmt "\n", __VA_ARGS__);                                  \
@@ -53,7 +52,7 @@ extern int  __VERBOSE__;
   } while (0)
 
 #define debug_string(level, x)                                                 \
-  do { debug_print(level, "%s", x); } while (0)
+  do { debug_print(level, "%s", (x)); } while (0)
 
 #define print_trace()                                                          \
   do {                                                                         \

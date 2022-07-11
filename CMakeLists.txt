@@ -60,6 +60,8 @@ string(TIMESTAMP BUILD_DATE "%Y-%m-%d %H:%M:%S")
 set(CMAKE_CXX_FLAGS_RELEASE "-fno-omit-frame-pointer" CACHE INTERNAL "")
 set(CMAKE_C_FLAGS_RELEASE "-fno-omit-frame-pointer" CACHE INTERNAL "")
 
+set(CMAKE_CXX_STANDARD 17)
+
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/../bin)
 add_subdirectory(src)
 add_subdirectory(lib)
@@ -70,5 +72,5 @@ if(ASAN_FOUND AND PHYLOURNY_BUILD_TESTS)
 endif()
 
 if(PHYLOURNY_BUILD_BENCH)
-  add_subdirectory(bench)
+  add_subdirectory(bench EXCLUDE_FROM_ALL)
 endif()

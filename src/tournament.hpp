@@ -1,5 +1,6 @@
-#ifndef __TOURNAMENT_HPP__
-#define __TOURNAMENT_HPP__
+#ifndef TOURNAMENT_HPP
+#define TOURNAMENT_HPP
+
 #include "debug.h"
 #include "factorial.hpp"
 #include "single_node.hpp"
@@ -34,24 +35,24 @@ public:
    * Default constructor currently makes a 2 node tournament. In the future I
    * will delete it.
    */
-  tournament_t() :
+  explicit tournament_t() :
       _head{new T{
           tournament_edge_t{new T, tournament_edge_t::edge_type_e::win},
           tournament_edge_t{new T, tournament_edge_t::edge_type_e::win}}} {
     relabel_indicies();
   }
 
-  tournament_t(std::unique_ptr<T> &&head) : _head{std::move(head)} {
+  explicit tournament_t(std::unique_ptr<T> &&head) : _head{std::move(head)} {
     relabel_indicies();
   }
 
-  tournament_t(T *head) : tournament_t{std::unique_ptr<T>{head}} {}
+  explicit tournament_t(T *head) : tournament_t{std::unique_ptr<T>{head}} {}
 
   tournament_t(const T &) = delete;
 
   size_t tip_count() const { return _head->tip_count(); }
 
-  void reset_win_probs(const matrix_t wp) {
+  void reset_win_probs(const matrix_t &wp) {
     if (check_matrix_size(wp)) {
       _win_probs = wp;
     } else {
@@ -63,7 +64,9 @@ public:
    * Relabel the indices of the tree. Should be called after adding or removing
    * tips.
    */
-  void relabel_indicies();
+  void relabel_indicies() {
+    throw std::runtime_error{"This function is not implemented"};
+  }
 
   /**
    * Relabel the tips based on an index to label map.
@@ -220,5 +223,7 @@ private:
   std::unique_ptr<T> _head;
   matrix_t           _win_probs;
 };
+
+template <> vector_t tournament_t<simulation_node_t>::eval(size_t iters);
 
 #endif

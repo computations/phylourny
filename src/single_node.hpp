@@ -16,21 +16,21 @@ enum class tick_result_t {
 
 class single_node_t : public tournament_node_t {
 public:
-  single_node_t()                      = default;
-  single_node_t(single_node_t &&)      = default;
-  single_node_t(const single_node_t &) = default;
-  single_node_t(const std::shared_ptr<single_node_t> &l,
-                const std::shared_ptr<single_node_t> &r) :
+  explicit single_node_t()                      = default;
+  explicit single_node_t(single_node_t &&)      = default;
+  explicit single_node_t(const single_node_t &) = default;
+  explicit single_node_t(const std::shared_ptr<single_node_t> &l,
+                         const std::shared_ptr<single_node_t> &r) :
       tournament_node_t{l, r} {}
-  single_node_t(const std::shared_ptr<single_node_t> &l,
-                tournament_edge_t::edge_type_e        lt,
-                const std::shared_ptr<single_node_t> &r,
-                tournament_edge_t::edge_type_e        rt) :
+  explicit single_node_t(const std::shared_ptr<single_node_t> &l,
+                         tournament_edge_t::edge_type_e        lt,
+                         const std::shared_ptr<single_node_t> &r,
+                         tournament_edge_t::edge_type_e        rt) :
       tournament_node_t{tournament_edge_t{l, lt}, tournament_edge_t{r, rt}} {}
 
-  single_node_t(std::string s) : tournament_node_t{s} {}
+  explicit single_node_t(std::string s) : tournament_node_t{std::move(s)} {}
 
-  ~single_node_t() = default;
+  ~single_node_t() override = default;
 
   vector_t eval(const matrix_t &pmatrix, size_t tip_count);
   vector_t
@@ -98,9 +98,9 @@ private:
   void   assign_team_reset();
   double internal_eval(const matrix_t &pmatrix, size_t tip_count);
 
-  size_t _assigned_team;
+  size_t _assigned_team = 0;
 
-  double _saved_val;
+  double _saved_val = 0;
 };
 
 #endif

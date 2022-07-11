@@ -43,10 +43,9 @@ double single_node_t::single_eval(const matrix_t &pmatrix, bool is_winner) {
     return _saved_val;
   }
 
-  _saved_val =
-      left_child().single_eval(pmatrix, children().left.is_win()) *
-      right_child().single_eval(pmatrix, children().right.is_win()) *
-      (is_winner ? pmatrix[winner()][loser()] : pmatrix[loser()][winner()]);
+  _saved_val = left_child().single_eval(pmatrix, children().left.is_win()) *
+               right_child().single_eval(pmatrix, children().right.is_win()) *
+               pmatrix[winner()][loser()];
   return _saved_val;
 }
 
