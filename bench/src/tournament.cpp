@@ -197,6 +197,17 @@ constexpr inline double int_pow2(double base, uint64_t k) {
   return wpp1;
 }
 
+constexpr inline double int_pow3(double base, uint64_t k) {
+  if (k == 0) { return 1.0; }
+  if (k == 1) { return base; }
+  size_t log2      = __builtin_clzll(k);
+  size_t remainder = k - (1ull << log2);
+  double wpp1      = base;
+  for (size_t i = 0; i < log2; ++i) { wpp1 *= wpp1; }
+  for (size_t i = 0; i < remainder; ++i) { wpp1 *= base; }
+  return wpp1;
+}
+
 static void BM_int_pow1(benchmark::State &state) {
   uint64_t n = state.range(0);
   for (auto _ : state) { benchmark::DoNotOptimize(int_pow1(0.5, n)); }
@@ -207,8 +218,14 @@ static void BM_int_pow2(benchmark::State &state) {
   for (auto _ : state) { benchmark::DoNotOptimize(int_pow2(0.5, n)); }
 }
 
+static void BM_int_pow3(benchmark::State &state) {
+  uint64_t n = state.range(0);
+  for (auto _ : state) { benchmark::DoNotOptimize(int_pow3(0.5, n)); }
+}
+
 BENCHMARK(BM_int_pow1)->DenseRange(1, 11, 2);
 BENCHMARK(BM_int_pow2)->DenseRange(1, 11, 2);
+BENCHMARK(BM_int_pow3)->DenseRange(1, 11, 2);
 
 static void BM_skellam_pmf(benchmark::State &state) {
   int    k  = state.range(0);
