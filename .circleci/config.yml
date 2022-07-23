@@ -28,7 +28,7 @@ jobs:
           command: "make"
       - store_artifacts:
           path: bin/phylourny
-          destination: phylourny.osx
+          destination: phylourny
 
 workflows:
   build-binaries-workflow:
