@@ -1,0 +1,44 @@
+
+version: 2.1
+jobs:
+  build-mac:
+    macos:
+      xcode: "12.5.1"
+    steps:
+      - checkout
+      - run:
+          name: "update submodules"
+          command: "git config --global http.sslverify false && git submodule update --init --recursive"
+      - run:
+          name: "build"
+          command: "make"
+      - store_artifacts:
+          path: bin/phylourny
+          destination: phylourny.osx
+  build-linux:
+    machine:
+      image: ubuntu-2004:202010-01
+    steps:
+      - checkout
+      - run:
+          name: "update submodules"
+          command: "git config --global http.sslverify false && git submodule update --init --recursive"
+      - run:
+          name: "build"
+          command: "make"
+      - store_artifacts:
+          path: bin/phylourny
+          destination: phylourny
+
+workflows:
+  build-binaries-workflow:
+    jobs:
+      - build-mac:
+          filters: 
+            tags:
+              only: /^v.*/
+      - build-linux:
+          filters: 
+            tags:
+              only: /^v.*/
+
