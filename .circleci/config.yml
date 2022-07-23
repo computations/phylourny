@@ -48,12 +48,18 @@ workflows:
   build-binaries-workflow:
     jobs:
       - build-mac:
+          filters:
+            tags:
+              only: /^\d+\.\d+\.\d+$/
       - build-linux:
+          filters:
+            tags:
+              only: /^\d+\.\d+\.\d+$/
       - publish-github-release:
-        requires:
-          - build-mac
-          - build-linux
-        filters:
+          requires:
+            - build-linux
+            - build-mac
+          filters:
             branches:
               ignore: /.*/
             tags:
