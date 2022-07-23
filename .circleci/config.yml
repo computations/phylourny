@@ -34,3 +34,4 @@ workflows:
   build-binaries-workflow:
     jobs:
       - build-mac
+      - build-linux
