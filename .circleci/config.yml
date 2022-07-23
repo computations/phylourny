@@ -33,5 +33,12 @@ jobs:
 workflows:
   build-binaries-workflow:
     jobs:
-      - build-mac
-      - build-linux
+      - build-mac:
+          filters: 
+            tags:
+              only: /^v.*/
+      - build-linux:
+          filters: 
+            tags:
+              only: /^v.*/
+
