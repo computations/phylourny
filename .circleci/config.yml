@@ -1,4 +1,3 @@
-
 version: 2.1
 jobs:
   build-mac:
@@ -9,6 +8,9 @@ jobs:
       - run:
           name: "update submodules"
           command: "git config --global http.sslverify false && git submodule update --init --recursive"
+      - run:
+          name: "Install"
+          command: " brew install cmake && ./install.sh"
       - run:
           name: "build"
           command: "make"
@@ -29,16 +31,31 @@ jobs:
       - store_artifacts:
           path: bin/phylourny
           destination: phylourny
+  publish-github-release:
+    docker:
+      - image: cibuilds/github:0.10
+    steps:
+      - attach_workspace:
+          at: ./artifacts
+      - run:
+          name: "Publish Release on GitHub"
+          command: |
+            VERSION=$(my-binary --version)
+            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} ./artifacts/
+
 
 workflows:
   build-binaries-workflow:
     jobs:
       - build-mac:
-          filters: 
-            tags:
-              only: /^v.*/
       - build-linux:
-          filters: 
+      - publish-github-release:
+        requires:
+          - build-mac
+          - build-linux
+        filters:
+            branches:
+              ignore: /.*/
             tags:
-              only: /^v.*/
+              only: /^\d+\.\d+\.\d+$/
 
