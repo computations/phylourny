@@ -13,7 +13,7 @@ jobs:
           command: " brew install cmake"
       - run:
           name: "build"
-          command: "cmake -Bbuild -H. && "
+          command: "cmake -Bbuild -H. && cd  build && make"
       - store_artifacts:
           path: bin/phylourny
           destination: phylourny.osx
