@@ -14,9 +14,6 @@ jobs:
       - run:
           name: "build"
           command: "cmake -Bbuild -H. && "
-      - run:
-          name: "tests"
-          command: "bin/phylourny_test"
       - store_artifacts:
           path: bin/phylourny
           destination: phylourny.osx
@@ -31,9 +28,6 @@ jobs:
       - run:
           name: "build"
           command: "make"
-      - run:
-          name: "tests"
-          command: "bin/phylourny_test"
       - store_artifacts:
           path: bin/phylourny
           destination: phylourny
