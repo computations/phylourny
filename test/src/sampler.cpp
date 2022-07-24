@@ -1,5 +1,5 @@
 #include <algorithm>
-#include <catch2/catch.hpp>
+#include <catch2/catch_all.hpp>
 #include <cmath>
 #include <debug.h>
 #include <math.h>
@@ -54,7 +54,7 @@ TEST_CASE("beta distribution", "[beta_distribution]") {
     double acc           = std::accumulate(samples.begin(), samples.end(), 0.0);
     double expected_mean = a / (a + b);
     double mean          = acc / samples.size();
-    CHECK(mean == Approx(expected_mean).epsilon(1e-2));
+    CHECK(mean == Catch::Approx(expected_mean).epsilon(1e-2));
 
     double std_dev = std::accumulate(samples.begin(),
                                      samples.end(),
@@ -65,12 +65,12 @@ TEST_CASE("beta distribution", "[beta_distribution]") {
 
     std_dev /= samples.size();
     double variance = (a * b) / ((a + b) * (a + b) * (a + b + 1));
-    CHECK(std_dev == Approx(variance).epsilon(1e-2));
+    CHECK(std_dev == Catch::Approx(variance).epsilon(1e-2));
 
     std::sort(samples.begin(), samples.end());
     double expected_median = (a - 1.0 / 3.0) / (a + b - 2.0 / 3.0);
     CHECK(samples[static_cast<size_t>(samples.size() / 2)] ==
-          Approx(expected_median).epsilon(1e-2));
+          Catch::Approx(expected_median).epsilon(1e-2));
   }
 
   SECTION("mode of 0.5") {
@@ -81,7 +81,7 @@ TEST_CASE("beta distribution", "[beta_distribution]") {
     double acc           = std::accumulate(samples.begin(), samples.end(), 0.0);
     double expected_mean = a / (a + b);
     double mean          = acc / samples.size();
-    CHECK(mean == Approx(expected_mean).epsilon(1e-2));
+    CHECK(mean == Catch::Approx(expected_mean).epsilon(1e-2));
 
     double std_dev = std::accumulate(samples.begin(),
                                      samples.end(),
@@ -92,12 +92,12 @@ TEST_CASE("beta distribution", "[beta_distribution]") {
 
     std_dev /= samples.size();
     double variance = (a * b) / ((a + b) * (a + b) * (a + b + 1));
-    CHECK(std_dev == Approx(variance).epsilon(1e-2));
+    CHECK(std_dev == Catch::Approx(variance).epsilon(1e-2));
 
     std::sort(samples.begin(), samples.end());
     double expected_median = (a - 1.0 / 3.0) / (a + b - 2.0 / 3.0);
     CHECK(samples[static_cast<size_t>(samples.size() / 2)] ==
-          Approx(expected_median).epsilon(1e-2));
+          Catch::Approx(expected_median).epsilon(1e-2));
   }
 
   SECTION("mode of 0.25") {
@@ -108,7 +108,7 @@ TEST_CASE("beta distribution", "[beta_distribution]") {
     double acc           = std::accumulate(samples.begin(), samples.end(), 0.0);
     double expected_mean = a / (a + b);
     double mean          = acc / samples.size();
-    CHECK(mean == Approx(expected_mean).epsilon(1e-2));
+    CHECK(mean == Catch::Approx(expected_mean).epsilon(1e-2));
 
     double std_dev = std::accumulate(samples.begin(),
                                      samples.end(),
@@ -119,12 +119,12 @@ TEST_CASE("beta distribution", "[beta_distribution]") {
 
     std_dev /= samples.size();
     double variance = (a * b) / ((a + b) * (a + b) * (a + b + 1));
-    CHECK(std_dev == Approx(variance).epsilon(1e-2));
+    CHECK(std_dev == Catch::Approx(variance).epsilon(1e-2));
 
     std::sort(samples.begin(), samples.end());
     double expected_median = (a - 1.0 / 3.0) / (a + b - 2.0 / 3.0);
     CHECK(samples[static_cast<size_t>(samples.size() / 2)] ==
-          Approx(expected_median).epsilon(1e-2));
+          Catch::Approx(expected_median).epsilon(1e-2));
   }
 
   SECTION("mode of 0.75") {
@@ -135,7 +135,7 @@ TEST_CASE("beta distribution", "[beta_distribution]") {
     double acc           = std::accumulate(samples.begin(), samples.end(), 0.0);
     double expected_mean = a / (a + b);
     double mean          = acc / samples.size();
-    CHECK(mean == Approx(expected_mean).epsilon(1e-2));
+    CHECK(mean == Catch::Approx(expected_mean).epsilon(1e-2));
 
     double std_dev = std::accumulate(samples.begin(),
                                      samples.end(),
@@ -146,12 +146,12 @@ TEST_CASE("beta distribution", "[beta_distribution]") {
 
     std_dev /= samples.size();
     double variance = (a * b) / ((a + b) * (a + b) * (a + b + 1));
-    CHECK(std_dev == Approx(variance).epsilon(1e-2));
+    CHECK(std_dev == Catch::Approx(variance).epsilon(1e-2));
 
     std::sort(samples.begin(), samples.end());
     double expected_median = (a - 1.0 / 3.0) / (a + b - 2.0 / 3.0);
     CHECK(samples[static_cast<size_t>(samples.size() / 2)] ==
-          Approx(expected_median).epsilon(1e-2));
+          Catch::Approx(expected_median).epsilon(1e-2));
   }
 
   SECTION("mode of 0.75, steeper curve") {
@@ -162,7 +162,7 @@ TEST_CASE("beta distribution", "[beta_distribution]") {
     double acc           = std::accumulate(samples.begin(), samples.end(), 0.0);
     double expected_mean = a / (a + b);
     double mean          = acc / samples.size();
-    CHECK(mean == Approx(expected_mean).epsilon(1e-2));
+    CHECK(mean == Catch::Approx(expected_mean).epsilon(1e-2));
 
     double std_dev = std::accumulate(samples.begin(),
                                      samples.end(),
@@ -173,11 +173,11 @@ TEST_CASE("beta distribution", "[beta_distribution]") {
 
     std_dev /= samples.size();
     double variance = (a * b) / ((a + b) * (a + b) * (a + b + 1));
-    CHECK(std_dev == Approx(variance).epsilon(1e-2));
+    CHECK(std_dev == Catch::Approx(variance).epsilon(1e-2));
 
     std::sort(samples.begin(), samples.end());
     double expected_median = (a - 1.0 / 3.0) / (a + b - 2.0 / 3.0);
     CHECK(samples[static_cast<size_t>(samples.size() / 2)] ==
-          Approx(expected_median).epsilon(1e-2));
+          Catch::Approx(expected_median).epsilon(1e-2));
   }
 }

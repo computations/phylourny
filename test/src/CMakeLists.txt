@@ -16,7 +16,17 @@ set_target_properties(phylourny_test PROPERTIES
 
 find_package(OpenMP REQUIRED)
 
-set(TEST_LINK_LIBS Catch2::Catch2 asan)
+Include(FetchContent)
+
+FetchContent_Declare(
+  Catch2
+  GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+  GIT_TAG        v3.0.1 # or a later release
+)
+
+FetchContent_MakeAvailable(Catch2)
+
+set(TEST_LINK_LIBS Catch2::Catch2WithMain asan)
 target_compile_options(phylourny_test PRIVATE -Wall -Wextra -pedantic
     -fno-omit-frame-pointer
     -fsanitize=address)

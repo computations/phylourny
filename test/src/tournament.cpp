@@ -1,6 +1,6 @@
 #include "tournament_node.hpp"
 #include "util.hpp"
-#include <catch2/catch.hpp>
+#include <catch2/catch_all.hpp>
 #include <debug.h>
 #include <numeric>
 #include <random>
@@ -167,17 +167,17 @@ TEST_CASE("tournament_t larger cases", "[tournament_t]") {
       auto   r   = t.eval();
       double sum = 0.0;
       for (auto f : r) {
-        CHECK(f == Approx(1.0 / static_cast<double>(tsize)));
+        CHECK(f == Catch::Approx(1.0 / static_cast<double>(tsize)));
         sum += f;
       }
-      CHECK(sum == Approx(1.0));
+      CHECK(sum == Catch::Approx(1.0));
     }
     SECTION("Random win probs") {
       auto m = random_matrix_factory(tsize, static_cast<size_t>(rand()));
       t.reset_win_probs(m);
       auto   r   = t.eval();
       double sum = std::accumulate(r.begin(), r.end(), 0.0);
-      CHECK(sum == Approx(1.0));
+      CHECK(sum == Catch::Approx(1.0));
     }
   }
   SECTION("sized 32") {
@@ -189,17 +189,17 @@ TEST_CASE("tournament_t larger cases", "[tournament_t]") {
       auto   r   = t.eval();
       double sum = 0.0;
       for (auto f : r) {
-        CHECK(f == Approx(1.0 / static_cast<double>(tsize)));
+        CHECK(f == Catch::Approx(1.0 / static_cast<double>(tsize)));
         sum += f;
       }
-      CHECK(sum == Approx(1.0));
+      CHECK(sum == Catch::Approx(1.0));
     }
     SECTION("Random win probs") {
       auto m = random_matrix_factory(tsize, static_cast<size_t>(rand()));
       t.reset_win_probs(m);
       auto   r   = t.eval();
       double sum = std::accumulate(r.begin(), r.end(), 0.0);
-      CHECK(sum == Approx(1.0));
+      CHECK(sum == Catch::Approx(1.0));
     }
   }
 }
@@ -217,7 +217,7 @@ TEST_CASE("tournament_t, unbalanced", "[tournament_t]") {
       t1.reset_win_probs(m1);
       auto   r1  = t1.eval();
       double sum = std::accumulate(r1.begin(), r1.end(), 0.0);
-      CHECK(sum == Approx(1.0));
+      CHECK(sum == Catch::Approx(1.0));
     }
 
     SECTION("random rate matrix") {
@@ -225,7 +225,7 @@ TEST_CASE("tournament_t, unbalanced", "[tournament_t]") {
       t1.reset_win_probs(m1);
       auto   r1  = t1.eval();
       double sum = std::accumulate(r1.begin(), r1.end(), 0.0);
-      CHECK(sum == Approx(1.0));
+      CHECK(sum == Catch::Approx(1.0));
     }
   }
 
@@ -241,7 +241,7 @@ TEST_CASE("tournament_t, unbalanced", "[tournament_t]") {
       t1.reset_win_probs(m1);
       auto   r1  = t1.eval();
       double sum = std::accumulate(r1.begin(), r1.end(), 0.0);
-      CHECK(sum == Approx(1.0));
+      CHECK(sum == Catch::Approx(1.0));
     }
 
     SECTION("random rate matrix") {
@@ -249,7 +249,7 @@ TEST_CASE("tournament_t, unbalanced", "[tournament_t]") {
       t1.reset_win_probs(m1);
       auto   r1  = t1.eval();
       double sum = std::accumulate(r1.begin(), r1.end(), 0.0);
-      CHECK(sum == Approx(1.0));
+      CHECK(sum == Catch::Approx(1.0));
     }
   }
 }
@@ -319,9 +319,9 @@ TEST_CASE("4 team tournament with losers bracket") {
   double sum = 0.0;
   for (auto f : r) {
     sum += f;
-    CHECK(f == Approx(1.0 / tip_count));
+    CHECK(f == Catch::Approx(1.0 / tip_count));
   }
-  CHECK(sum == Approx(1.0));
+  CHECK(sum == Catch::Approx(1.0));
 }
 
 TEST_CASE("4 team tournament with losers bracket, single mode", "[single]") {
@@ -391,9 +391,9 @@ TEST_CASE("4 team tournament with losers bracket, single mode", "[single]") {
     double sum = 0.0;
     for (auto f : r) {
       sum += f;
-      CHECK(f == Approx(1.0 / tip_count));
+      CHECK(f == Catch::Approx(1.0 / tip_count));
     }
-    CHECK(sum == Approx(1.0));
+    CHECK(sum == Catch::Approx(1.0));
   }
 
   /*
@@ -405,11 +405,11 @@ TEST_CASE("4 team tournament with losers bracket, single mode", "[single]") {
     auto   r   = t.eval();
     double sum = std::accumulate(r.begin(), r.end(), 0.0);
 
-    CHECK(sum == Approx(1.0));
+    CHECK(sum == Catch::Approx(1.0));
     CHECK(r[0] == Approx(0.250823227));
-    CHECK(r[1] == Approx(0.4298458008));
-    CHECK(r[2] == Approx(0.2350951371));
-    CHECK(r[3] == Approx(0.0842358351));
+    CHECK(r[1] == Catch::Approx(0.4298458008));
+    CHECK(r[2] == Catch::Approx(0.2350951371));
+    CHECK(r[3] == Catch::Approx(0.0842358351));
   }
   */
 }
@@ -422,15 +422,15 @@ TEST_CASE("Best tests", "[bestof_n]") {
   }
 
   SECTION("Best ofs with 0.25, 0.75 probs") {
-    CHECK(bestof_n(0.25, 0.75, 1) == Approx(0.25));
-    CHECK(bestof_n(0.25, 0.75, 3) == Approx(0.15625));
-    CHECK(bestof_n(0.25, 0.75, 5) == Approx(0.103515625));
+    CHECK(bestof_n(0.25, 0.75, 1) == Catch::Approx(0.25));
+    CHECK(bestof_n(0.25, 0.75, 3) == Catch::Approx(0.15625));
+    CHECK(bestof_n(0.25, 0.75, 5) == Catch::Approx(0.103515625));
   }
 
   SECTION("Best ofs with 0.25, 0.75 probs") {
-    CHECK(bestof_n(0.75, 0.25, 1) == Approx(0.75));
-    CHECK(bestof_n(0.75, 0.25, 3) == Approx(0.84375));
-    CHECK(bestof_n(0.75, 0.25, 5) == Approx(0.896484375));
+    CHECK(bestof_n(0.75, 0.25, 1) == Catch::Approx(0.75));
+    CHECK(bestof_n(0.75, 0.25, 3) == Catch::Approx(0.84375));
+    CHECK(bestof_n(0.75, 0.25, 5) == Catch::Approx(0.896484375));
   }
 
   SECTION("Grid search for inverse complimentarity") {
@@ -439,7 +439,7 @@ TEST_CASE("Best tests", "[bestof_n]") {
         double p = static_cast<double>(i) /
                    (static_cast<double>(i) + static_cast<double>(j));
         for (size_t n = 1; n < 16; ++n) {
-          CHECK(bestof_n(p, 1 - p, n) == Approx(1 - bestof_n(1 - p, p, n)));
+          CHECK(bestof_n(p, 1 - p, n) == Catch::Approx(1 - bestof_n(1 - p, p, n)));
         }
       }
     }
@@ -452,7 +452,7 @@ TEST_CASE("Best tests", "[bestof_n]") {
     for (size_t i = 0; i < 1e4; ++i) {
       double p = uni_dist(gen);
       for (size_t n = 1; n < 16; n += 2) {
-        CHECK((bestof_n(p, 1 - p, n) + bestof_n(1 - p, p, n)) == Approx(1.0));
+        CHECK((bestof_n(p, 1 - p, n) + bestof_n(1 - p, p, n)) == Catch::Approx(1.0));
       }
     }
   }

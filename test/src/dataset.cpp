@@ -1,4 +1,4 @@
-#include <catch2/catch.hpp>
+#include <catch2/catch_all.hpp>
 #include <dataset.hpp>
 #include <debug.h>
 
@@ -14,7 +14,7 @@ TEST_CASE("simple cases",
         params_t params{0.5, 0.5};
         double   lh = lhm.likelihood(params);
         CHECK(!std::isnan(lh));
-        CHECK(lh == Approx(0.5));
+        CHECK(lh == Catch::Approx(0.5));
       }
     }
   }
@@ -25,13 +25,13 @@ TEST_CASE("simple cases",
         params_t params{0.0};
         double   lh = lhm.likelihood(params);
         CHECK(!std::isnan(lh));
-        CHECK(lh == Approx(0.01831563888873418));
+        CHECK(lh == Catch::Approx(0.01831563888873418));
       }
       SECTION("Win probs") {
         params_t params{0.0};
         auto     wp = lhm.generate_win_probs(params);
-        CHECK(wp[0][1] == Approx(0.5));
-        CHECK(wp[1][0] == Approx(0.5));
+        CHECK(wp[0][1] == Catch::Approx(0.5));
+        CHECK(wp[1][0] == Catch::Approx(0.5));
       }
     }
   }
@@ -50,21 +50,21 @@ TEST_CASE("simple_likelihood_model_t slightly more complex cases",
       params_t params{0.5, 0.5};
       double   lh = lhm.likelihood(params);
       CHECK(!std::isnan(lh));
-      CHECK(lh == Approx(0.25));
+      CHECK(lh == Catch::Approx(0.25));
     }
 
     SECTION("likelihood, team 0 superior params") {
       params_t params{0.25, 0.75};
       double   lh = lhm.likelihood(params);
       CHECK(!std::isnan(lh));
-      CHECK(lh == Approx(0.421875));
+      CHECK(lh == Catch::Approx(0.421875));
     }
 
     SECTION("likelihood, team 1 superior params") {
       params_t params{0.75, 0.25};
       double   lh = lhm.likelihood(params);
       CHECK(!std::isnan(lh));
-      CHECK(lh == Approx(0.046875));
+      CHECK(lh == Catch::Approx(0.046875));
     }
   }
 }

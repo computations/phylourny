@@ -2,7 +2,7 @@
 #include "tournament_factory.hpp"
 #include "util.hpp"
 #include <algorithm>
-#include <catch2/catch.hpp>
+#include <catch2/catch_all.hpp>
 #include <cstdio>
 #include <debug.h>
 #include <memory>
@@ -70,9 +70,9 @@ TEST_CASE("single node basic tests", "[single_node]") {
       auto r    = n1->eval(pmat, 2);
 
       auto sum = std::accumulate(r.begin(), r.end(), 0.0);
-      CHECK(sum == Approx(1.0));
-      CHECK(r[0] == Approx(0.5));
-      CHECK(r[1] == Approx(0.5));
+      CHECK(sum == Catch::Approx(1.0));
+      CHECK(r[0] == Catch::Approx(0.5));
+      CHECK(r[1] == Catch::Approx(0.5));
     }
 
     SECTION("Testing eval, random matrix") {
@@ -80,7 +80,7 @@ TEST_CASE("single node basic tests", "[single_node]") {
       auto r    = n1->eval(pmat, 2);
 
       auto sum = std::accumulate(r.begin(), r.end(), 0.0);
-      CHECK(sum == Approx(1.0));
+      CHECK(sum == Catch::Approx(1.0));
     }
   }
 }
@@ -140,11 +140,11 @@ TEST_CASE("4 Team tournament tests", "[single_node]") {
       auto r    = t->eval(pmat, team_count);
 
       auto sum = std::accumulate(r.begin(), r.end(), 0.0);
-      CHECK(sum == Approx(1.0));
-      CHECK(r[0] == Approx(1.0 / team_count));
-      CHECK(r[1] == Approx(1.0 / team_count));
-      CHECK(r[2] == Approx(1.0 / team_count));
-      CHECK(r[3] == Approx(1.0 / team_count));
+      CHECK(sum == Catch::Approx(1.0));
+      CHECK(r[0] == Catch::Approx(1.0 / team_count));
+      CHECK(r[1] == Catch::Approx(1.0 / team_count));
+      CHECK(r[2] == Catch::Approx(1.0 / team_count));
+      CHECK(r[3] == Catch::Approx(1.0 / team_count));
     }
     SECTION("Random matrix") {
       auto pmat =
@@ -152,7 +152,7 @@ TEST_CASE("4 Team tournament tests", "[single_node]") {
       auto r = t->eval(pmat, team_count);
 
       auto sum = std::accumulate(r.begin(), r.end(), 0.0);
-      CHECK(sum == Approx(1.0));
+      CHECK(sum == Catch::Approx(1.0));
     }
   }
 }
@@ -257,11 +257,11 @@ TEST_CASE("Double Elim Tournament", "[single_node]") {
       auto r    = t->eval(pmat, team_count);
 
       double sum = std::accumulate(r.begin(), r.end(), 0.0);
-      CHECK(sum == Approx(1.0));
-      CHECK(r[0] == Approx(1.0 / team_count));
-      CHECK(r[1] == Approx(1.0 / team_count));
-      CHECK(r[2] == Approx(1.0 / team_count));
-      CHECK(r[3] == Approx(1.0 / team_count));
+      CHECK(sum == Catch::Approx(1.0));
+      CHECK(r[0] == Catch::Approx(1.0 / team_count));
+      CHECK(r[1] == Catch::Approx(1.0 / team_count));
+      CHECK(r[2] == Catch::Approx(1.0 / team_count));
+      CHECK(r[3] == Catch::Approx(1.0 / team_count));
     }
   }
 }
@@ -335,11 +335,11 @@ TEST_CASE("Double elim tournament with tournament_t",
       auto   r   = tourny.eval();
       double sum = std::accumulate(r.begin(), r.end(), 0.0);
 
-      CHECK(sum == Approx(1.0));
-      CHECK(r[0] == Approx(1.0 / team_count));
-      CHECK(r[1] == Approx(1.0 / team_count));
-      CHECK(r[2] == Approx(1.0 / team_count));
-      CHECK(r[3] == Approx(1.0 / team_count));
+      CHECK(sum == Catch::Approx(1.0));
+      CHECK(r[0] == Catch::Approx(1.0 / team_count));
+      CHECK(r[1] == Catch::Approx(1.0 / team_count));
+      CHECK(r[2] == Catch::Approx(1.0 / team_count));
+      CHECK(r[3] == Catch::Approx(1.0 / team_count));
     }
 
     SECTION("Non-uniform matrix") {
@@ -350,11 +350,11 @@ TEST_CASE("Double elim tournament with tournament_t",
       auto   r   = tourny.eval();
       double sum = std::accumulate(r.begin(), r.end(), 0.0);
 
-      CHECK(sum == Approx(1.0));
-      CHECK(r[0] == Approx(0.250823227));
-      CHECK(r[1] == Approx(0.4298458008));
-      CHECK(r[2] == Approx(0.2350951371));
-      CHECK(r[3] == Approx(0.0842358351));
+      CHECK(sum == Catch::Approx(1.0));
+      CHECK(r[0] == Catch::Approx(0.250823227));
+      CHECK(r[1] == Catch::Approx(0.4298458008));
+      CHECK(r[2] == Catch::Approx(0.2350951371));
+      CHECK(r[3] == Catch::Approx(0.0842358351));
     }
   }
 }

@@ -19,7 +19,9 @@ add_executable(phylourny
 
 find_package(OpenMP)
 
-target_link_libraries(phylourny_lib pthread $<$<CONFIG:Release>:OpenMP::OpenMP_CXX>)
+if(OpenMP_CXX_FOUND)
+  target_link_libraries(phylourny_lib pthread $<$<CONFIG:Release>:OpenMP::OpenMP_CXX>)
+endif()
 
 set_target_properties(phylourny_lib PROPERTIES
     CXX_STANDARD 17
