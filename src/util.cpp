@@ -7,6 +7,7 @@
 #include <iomanip>
 #include <numeric>
 #include <random>
+#include <sstream>
 
 constexpr size_t JSON_PRECISION = 14;
 
