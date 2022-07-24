@@ -128,11 +128,15 @@ poisson_likelihood_model_t::generate_win_probs(const params_t &params) const {
       t1_prob += tie_prob / 2.0;
       t2_prob += tie_prob / 2.0;
 
-      assert_string(t1_prob <= 1.0, "Generated probabilities are well formed");
-      assert_string(t1_prob >= 0.0, "Generated probabilities are well formed");
+      assert_string(t1_prob <= 1.0,
+                    "Generated probabilities are not well formed");
+      assert_string(t1_prob >= 0.0,
+                    "Generated probabilities are not well formed");
 
-      assert_string(t2_prob <= 1.0, "Generated probabilities are well formed");
-      assert_string(t2_prob >= 0.0, "Generated probabilities are well formed");
+      assert_string(t2_prob <= 1.0,
+                    "Generated probabilities are not well formed");
+      assert_string(t2_prob >= 0.0,
+                    "Generated probabilities are not well formed");
 
       wp[i][j] = t1_prob;
       wp[j][i] = t2_prob;
