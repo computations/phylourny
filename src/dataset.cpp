@@ -4,7 +4,9 @@
 #include "util.hpp"
 #include <cmath>
 #include <numeric>
+#ifdef _OPENMP
 #include <omp.h>
+#endif
 
 /**
  * Construct a dataset class given a list of matches. The matches are of a
@@ -64,7 +66,9 @@ double
 poisson_likelihood_model_t::log_likelihood(const params_t &team_strs) const {
   double llh = 0.0;
 
+#ifdef _OPENMP
 #pragma omp parallel for
+#endif
   for (auto &m : _matches) {
     double param1, param2;
     param1 = team_strs[m.l_team];
@@ -79,7 +83,9 @@ poisson_likelihood_model_t::log_likelihood(const params_t &team_strs) const {
     double term_r = std::pow(lambda_r, m.r_goals) / factorial(m.r_goals) *
                     std::exp(-lambda_r);
 
+#ifdef _OPENMP
 #pragma omp critical
+#endif
     llh += std::log(term_r * term_l);
   }
 
