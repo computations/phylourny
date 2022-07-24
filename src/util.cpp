@@ -47,7 +47,7 @@ matrix_t random_matrix_factory(size_t n, uint64_t seed) {
 }
 
 std::string to_json(const matrix_t &m) {
-  std::stringstream out;
+  std::ostringstream out;
   out << std::setprecision(JSON_PRECISION);
   for (auto &i : m) {
     out << "[";
