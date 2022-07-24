@@ -6,10 +6,13 @@
 #include <iostream>
 #include <json.hpp>
 #include <memory>
-#include <omp.h>
 #include <random>
 #include <string>
 #include <unordered_map>
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 #include "cli.hpp"
 #include "dataset.hpp"
@@ -113,7 +116,7 @@ static team_name_map_t create_name_map(std::vector<std::string> team_names) {
   return name_map;
 }
 
-static matrix_t parse_odds_file(const std::string &    odds_filename,
+static matrix_t parse_odds_file(const std::string     &odds_filename,
                                 const team_name_map_t &name_map) {
 
   matrix_t odds;
@@ -164,7 +167,7 @@ static std::vector<match_t> parse_match_file(const std::string &match_filename,
   return match_history;
 }
 
-static matrix_t parse_prob_files(const std::string &    probs_filename,
+static matrix_t parse_prob_files(const std::string     &probs_filename,
                                  const team_name_map_t &name_map) {
 
   matrix_t win_probs;
@@ -187,7 +190,7 @@ static matrix_t parse_prob_files(const std::string &    probs_filename,
   return win_probs;
 }
 
-static void write_summary(const summary_t &  summary,
+static void write_summary(const summary_t   &summary,
                           const std::string &output_prefix,
                           const std::string &output_infix,
                           const std::string &output_suffix,
@@ -207,7 +210,7 @@ static void write_summary(const summary_t &  summary,
 
 static std::pair<std::unique_ptr<likelihood_model_t>,
                  std::function<params_t(const params_t &, random_engine_t &)>>
-get_lh_model(const cli_options_t &       cli_options,
+get_lh_model(const cli_options_t        &cli_options,
              const std::vector<match_t> &matches) {
   if (cli_options["poisson"].value(true)) {
     debug_string(EMIT_LEVEL_IMPORTANT, "Using a Poisson likelihood model");
@@ -226,7 +229,7 @@ get_lh_model(const cli_options_t &       cli_options,
   }
 }
 
-static void mcmc_run(const cli_options_t &           cli_options,
+static void mcmc_run(const cli_options_t            &cli_options,
                      const std::vector<std::string> &teams) {
   auto team_name_map = create_name_map(teams);
 
@@ -301,7 +304,7 @@ static void mcmc_run(const cli_options_t &           cli_options,
   }
 }
 
-static void compute_tournament(const cli_options_t &           cli_options,
+static void compute_tournament(const cli_options_t            &cli_options,
                                const std::vector<std::string> &teams) {
   auto team_name_map = create_name_map(teams);
 
