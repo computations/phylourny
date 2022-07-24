@@ -14,7 +14,7 @@ set_target_properties(phylourny_test PROPERTIES
     CXX_STANDARD_REQUIRED YES
 )
 
-find_package(OpenMP REQUIRED)
+find_package(OpenMP)
 
 Include(FetchContent)
 
