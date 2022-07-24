@@ -10,7 +10,7 @@ jobs:
           command: "git config --global http.sslverify false && git submodule update --init --recursive"
       - run:
           name: "Install"
-          command: " brew install cmake && ./install.sh"
+          command: " brew install cmake"
       - run:
           name: "build"
           command: "make"
@@ -48,12 +48,18 @@ workflows:
   build-binaries-workflow:
     jobs:
       - build-mac:
+          filters:
+            tags:
+              only: /^\d+\.\d+\.\d+$/
       - build-linux:
+          filters:
+            tags:
+              only: /^\d+\.\d+\.\d+$/
       - publish-github-release:
-        requires:
-          - build-mac
-          - build-linux
-        filters:
+          requires:
+            - build-linux
+            - build-mac
+          filters:
             branches:
               ignore: /.*/
             tags:
