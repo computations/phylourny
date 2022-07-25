@@ -37,7 +37,12 @@ set_target_properties(phylourny PROPERTIES
     INTERPROCEDURAL_OPTIMIZATION TRUE
 )
 
-target_link_libraries(phylourny ${LINK_LIBS} phylourny_lib pthread $<$<CONFIG:Release>:OpenMP::OpenMP_CXX>)
+target_link_libraries(phylourny ${LINK_LIBS} phylourny_lib)
+
+if(NOT OpenMP_CXX_FOUND)
+  target_link_libraries(phylourny ${LINK_LIBS} -static)
+endif()
+
 target_compile_options(phylourny PRIVATE -Wall -Wextra -Wshadow
     -Wdouble-promotion -Wmissing-include-dirs -pedantic -Wsign-conversion)
 target_compile_definitions(phylourny PRIVATE
