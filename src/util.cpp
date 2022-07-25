@@ -230,7 +230,7 @@ double normal_prior(const params_t &params) {
 
   constexpr double mu     = 0.0;
   constexpr double sigma  = 1.0;
-  constexpr double denom1 = std::sqrt(2 * 3.14159265359);
+  const double     denom1 = std::sqrt(2 * 3.14159265359);
 
   double p = 1.0;
   for (auto param : params) {
