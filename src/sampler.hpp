@@ -75,7 +75,7 @@ public:
         std::swap(next_lh, cur_lh);
         std::swap(temp_params, params);
       }
-      if (coin(gen) < sample_prob) { record_sample(params, cur_lh, i); }
+      if (coin(gen) < sample_prob) { record_sample(params, cur_lh, iters); }
     }
   }
 
@@ -89,9 +89,8 @@ private:
     _samples.emplace_back(r);
     if (_samples.size() % 1000 == 0) {
       debug_print(EMIT_LEVEL_PROGRESS,
-                  "%lu samples, %lu iters, ETC: %.2fh",
+                  "%lu samples, ETC: %.2fh",
                   _samples.size(),
-                  iters,
                   progress_macro(_samples.size(), iters));
     }
   }
