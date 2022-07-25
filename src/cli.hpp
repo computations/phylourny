@@ -87,8 +87,8 @@ public:
  */
 class cli_option_t {
 public:
-  cli_option_t(const char *                          name,
-               const char *                          desc,
+  cli_option_t(const char                           *name,
+               const char                           *desc,
                bool                                  argument,
                std::function<std::any(const char *)> parser) :
       _name{name},
@@ -222,6 +222,13 @@ cli_option_t option_with_argument<double>(const char *name, const char *desc) {
 
 template <>
 cli_option_t option_with_argument<size_t>(const char *name, const char *desc) {
+  return cli_option_t{
+      name, desc, true, [](const char *o) -> size_t { return std::stoull(o); }};
+}
+
+template <>
+cli_option_t option_with_argument<unsigned long long>(const char *name,
+                                                      const char *desc) {
   return cli_option_t{
       name, desc, true, [](const char *o) -> size_t { return std::stoull(o); }};
 }
