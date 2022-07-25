@@ -10,7 +10,7 @@ jobs:
           command: "git config --global http.sslverify false && git submodule update --init --recursive"
       - run:
           name: "Install"
-          command: " brew install cmake"
+          command: " brew install cmake llvm"
       - run:
           name: "build"
           command: "cmake -Bbuild -H. && cd  build && make"
