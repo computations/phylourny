@@ -208,8 +208,9 @@ static void write_summary(const summary_t   &summary,
   summary.write_mmpp(mmpp_outfile, burnin_samples);
 }
 
-static std::pair<std::unique_ptr<likelihood_model_t>,
-                 std::function<params_t(const params_t &, random_engine_t &)>>
+static std::tuple<std::unique_ptr<likelihood_model_t>,
+                  std::function<params_t(const params_t &, random_engine_t &)>,
+                  std::function<double(const params_t &)>>
 get_lh_model(const cli_options_t        &cli_options,
              const std::vector<match_t> &matches) {
   if (cli_options["poisson"].value(true)) {
@@ -218,14 +219,14 @@ get_lh_model(const cli_options_t        &cli_options,
         std::make_unique<poisson_likelihood_model_t>(
             poisson_likelihood_model_t(matches));
     auto update_func = update_poission_model_factory(1.0);
-    return std::make_pair(std::move(lhm), update_func);
+    return std::make_tuple(std::move(lhm), update_func, normal_prior);
   } else {
     debug_string(EMIT_LEVEL_IMPORTANT, "Using the simple likelihood model");
     std::unique_ptr<likelihood_model_t> lhm =
         std::make_unique<simple_likelihood_model_t>(
             simple_likelihood_model_t(matches));
     auto update_func = update_win_probs;
-    return std::make_pair(std::move(lhm), update_func);
+    return std::make_tuple(std::move(lhm), update_func, uniform_prior);
   }
 }
 
@@ -251,13 +252,15 @@ static void mcmc_run(const cli_options_t            &cli_options,
       static_cast<double>(mcmc_samples) * cli_options["burnin"].value(0.1));
 
   if (cli_options["single"].value(false)) {
-    auto [lhm, update_func] = get_lh_model(cli_options, matches);
+    auto [lhm, update_func, prior_func] = get_lh_model(cli_options, matches);
     sampler_t<single_node_t> sampler{std::move(lhm),
                                      tournament_factory_single(teams)};
 
     debug_string(EMIT_LEVEL_PROGRESS, "Running MCMC sampler (Single Mode)");
-    sampler.run_chain(
-        mcmc_samples, cli_options["seed"].value<uint64_t>(), update_win_probs);
+    sampler.run_chain(mcmc_samples,
+                      cli_options["seed"].value<uint64_t>(),
+                      update_win_probs,
+                      prior_func);
     auto summary = sampler.summary();
 
     write_summary(summary,
@@ -268,13 +271,15 @@ static void mcmc_run(const cli_options_t            &cli_options,
   }
 
   if (cli_options["dynamic"].value(true)) {
-    auto [lhm, update_func] = get_lh_model(cli_options, matches);
+    auto [lhm, update_func, prior_func] = get_lh_model(cli_options, matches);
     sampler_t<tournament_node_t> sampler{std::move(lhm),
                                          tournament_factory(teams)};
 
     debug_string(EMIT_LEVEL_PROGRESS, "Running MCMC sampler (Dynamic Mode)");
-    sampler.run_chain(
-        mcmc_samples, cli_options["seed"].value<uint64_t>(), update_win_probs);
+    sampler.run_chain(mcmc_samples,
+                      cli_options["seed"].value<uint64_t>(),
+                      update_win_probs,
+                      prior_func);
     auto summary = sampler.summary();
 
     write_summary(summary,
@@ -285,7 +290,7 @@ static void mcmc_run(const cli_options_t            &cli_options,
   }
 
   if (cli_options["sim"].value(false)) {
-    auto [lhm, update_func] = get_lh_model(cli_options, matches);
+    auto [lhm, update_func, prior_func] = get_lh_model(cli_options, matches);
     sampler_t<simulation_node_t> sampler{std::move(lhm),
                                          tournament_factory_simulation(teams)};
 
@@ -293,8 +298,10 @@ static void mcmc_run(const cli_options_t            &cli_options,
         cli_options["sim-iters"].value(1'000'000lu));
 
     debug_string(EMIT_LEVEL_PROGRESS, "Running MCMC sampler (Simulation Mode)");
-    sampler.run_chain(
-        mcmc_samples, cli_options["seed"].value<uint64_t>(), update_win_probs);
+    sampler.run_chain(mcmc_samples,
+                      cli_options["seed"].value<uint64_t>(),
+                      update_win_probs,
+                      prior_func);
     auto summary = sampler.summary();
     write_summary(summary,
                   output_prefix,

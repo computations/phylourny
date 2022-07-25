@@ -1,3 +1,4 @@
+#include "util.hpp"
 #include <algorithm>
 #include <catch2/catch_all.hpp>
 #include <cmath>
@@ -19,7 +20,10 @@ TEST_CASE("sampler_t simple case", "[sampler_t]") {
                       simple_likelihood_model_t(matches)),
                   std::move(t)};
       SECTION("Running the chain") {
-        s.run_chain(100, static_cast<uint64_t>(rand() % 3), update_win_probs);
+        s.run_chain(100,
+                    static_cast<uint64_t>(rand() % 3),
+                    update_win_probs,
+                    uniform_prior);
         auto r = s.report();
         CHECK(r.size() > 0);
         CHECK(r.size() <= 100);
@@ -35,7 +39,8 @@ TEST_CASE("sampler_t simple case", "[sampler_t]") {
       SECTION("Running the chain") {
         s.run_chain(100,
                     static_cast<uint64_t>(rand() % 3),
-                    update_poission_model_factory(0.5));
+                    update_poission_model_factory(0.5),
+                    gamma_prior);
         auto r = s.report();
         CHECK(r.size() > 0);
         CHECK(r.size() <= 100);

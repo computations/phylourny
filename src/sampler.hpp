@@ -36,13 +36,16 @@ public:
       size_t   iters,
       uint64_t seed,
       const std::function<params_t(const params_t &, random_engine_t &gen)>
-          &update_func) {
+                                                    &update_func,
+      const std::function<double(const params_t &)> &prior) {
+
+    constexpr double sample_prob = 1.0 / 100.0;
 
     if (iters == 0) {
       throw std::runtime_error{"Iters should be greater than 0"};
     }
 
-    params_t params(_lh_model->param_count());
+    params_t params(_lh_model->param_count(), 0.0);
     params_t temp_params{params};
     _samples.clear();
     _samples.reserve(iters);
@@ -53,13 +56,6 @@ public:
 
     double cur_lh = _lh_model->log_likelihood(params);
     for (size_t i = 0; _samples.size() < iters; ++i) {
-      if (i % 10000 == 0 && i != 0) {
-        debug_print(EMIT_LEVEL_PROGRESS,
-                    "%lu iters, %lu samples, ETC: %.2fh",
-                    i,
-                    _samples.size(),
-                    progress_macro(_samples.size(), iters));
-      }
 
       temp_params = update_func(params, gen);
 
@@ -72,11 +68,14 @@ public:
                   cur_lh,
                   next_lh / cur_lh);
       if (std::isnan(next_lh)) { throw std::runtime_error("next_lh is nan"); }
-      if (coin(gen) < std::exp(next_lh - cur_lh)) {
-        record_sample(temp_params, next_lh);
+
+      double prior_ratio = prior(temp_params) / prior(params);
+
+      if (coin(gen) < std::exp(next_lh - cur_lh) * prior_ratio) {
         std::swap(next_lh, cur_lh);
         std::swap(temp_params, params);
       }
+      if (coin(gen) < sample_prob) { record_sample(params, cur_lh, i); }
     }
   }
 
@@ -85,9 +84,16 @@ public:
 private:
   vector_t run_simulation(const params_t &);
 
-  void record_sample(const params_t &params, double llh) {
+  void record_sample(const params_t &params, double llh, size_t iters) {
     result_t r{run_simulation(params), params, llh};
     _samples.emplace_back(r);
+    if (_samples.size() % 1000 == 0) {
+      debug_print(EMIT_LEVEL_PROGRESS,
+                  "%lu samples, %lu iters, ETC: %.2fh",
+                  _samples.size(),
+                  iters,
+                  progress_macro(_samples.size(), iters));
+    }
   }
 
   std::unique_ptr<likelihood_model_t> _lh_model;

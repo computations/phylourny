@@ -198,13 +198,48 @@ double skellam_cmf(int k, double u1, double u2) {
 std::function<params_t(const params_t &, random_engine_t &gen)>
 update_poission_model_factory(double sigma) {
   auto l = [sigma](const params_t &p, random_engine_t &gen) -> params_t {
-    std::normal_distribution<double> dis(0.0, sigma);
-    params_t                         tmp(p);
+    std::normal_distribution<double>      dis(0.0, sigma);
+    std::uniform_int_distribution<size_t> picker(0, p.size() - 1);
+    params_t                              tmp(p);
+    /*
     std::transform(tmp.begin(),
                    tmp.end(),
                    tmp.begin(),
                    [&](double f) -> double { return f + dis(gen); });
+   */
+    tmp[picker(gen)] += dis(gen);
     return tmp;
   };
   return l;
+}
+
+double gamma_prior(const params_t &params) {
+  constexpr double alpha = 1.0;
+  constexpr double beta  = 1.0;
+  double           prob  = 1.0;
+  for (double par : params) {
+    prob *= std::pow(beta, alpha) * std::pow(par, alpha - 1) *
+            std::exp(-beta * par) / std::tgamma(alpha);
+  }
+  return prob;
+}
+
+double uniform_prior(const params_t &params) { return 1.0; }
+
+double normal_prior(const params_t &params) {
+
+  constexpr double mu     = 0.0;
+  constexpr double sigma  = 1.0;
+  constexpr double denom1 = std::sqrt(2 * 3.14159265359);
+
+  double p = 1.0;
+  for (auto param : params) {
+
+    double exponent = ((param - mu) / sigma);
+    exponent *= exponent;
+    exponent *= -0.5;
+    p *= 1 / (sigma * denom1) * std::exp(exponent);
+  }
+
+  return p;
 }

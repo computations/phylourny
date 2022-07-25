@@ -67,4 +67,8 @@ update_poission_model_factory(double sigma);
 double skellam_pmf(int k, double u1, double u2);
 double skellam_cmf(int k, double u1, double u2);
 
+double gamma_prior(const params_t &);
+double uniform_prior(const params_t &);
+double normal_prior(const params_t &);
+
 #endif // UTIL_HPP
