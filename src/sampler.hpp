@@ -45,14 +45,14 @@ public:
       throw std::runtime_error{"Iters should be greater than 0"};
     }
 
-    params_t params(_lh_model->param_count(), 0.0);
+    params_t params(_lh_model->param_count(), 0.5);
     params_t temp_params{params};
     _samples.clear();
     _samples.reserve(iters);
     random_engine_t                  gen(seed);
     std::uniform_real_distribution<> coin(0.0, 1.0);
 
-    params = update_func(params, gen);
+    // params = update_func(params, gen);
 
     double cur_lh = _lh_model->log_likelihood(params);
     for (size_t i = 0; _samples.size() < iters; ++i) {
