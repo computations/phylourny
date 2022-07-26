@@ -9,11 +9,11 @@
 #include <string>
 #include <sul/dynamic_bitset.hpp>
 
-bool tournament_node_t::is_tip() const {
+auto tournament_node_t::is_tip() const -> bool {
   return std::holds_alternative<team_t>(_children);
 }
 
-size_t tournament_node_t::tip_count() const {
+auto tournament_node_t::tip_count() const -> size_t {
   if (is_tip()) { return 1; }
   size_t t_c = 0;
   if (children().left.is_win()) { t_c += children().left->tip_count(); }
@@ -22,7 +22,7 @@ size_t tournament_node_t::tip_count() const {
   return t_c;
 }
 
-size_t tournament_node_t::relabel_indicies(size_t index) {
+auto tournament_node_t::relabel_indicies(size_t index) -> size_t {
   if (is_tip()) {
     team().index = index;
     return index + 1;
@@ -55,13 +55,13 @@ void tournament_node_t::relabel_tips(const std::vector<std::string> &labels) {
   if (children().right.is_win()) { children().right->relabel_tips(labels); }
 }
 
-bool tournament_node_t::is_member(size_t index) const {
+auto tournament_node_t::is_member(size_t index) const -> bool {
   if (is_tip()) { return team().index == index; }
   return children().left->is_member(index) ||
          children().right->is_member(index);
 }
 
-vector_t tournament_node_t::eval(const matrix_t &pmatrix, size_t tip_count) {
+auto tournament_node_t::eval(const matrix_t &pmatrix, size_t tip_count) -> vector_t {
 
   if (is_tip()) {
     vector_t wpv(tip_count);
@@ -110,7 +110,7 @@ vector_t tournament_node_t::eval(const matrix_t &pmatrix, size_t tip_count) {
 vector_t tournament_node_t::fold(const vector_t &x,
                                  const vector_t &y,
                                  uint64_t        bestof,
-                                 const matrix_t &pmatrix) const {
+                                 const matrix_t &pmatrix) {
   vector_t r(x.size());
   for (size_t m1 = 0; m1 < x.size(); ++m1) {
     if (x[m1] == 0.0) { continue; }
@@ -135,23 +135,23 @@ vector_t tournament_node_t::fold(const vector_t &x,
   return r;
 }
 
-vector_t tournament_edge_t::eval(const matrix_t &pmatrix,
-                                 size_t          tip_count) const {
+auto tournament_edge_t::eval(const matrix_t &pmatrix,
+                                 size_t          tip_count) const -> vector_t {
   auto r = _node->eval(pmatrix, tip_count);
   return r;
 }
 
-bool tournament_node_t::is_simple() const {
+auto tournament_node_t::is_simple() const -> bool {
   if (is_tip()) { return true; }
   return children().is_simple();
 }
 
-bool tournament_edge_t::is_simple() const {
+auto tournament_edge_t::is_simple() const -> bool {
   if (is_loss()) { return false; }
   return _node->is_simple();
 }
 
-tip_bitset_t tournament_node_t::set_tip_bitset(size_t tip_count) {
+auto tournament_node_t::set_tip_bitset(size_t tip_count) -> tip_bitset_t {
   if (is_tip()) {
     tip_bitset_t tips(tip_count);
     tips[team().index] = 1;

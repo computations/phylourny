@@ -168,10 +168,10 @@ public:
   void reset_saved_evals();
 
   vector_t eval(const matrix_t &pmatrix, size_t tip_count);
-  vector_t fold(const vector_t &x,
+  static vector_t fold(const vector_t &x,
                 const vector_t &y,
                 uint64_t        bestof,
-                const matrix_t &pmatrix) const;
+                const matrix_t &pmatrix) ;
 
   tip_bitset_t set_tip_bitset(size_t tip_count);
   tip_bitset_t get_tip_bitset() const { return _tip_bitset; }

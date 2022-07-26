@@ -1,4 +1,6 @@
 #include "dataset.hpp"
+
+#include <cmath>
 #include "debug.h"
 #include "match.hpp"
 #include "util.hpp"
@@ -13,14 +15,14 @@
  * `match_t` type, and encode a match played between the two teams.
  */
 simple_likelihood_model_t::simple_likelihood_model_t(
-    const std::vector<match_t> &matches) {
-  _team_count = count_teams(matches);
+    const std::vector<match_t> &matches) : _team_count(count_teams(matches)) {
+  
   _win_matrix.reserve(_team_count);
   for (size_t i = 0; i < _team_count; ++i) {
     _win_matrix.emplace_back(_team_count);
   }
 
-  for (auto &m : matches) {
+  for (const auto &m : matches) {
     _win_matrix[m.r_team][m.l_team] += 1 * static_cast<unsigned int>(m.winner);
     _win_matrix[m.l_team][m.r_team] += 1 * static_cast<unsigned int>(!m.winner);
   }
@@ -30,8 +32,8 @@ simple_likelihood_model_t::simple_likelihood_model_t(
  * Using the list of matches, this function computes the likelhood of the
  * proposed win probabilities.
  */
-double simple_likelihood_model_t::log_likelihood(
-    const params_t &team_win_probs) const {
+auto simple_likelihood_model_t::log_likelihood(
+    const params_t &team_win_probs) const -> double {
   double llh = 0.0;
   debug_print(EMIT_LEVEL_DEBUG,
               "team_win_probs: %s",
@@ -62,15 +64,16 @@ double simple_likelihood_model_t::log_likelihood(
   return llh;
 }
 
-double
-poisson_likelihood_model_t::log_likelihood(const params_t &team_strs) const {
+auto
+poisson_likelihood_model_t::log_likelihood(const params_t &team_strs) const -> double {
   double llh = 0.0;
 
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-  for (auto &m : _matches) {
-    double param1, param2;
+  for (const auto &m : _matches) {
+    double param1 = NAN;
+    double param2 = NAN;
     param1 = team_strs[m.l_team];
     param2 = team_strs[m.r_team];
 
@@ -93,8 +96,8 @@ poisson_likelihood_model_t::log_likelihood(const params_t &team_strs) const {
   return llh;
 }
 
-matrix_t
-simple_likelihood_model_t::generate_win_probs(const params_t &params) const {
+auto
+simple_likelihood_model_t::generate_win_probs(const params_t &params) const -> matrix_t {
   matrix_t wp;
   wp.reserve(_team_count);
   for (size_t i = 0; i < _team_count; ++i) { wp.emplace_back(_team_count); }
@@ -110,8 +113,8 @@ simple_likelihood_model_t::generate_win_probs(const params_t &params) const {
   return wp;
 }
 
-matrix_t
-poisson_likelihood_model_t::generate_win_probs(const params_t &params) const {
+auto
+poisson_likelihood_model_t::generate_win_probs(const params_t &params) const -> matrix_t {
   matrix_t wp;
   wp.reserve(_team_count);
   for (size_t i = 0; i < _team_count; ++i) { wp.emplace_back(_team_count); }

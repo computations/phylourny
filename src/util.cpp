@@ -14,7 +14,7 @@ constexpr size_t JSON_PRECISION = 14;
 /**
  * TEST INFO FROM CPP
  */
-matrix_t uniform_matrix_factory(size_t n) {
+auto uniform_matrix_factory(size_t n) -> matrix_t {
   matrix_t matrix;
   for (size_t i = 0; i < n; ++i) {
     matrix.emplace_back(n);
@@ -29,7 +29,7 @@ matrix_t uniform_matrix_factory(size_t n) {
   return matrix;
 }
 
-matrix_t random_matrix_factory(size_t n, uint64_t seed) {
+auto random_matrix_factory(size_t n, uint64_t seed) -> matrix_t {
   matrix_t                         matrix;
   std::mt19937_64                  rng(seed);
   std::uniform_real_distribution<> dist;
@@ -47,102 +47,102 @@ matrix_t random_matrix_factory(size_t n, uint64_t seed) {
   return matrix;
 }
 
-std::string to_json(const matrix_t &m) {
+auto to_json(const matrix_t &m) -> std::string {
   std::ostringstream out;
   out << std::setprecision(JSON_PRECISION);
-  for (auto &i : m) {
+  for (const auto &i : m) {
     out << "[";
-    for (auto &j : i) {
+    for (const auto &j : i) {
       out << std::setw(3);
       out << std::fixed << j << ", ";
     }
-    out.seekp(-1, out.cur);
+    out.seekp(-1, std::ostringstream::cur);
     out << "],\n";
   }
-  out.seekp(-2, out.cur);
+  out.seekp(-2, std::ostringstream::cur);
   out << "\n";
   auto ret_str = out.str();
   ret_str.resize(ret_str.size() - 1);
   return ret_str;
 }
 
-std::string to_json(const vector_t &m) {
+auto to_json(const vector_t &m) -> std::string {
   std::stringstream out;
   out << std::setprecision(JSON_PRECISION);
   out << "[";
-  for (auto &i : m) {
+  for (const auto &i : m) {
     out << std::setw(3);
     out << std::fixed << i << ", ";
   }
-  out.seekp(-2, out.cur);
+  out.seekp(-2, std::stringstream::cur);
   out << "]";
   auto tmp = out.str();
   tmp.resize(tmp.size() - 1);
   return tmp;
 }
 
-std::string to_json(const std::vector<size_t> &m) {
+auto to_json(const std::vector<size_t> &m) -> std::string {
   std::stringstream out;
   out << "[";
-  for (auto &i : m) {
+  for (const auto &i : m) {
     out << std::setw(3);
     out << std::fixed << i << ", ";
   }
-  out.seekp(-2, out.cur);
+  out.seekp(-2, std::stringstream::cur);
   out << "]";
   auto tmp = out.str();
   tmp.resize(tmp.size() - 1);
   return tmp;
 }
 
-std::string to_string(const matrix_t &m) {
+auto to_string(const matrix_t &m) -> std::string {
   std::stringstream out;
   out << std::setprecision(JSON_PRECISION);
-  for (auto &i : m) {
+  for (const auto &i : m) {
     out << "[";
-    for (auto &j : i) {
+    for (const auto &j : i) {
       out << std::setw(3);
       out << std::fixed << j << " ";
     }
-    out.seekp(-1, out.cur);
+    out.seekp(-1, std::stringstream::cur);
     out << "]\n";
   }
-  out.seekp(-1, out.cur);
+  out.seekp(-1, std::stringstream::cur);
   auto ret_str = out.str();
   ret_str.resize(ret_str.size() - 1);
   return ret_str;
 }
 
-std::string to_string(const vector_t &m) {
+auto to_string(const vector_t &m) -> std::string {
   std::stringstream out;
   out << std::setprecision(JSON_PRECISION);
   out << "[";
-  for (auto &i : m) {
+  for (const auto &i : m) {
     out << std::setw(3);
     out << std::fixed << i << " ";
   }
-  out.seekp(-1, out.cur);
+  out.seekp(-1, std::stringstream::cur);
   out << "]";
   return out.str();
 }
 
-std::string to_string(const std::vector<size_t> &m) {
+auto to_string(const std::vector<size_t> &m) -> std::string {
   std::stringstream out;
   out << "[";
-  for (auto &i : m) {
+  for (const auto &i : m) {
     out << std::setw(3);
     out << std::fixed << i << " ";
   }
-  out.seekp(-1, out.cur);
+  out.seekp(-1, std::stringstream::cur);
   out << "]";
   return out.str();
 }
 
-std::string compute_base26(size_t i) {
+auto compute_base26(size_t i) -> std::string {
   size_t length =
       std::max(static_cast<size_t>(std::ceil(
                    std::log(static_cast<double>(i + 1)) / std::log(26.0))),
-               1ul);
+               1UL);
   std::string ret;
   ret.reserve(length);
 
@@ -154,7 +154,7 @@ std::string compute_base26(size_t i) {
   return ret;
 }
 
-params_t update_win_probs(const params_t &params, random_engine_t &gen) {
+auto update_win_probs(const params_t &params, random_engine_t &gen) -> params_t {
   params_t temp_params{params};
   for (size_t j = 0; j < params.size(); ++j) {
     auto [a, b] = make_ab(params[j], 5);
@@ -164,7 +164,7 @@ params_t update_win_probs(const params_t &params, random_engine_t &gen) {
   return temp_params;
 }
 
-double skellam_pmf(int k, double u1, double u2) {
+auto skellam_pmf(int k, double u1, double u2) -> double {
   double           p       = 0.0;
   constexpr double epsilon = std::numeric_limits<double>::epsilon();
 
@@ -181,7 +181,7 @@ double skellam_pmf(int k, double u1, double u2) {
   return p * factor;
 }
 
-double skellam_cmf(int k, double u1, double u2) {
+auto skellam_cmf(int k, double u1, double u2) -> double {
   constexpr double epsilon = std::numeric_limits<double>::epsilon();
   double           p       = 0.0;
 
@@ -195,8 +195,8 @@ double skellam_cmf(int k, double u1, double u2) {
   return p;
 }
 
-std::function<params_t(const params_t &, random_engine_t &gen)>
-update_poission_model_factory(double sigma) {
+auto
+update_poission_model_factory(double sigma) -> std::function<params_t(const params_t &, random_engine_t &gen)> {
   auto l = [sigma](const params_t &p, random_engine_t &gen) -> params_t {
     std::normal_distribution<double>      dis(0.0, sigma);
     std::uniform_int_distribution<size_t> picker(0, p.size() - 1);
@@ -213,7 +213,7 @@ update_poission_model_factory(double sigma) {
   return l;
 }
 
-double gamma_prior(const params_t &params) {
+auto gamma_prior(const params_t &params) -> double {
   constexpr double alpha = 1.0;
   constexpr double beta  = 1.0;
   double           prob  = 1.0;
@@ -224,9 +224,9 @@ double gamma_prior(const params_t &params) {
   return prob;
 }
 
-double uniform_prior(const params_t &params) { return 1.0; }
+auto uniform_prior(const params_t & /*params*/) -> double { return 1.0; }
 
-double normal_prior(const params_t &params) {
+auto normal_prior(const params_t &params) -> double {
 
   constexpr double mu     = 0.0;
   constexpr double sigma  = 1.0;

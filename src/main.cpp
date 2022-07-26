@@ -2,6 +2,7 @@
 #include <chrono>
 #include <cstdint>
 #include <csv.h>
+#include <cmath>
 #include <fstream>
 #include <iostream>
 #include <json.hpp>
@@ -32,10 +33,10 @@ constexpr char GIT_REV_STRING[]    = STRINGIFY(GIT_REV);
 constexpr char GIT_COMMIT_STRING[] = STRINGIFY(GIT_COMMIT);
 constexpr char BUILD_DATE_STRING[] = STRINGIFY(BUILD_DATE);
 
-typedef std::chrono::time_point<std::chrono::high_resolution_clock> timepoint_t;
-typedef std::chrono::duration<double>                               duration_t;
+using timepoint_t = std::chrono::time_point<std::chrono::high_resolution_clock>;
+using duration_t = std::chrono::duration<double>;
 
-typedef std::unordered_map<std::string, size_t> team_name_map_t;
+using team_name_map_t = std::unordered_map<std::string, size_t>;
 
 static void print_version() {
   debug_string(EMIT_LEVEL_IMPORTANT, "Running Phylourny");
@@ -66,7 +67,7 @@ static void print_end_time(timepoint_t start_time, timepoint_t end_time) {
       EMIT_LEVEL_IMPORTANT, "Run Finished, time: %fs", duration.count());
 }
 
-static std::vector<match_t> make_dummy_data(size_t team_count, uint64_t seed) {
+static auto make_dummy_data(size_t team_count, uint64_t seed) -> std::vector<match_t> {
   std::vector<match_t>                  matches{};
   std::mt19937_64                       gen(seed);
   std::uniform_int_distribution<size_t> team(0, team_count - 1);
@@ -106,7 +107,7 @@ static std::vector<match_t> make_dummy_data(size_t team_count, uint64_t seed) {
   return matches;
 }
 
-static team_name_map_t create_name_map(std::vector<std::string> team_names) {
+static auto create_name_map(std::vector<std::string> team_names) -> team_name_map_t {
   team_name_map_t name_map;
 
   for (size_t i = 0; i < team_names.size(); i++) {
@@ -116,8 +117,8 @@ static team_name_map_t create_name_map(std::vector<std::string> team_names) {
   return name_map;
 }
 
-static matrix_t parse_odds_file(const std::string     &odds_filename,
-                                const team_name_map_t &name_map) {
+static auto parse_odds_file(const std::string     &odds_filename,
+                                const team_name_map_t &name_map) -> matrix_t {
 
   matrix_t odds;
 
@@ -128,8 +129,10 @@ static matrix_t parse_odds_file(const std::string     &odds_filename,
   odds_file.read_header(
       io::ignore_extra_column, "team1", "team2", "odds1", "odds2");
 
-  std::string team1, team2;
-  double      odds1, odds2;
+  std::string team1;
+  std::string team2;
+  double      odds1 = NAN;
+  double      odds2 = NAN;
   while (odds_file.read_row(team1, team2, odds1, odds2)) {
     size_t index1 = name_map.at(team1);
     size_t index2 = name_map.at(team2);
@@ -143,15 +146,17 @@ static matrix_t parse_odds_file(const std::string     &odds_filename,
   return odds;
 }
 
-static std::vector<match_t> parse_match_file(const std::string &match_filename,
-                                             const team_name_map_t &name_map) {
+static auto parse_match_file(const std::string &match_filename,
+                                             const team_name_map_t &name_map) -> std::vector<match_t> {
   std::vector<match_t> match_history;
 
   io::CSVReader<4> match_file(match_filename);
   match_file.read_header(
       io::ignore_extra_column, "team1", "team2", "team1-goals", "team2-goals");
-  std::string team1, team2;
-  size_t      team1_goals, team2_goals;
+  std::string team1;
+  std::string team2;
+  size_t      team1_goals = 0;
+  size_t      team2_goals = 0;
   while (match_file.read_row(team1, team2, team1_goals, team2_goals)) {
     size_t index1 = name_map.at(team1);
     size_t index2 = name_map.at(team2);
@@ -167,8 +172,8 @@ static std::vector<match_t> parse_match_file(const std::string &match_filename,
   return match_history;
 }
 
-static matrix_t parse_prob_files(const std::string     &probs_filename,
-                                 const team_name_map_t &name_map) {
+static auto parse_prob_files(const std::string     &probs_filename,
+                                 const team_name_map_t &name_map) -> matrix_t {
 
   matrix_t win_probs;
   win_probs.resize(name_map.size());
@@ -178,7 +183,8 @@ static matrix_t parse_prob_files(const std::string     &probs_filename,
   io::CSVReader<3> probs_file(probs_filename);
   probs_file.read_header(
       io::ignore_extra_column, "team1", "team2", "prob-win-team1");
-  std::string team1, team2;
+  std::string team1;
+  std::string team2;
   double      win_prob = 0.0;
   while (probs_file.read_row(team1, team2, win_prob)) {
     size_t team1_index                  = name_map.at(team1);
@@ -208,11 +214,11 @@ static void write_summary(const summary_t   &summary,
   summary.write_mmpp(mmpp_outfile, burnin_samples);
 }
 
-static std::tuple<std::unique_ptr<likelihood_model_t>,
-                  std::function<params_t(const params_t &, random_engine_t &)>,
-                  std::function<double(const params_t &)>>
+static auto
 get_lh_model(const cli_options_t        &cli_options,
-             const std::vector<match_t> &matches) {
+             const std::vector<match_t> &matches) -> std::tuple<std::unique_ptr<likelihood_model_t>,
+                  std::function<params_t(const params_t &, random_engine_t &)>,
+                  std::function<double(const params_t &)>> {
   if (cli_options["poisson"].value(true)) {
     debug_string(EMIT_LEVEL_IMPORTANT, "Using a Poisson likelihood model");
     std::unique_ptr<likelihood_model_t> lhm =
@@ -220,14 +226,13 @@ get_lh_model(const cli_options_t        &cli_options,
             poisson_likelihood_model_t(matches));
     auto update_func = update_poission_model_factory(1.0);
     return std::make_tuple(std::move(lhm), update_func, normal_prior);
-  } else {
-    debug_string(EMIT_LEVEL_IMPORTANT, "Using the simple likelihood model");
+  }     debug_string(EMIT_LEVEL_IMPORTANT, "Using the simple likelihood model");
     std::unique_ptr<likelihood_model_t> lhm =
         std::make_unique<simple_likelihood_model_t>(
             simple_likelihood_model_t(matches));
     auto update_func = update_win_probs;
     return std::make_tuple(std::move(lhm), update_func, uniform_prior);
-  }
+ 
 }
 
 static void mcmc_run(const cli_options_t            &cli_options,
@@ -244,10 +249,10 @@ static void mcmc_run(const cli_options_t            &cli_options,
         make_dummy_data(teams.size(), cli_options["seed"].value<uint64_t>());
   }
 
-  const std::string output_prefix = cli_options["prefix"].value<std::string>();
+  const auto output_prefix = cli_options["prefix"].value<std::string>();
   const std::string output_suffix = ".json";
 
-  size_t mcmc_samples   = cli_options["samples"].value(10'000'000lu);
+  size_t mcmc_samples   = cli_options["samples"].value(10'000'000LU);
   size_t burnin_samples = static_cast<size_t>(
       static_cast<double>(mcmc_samples) * cli_options["burnin"].value(0.1));
 
@@ -295,7 +300,7 @@ static void mcmc_run(const cli_options_t            &cli_options,
                                          tournament_factory_simulation(teams)};
 
     sampler.set_simulation_iterations(
-        cli_options["sim-iters"].value(1'000'000lu));
+        cli_options["sim-iters"].value(1'000'000LU));
 
     debug_string(EMIT_LEVEL_PROGRESS, "Running MCMC sampler (Simulation Mode)");
     sampler.run_chain(mcmc_samples,
@@ -315,7 +320,7 @@ static void compute_tournament(const cli_options_t            &cli_options,
                                const std::vector<std::string> &teams) {
   auto team_name_map = create_name_map(teams);
 
-  const std::string output_prefix = cli_options["prefix"].value<std::string>();
+  const auto output_prefix = cli_options["prefix"].value<std::string>();
 
   if (cli_options["odds"].initialized()) {
     matrix_t odds;
@@ -340,7 +345,7 @@ static void compute_tournament(const cli_options_t            &cli_options,
       std::ofstream odds_outfile(output_prefix + ".sim" + output_suffix);
       auto          t = tournament_factory_simulation(teams);
       t.reset_win_probs(odds);
-      size_t iters = cli_options["sim-iters"].value(1'000'000lu);
+      size_t iters = cli_options["sim-iters"].value(1'000'000LU);
       auto   wp    = t.eval(iters);
       odds_outfile << to_json(wp) << std::endl;
     }
@@ -368,14 +373,14 @@ static void compute_tournament(const cli_options_t            &cli_options,
       std::ofstream probs_outfile(output_prefix + ".sim" + output_suffix);
       auto          t = tournament_factory_simulation(teams);
       t.reset_win_probs(probs);
-      size_t iters = cli_options["sim-iters"].value(1'000'000lu);
+      size_t iters = cli_options["sim-iters"].value(1'000'000LU);
       auto   wp    = t.eval(iters);
       probs_outfile << to_json(wp) << std::endl;
     }
   }
 }
 
-int main(int argc, char **argv) {
+auto main(int argc, char **argv) -> int {
   DEBUG_VERBOSITY_LEVEL = EMIT_LEVEL_PROGRESS;
   auto start_time       = std::chrono::high_resolution_clock::now();
   print_version();

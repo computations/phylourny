@@ -7,7 +7,7 @@
 #include "util.hpp"
 #include <algorithm>
 #include <cstdlib>
-#include <stdint.h>
+#include <cstdint>
 
 template <> void tournament_t<tournament_node_t>::relabel_indicies() {
   _head->assign_internal_labels();
@@ -28,7 +28,7 @@ template <> void tournament_t<simulation_node_t>::relabel_indicies() {
   _head->set_tip_bitset(tip_count());
 }
 
-template <> vector_t tournament_t<simulation_node_t>::eval(size_t iters) {
+template <> auto tournament_t<simulation_node_t>::eval(size_t iters) -> vector_t {
   if (!check_matrix_size(_win_probs)) {
     throw std::runtime_error("Initialize the win probs before calling eval");
   }

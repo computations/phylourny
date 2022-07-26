@@ -4,7 +4,7 @@
 #include <stdexcept>
 #include <string>
 
-vector_t single_node_t::eval(const matrix_t &pmatrix, size_t tip_count) {
+auto single_node_t::eval(const matrix_t &pmatrix, size_t tip_count) -> vector_t {
   init_assigned_teams();
   vector_t results(tip_count);
   for (tick_result_t tr = tick_result_t::success; tr != tick_result_t::finished;
@@ -14,9 +14,9 @@ vector_t single_node_t::eval(const matrix_t &pmatrix, size_t tip_count) {
   return results;
 }
 
-vector_t single_node_t::eval_debug(const matrix_t &   pmatrix,
+auto single_node_t::eval_debug(const matrix_t &   pmatrix,
                                    size_t             tip_count,
-                                   const std::string &filename_prefix) {
+                                   const std::string &filename_prefix) -> vector_t {
   vector_t results(tip_count);
   size_t   filename_counter = 0;
   for (tick_result_t tr = tick_result_t::success; tr != tick_result_t::finished;
@@ -36,7 +36,7 @@ vector_t single_node_t::eval_debug(const matrix_t &   pmatrix,
   return results;
 }
 
-double single_node_t::single_eval(const matrix_t &pmatrix, bool is_winner) {
+auto single_node_t::single_eval(const matrix_t &pmatrix, bool is_winner) -> double {
   if (is_tip()) { return is_winner ? 1.0 : 0.0; }
   if (!is_winner) {
     _saved_val = 1.0;
@@ -49,7 +49,7 @@ double single_node_t::single_eval(const matrix_t &pmatrix, bool is_winner) {
   return _saved_val;
 }
 
-bool single_node_t::is_cherry() const {
+auto single_node_t::is_cherry() const -> bool {
   if (is_tip()) { return false; }
   return left_child().is_tip() && right_child().is_tip();
 }
@@ -68,7 +68,7 @@ void single_node_t::assign_team_reset() {
   _assigned_team = get_tip_bitset().find_first();
 }
 
-tick_result_t single_node_t::tick() {
+auto single_node_t::tick() -> tick_result_t {
   if (is_tip()) { return tick_result_t::finished; }
 
   auto valid_teams        = get_tip_bitset();
@@ -84,7 +84,7 @@ tick_result_t single_node_t::tick() {
   return tick_result_t::success;
 }
 
-tick_result_t single_node_t::tick_children() {
+auto single_node_t::tick_children() -> tick_result_t {
 
   if (children().right.is_win()) {
     auto trr = right_child().tick();
@@ -99,7 +99,7 @@ tick_result_t single_node_t::tick_children() {
   return tick_result_t::finished;
 }
 
-bool single_node_t::valid() const {
+auto single_node_t::valid() const -> bool {
   /* The != here is to xor the values. We need exactly ONE of them to be true.
    */
 
@@ -113,7 +113,7 @@ bool single_node_t::valid() const {
                                            : right_child().loser();
 
   if ((lteam == _assigned_team) != (rteam == _assigned_team)) {
-    return true && left_child().valid() && right_child().valid();
+    return left_child().valid() && right_child().valid();
   }
   return false;
 }

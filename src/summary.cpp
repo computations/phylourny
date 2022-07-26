@@ -4,7 +4,7 @@
 #include <cstddef>
 #include <limits>
 
-std::ostream &operator<<(std::ostream &os, const result_t &r) {
+auto operator<<(std::ostream &os, const result_t &r) -> std::ostream & {
   os << "{\"win_prob\": " << to_json(r.win_prob) << ", ";
   os << "\"params\": " << to_json(r.params) << ", ";
   os << "\"llh\": " << std::to_string(r.llh) << "}";
@@ -30,7 +30,7 @@ void summary_t::write_samples(std::ostream &os, size_t burnin,
   for (size_t i = burnin; i < _results.size(); i += sample_iter) {
     os << _results[i] << ",\n";
   }
-  os.seekp(-2, os.cur);
+  os.seekp(-2, std::ostream::cur);
   os << "]\n";
 }
 
@@ -58,7 +58,7 @@ void summary_t::write_mmpp(std::ostream &os, size_t burnin) const {
   os << to_json(mmpp) << std::endl;
 }
 
-vector_t summary_t::compute_mlp(size_t burnin) const {
+auto summary_t::compute_mlp(size_t burnin) const -> vector_t {
   if (burnin > _results.size()) {
     throw std::runtime_error("Burnin is longer than result for mlps");
   }
@@ -75,7 +75,7 @@ vector_t summary_t::compute_mlp(size_t burnin) const {
   return best_probs;
 }
 
-vector_t summary_t::compute_mmpp(size_t burnin) const {
+auto summary_t::compute_mmpp(size_t burnin) const -> vector_t {
   if (burnin > _results.size()) {
     throw std::runtime_error("Burnin is longer than results for mmpp");
   }
@@ -90,8 +90,8 @@ vector_t summary_t::compute_mmpp(size_t burnin) const {
     }
   }
 
-  for (size_t i = 0; i < avg_probs.size(); i++) {
-    avg_probs[i] /= static_cast<double>(total_iters);
+  for (double & avg_prob : avg_probs) {
+    avg_prob /= static_cast<double>(total_iters);
   }
 
   return avg_probs;
