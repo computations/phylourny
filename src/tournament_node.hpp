@@ -13,18 +13,18 @@
 
 struct team_t {
   std::string label;
-  size_t      index;
+  size_t      index{};
 };
 
 struct scratchpad_t {
-  scratchpad_t() : fold_l{}, fold_r{}, result{}, include{}, eval_index{} {}
+  scratchpad_t() {}
   double fold_l = 0.0;
   double fold_r = 0.0;
 
   double result = 0.0;
 
   tip_bitset_t include;
-  size_t       eval_index;
+  size_t       eval_index{};
 };
 
 class tournament_node_t;
@@ -53,26 +53,30 @@ public:
   explicit tournament_edge_t() : _node{nullptr}, _edge_type{edge_type_e::win} {}
   explicit tournament_edge_t(const std::shared_ptr<tournament_node_t> &node,
                              edge_type_e edge_type) :
-      _node{std::move(node)}, _edge_type{edge_type} {}
+      _node{node}, _edge_type{edge_type} {}
   explicit tournament_edge_t(tournament_node_t *node, edge_type_e edge_type) :
       _node{node}, _edge_type{edge_type} {}
 
-  tournament_node_t &      operator*() { return *_node; }
-  const tournament_node_t &operator*() const { return *_node; }
-  tournament_node_t *      operator->() { return _node.get(); }
-  const tournament_node_t *operator->() const { return _node.get(); }
-                           operator bool() const { return _node != nullptr; }
+  auto operator*() -> tournament_node_t & { return *_node; }
+  auto operator*() const -> const tournament_node_t & { return *_node; }
+  auto operator->() -> tournament_node_t * { return _node.get(); }
+  auto operator->() const -> const tournament_node_t * { return _node.get(); }
+       operator bool() const { return _node != nullptr; }
 
-  bool        empty() const { return _node == nullptr; }
-  inline bool is_win() const { return _edge_type == edge_type_e::win; }
-  inline bool is_loss() const { return !is_win(); }
-  bool        is_simple() const;
+  [[nodiscard]] auto        empty() const -> bool { return _node == nullptr; }
+  [[nodiscard]] inline auto is_win() const -> bool {
+    return _edge_type == edge_type_e::win;
+  }
+  [[nodiscard]] inline auto is_loss() const -> bool { return !is_win(); }
+  [[nodiscard]] auto        is_simple() const -> bool;
 
-  inline vector_t eval(const matrix_t &pmatrix, size_t tip_count) const;
+  [[nodiscard]] inline auto eval(const matrix_t &pmatrix,
+                                 size_t          tip_count) const -> vector_t;
 
-  inline double single_eval(const matrix_t &  pmatrix,
-                            size_t            eval_index,
-                            std::vector<bool> exclude) const;
+  [[nodiscard]] inline auto single_eval(const matrix_t   &pmatrix,
+                                        size_t            eval_index,
+                                        std::vector<bool> exclude) const
+      -> double;
 
 private:
   /* Data Members */
@@ -85,37 +89,20 @@ struct match_parameters_t {
   tournament_edge_t right;
   uint64_t          bestof = 1;
 
-  bool is_simple() const { return left.is_simple() && right.is_simple(); }
+  [[nodiscard]] auto is_simple() const -> bool {
+    return left.is_simple() && right.is_simple();
+  }
 };
 
 class tournament_node_t {
 public:
-  explicit tournament_node_t() :
-      _children{team_t()},
-      _memoized_values{},
-      _tip_bitset{},
-      _internal_label{},
-      _scratchpad{} {}
-  explicit tournament_node_t(const team_t &t) :
-      _children{t},
-      _memoized_values{},
-      _tip_bitset{},
-      _internal_label{},
-      _scratchpad{} {}
+  explicit tournament_node_t() : _children{team_t()} {}
+  explicit tournament_node_t(const team_t &t) : _children{t} {}
 
   explicit tournament_node_t(const std::string &team_name) :
-      _children{team_t{team_name, 0}},
-      _memoized_values{},
-      _tip_bitset{},
-      _internal_label{},
-      _scratchpad{} {}
+      _children{team_t{team_name, 0}} {}
 
-  explicit tournament_node_t(const match_parameters_t &c) :
-      _children{c},
-      _memoized_values{},
-      _tip_bitset{},
-      _internal_label{},
-      _scratchpad{} {}
+  explicit tournament_node_t(const match_parameters_t &c) : _children{c} {}
 
   explicit tournament_node_t(const tournament_edge_t &l,
                              const tournament_edge_t &r) :
@@ -135,9 +122,9 @@ public:
 
   virtual ~tournament_node_t() = default;
 
-  bool   is_tip() const;
-  size_t tip_count() const;
-  bool   is_member(size_t index) const;
+  [[nodiscard]] auto is_tip() const -> bool;
+  [[nodiscard]] auto tip_count() const -> size_t;
+  [[nodiscard]] auto is_member(size_t index) const -> bool;
 
   /**
    * Create a map of the team labels to team indexes.
@@ -158,27 +145,29 @@ public:
    * Relabel the team indices starting at `index`. Traverses the tree in a
    * preorder fashion, descending the left child first.
    */
-  size_t relabel_indicies(size_t index);
+  auto relabel_indicies(size_t index) -> size_t;
 
   /**
    * Determines if the current node can be computed using a simple method.
    */
-  bool is_simple() const;
+  [[nodiscard]] auto is_simple() const -> bool;
 
   void reset_saved_evals();
 
-  vector_t eval(const matrix_t &pmatrix, size_t tip_count);
-  static vector_t fold(const vector_t &x,
-                const vector_t &y,
-                uint64_t        bestof,
-                const matrix_t &pmatrix) ;
+  auto        eval(const matrix_t &pmatrix, size_t tip_count) -> vector_t;
+  static auto fold(const vector_t &x,
+                   const vector_t &y,
+                   uint64_t        bestof,
+                   const matrix_t &pmatrix) -> vector_t;
 
-  tip_bitset_t set_tip_bitset(size_t tip_count);
-  tip_bitset_t get_tip_bitset() const { return _tip_bitset; }
+  auto               set_tip_bitset(size_t tip_count) -> tip_bitset_t;
+  [[nodiscard]] auto get_tip_bitset() const -> tip_bitset_t {
+    return _tip_bitset;
+  }
 
   virtual void assign_internal_labels() { assign_internal_labels(0); }
 
-  virtual size_t assign_internal_labels(size_t index) {
+  virtual auto assign_internal_labels(size_t index) -> size_t {
     if (_internal_label.empty()) { _internal_label = compute_base26(index++); }
     if (!is_tip()) {
       index = children().left->assign_internal_labels(index);
@@ -187,7 +176,9 @@ public:
     return index;
   }
 
-  std::string get_internal_label() const { return _internal_label; }
+  [[nodiscard]] auto get_internal_label() const -> std::string {
+    return _internal_label;
+  }
 
   void dump_state_graphviz(
       std::ostream &os,
@@ -218,18 +209,22 @@ public:
     }
   }
 
-  std::string get_display_label() const {
+  [[nodiscard]] auto get_display_label() const -> std::string {
     if (is_tip() && !team().label.empty()) { return team().label; }
     return _internal_label;
   }
 
-  vector_t get_memoized_values() const { return _memoized_values; }
+  [[nodiscard]] auto get_memoized_values() const -> vector_t {
+    return _memoized_values;
+  }
 
-  scratchpad_t get_scratch_pad() const { return _scratchpad; }
+  [[nodiscard]] auto get_scratch_pad() const -> scratchpad_t {
+    return _scratchpad;
+  }
 
-  size_t get_team_index() const { return team().index; }
+  [[nodiscard]] auto get_team_index() const -> size_t { return team().index; }
 
-  void debug_graphviz(std::ostream &os) {
+  void debug_graphviz(std::ostream &os) const {
     auto node_attr_func = [](const tournament_node_t &n) -> std::string {
       std::ostringstream oss;
       oss << "[label=";
@@ -276,9 +271,13 @@ public:
     os << "}";
   }
 
-  virtual size_t winner() const { throw std::runtime_error{"Not implemented"}; }
+  [[nodiscard]] virtual auto winner() const -> size_t {
+    throw std::runtime_error{"Not implemented"};
+  }
 
-  virtual size_t loser() const { throw std::runtime_error{"Not implemented"}; }
+  [[nodiscard]] virtual auto loser() const -> size_t {
+    throw std::runtime_error{"Not implemented"};
+  }
 
   void set_bestof(const std::function<size_t(size_t)> &b_func, size_t depth);
 
@@ -286,22 +285,28 @@ public:
     set_bestof([b](size_t) -> size_t { return b; }, 0);
   }
 
-  const std::string &internal_label() const { return _internal_label; }
+  [[nodiscard]] auto internal_label() const -> const std::string & {
+    return _internal_label;
+  }
 
 protected:
-  inline const match_parameters_t &children() const {
+  [[nodiscard]] inline auto children() const -> const match_parameters_t & {
     return std::get<match_parameters_t>(_children);
   }
-  inline match_parameters_t &children() {
+  inline auto children() -> match_parameters_t & {
     return std::get<match_parameters_t>(_children);
   }
-  inline const team_t &team() const { return std::get<team_t>(_children); }
-  inline team_t &      team() { return std::get<team_t>(_children); }
+  [[nodiscard]] inline auto team() const -> const team_t & {
+    return std::get<team_t>(_children);
+  }
+  inline auto team() -> team_t & { return std::get<team_t>(_children); }
 
 private:
-  bool eval_saved() const { return _memoized_values.size() != 0; }
+  [[nodiscard]] auto eval_saved() const -> bool {
+    return !_memoized_values.empty();
+  }
 
-  size_t team_count() const { return _tip_bitset.size(); }
+  [[nodiscard]] auto team_count() const -> size_t { return _tip_bitset.size(); }
 
   /* Data Members */
   std::variant<match_parameters_t, team_t> _children;

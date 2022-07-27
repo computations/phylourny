@@ -26,7 +26,7 @@ constexpr std::array<double, factorial_table_size> factorial_table = {
 /**
  * Compute a factorial. Uses a lookup table to accelerate computation.
  */
-constexpr inline double factorial(uint64_t i) {
+constexpr inline auto factorial(uint64_t i) -> double {
   if (i < factorial_table_size) { return factorial_table.at(i); }
   double f = factorial_table[factorial_table_size - 1];
   for (size_t k = factorial_table_size; k <= i; ++k) {
@@ -38,21 +38,21 @@ constexpr inline double factorial(uint64_t i) {
 /**
  * Computes C(n,i) using the accelerated `factorial` function
  */
-constexpr inline double combinations(uint64_t n, uint64_t i) {
+constexpr inline auto combinations(uint64_t n, uint64_t i) -> double {
   return factorial(n) / (factorial(i) * factorial(n - i));
 }
 
 /**
  * A fast version of pow for integer exponents.
  */
-constexpr inline double int_pow(double base, uint64_t k) {
+constexpr inline auto int_pow(double base, uint64_t k) -> double {
   if (k == 0) { return 1.0; }
   double wpp1 = base;
   for (size_t i = 1; i < k; ++i) { wpp1 *= base; }
   return wpp1;
 }
 
-constexpr inline double bestof_n(double wp1, double wp2, uint64_t n) {
+constexpr inline auto bestof_n(double wp1, double wp2, uint64_t n) -> double {
   assert_string(wp1 <= 1.0, "Win prob is not well formed");
   assert_string(wp2 <= 1.0, "Win prob is not well formed");
 

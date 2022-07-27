@@ -154,7 +154,8 @@ auto compute_base26(size_t i) -> std::string {
   return ret;
 }
 
-auto update_win_probs(const params_t &params, random_engine_t &gen) -> params_t {
+auto update_win_probs(const params_t &params, random_engine_t &gen)
+    -> params_t {
   params_t temp_params{params};
   for (size_t j = 0; j < params.size(); ++j) {
     auto [a, b] = make_ab(params[j], 5);
@@ -195,8 +196,8 @@ auto skellam_cmf(int k, double u1, double u2) -> double {
   return p;
 }
 
-auto
-update_poission_model_factory(double sigma) -> std::function<params_t(const params_t &, random_engine_t &gen)> {
+auto update_poission_model_factory(double sigma)
+    -> std::function<params_t(const params_t &, random_engine_t &gen)> {
   auto l = [sigma](const params_t &p, random_engine_t &gen) -> params_t {
     std::normal_distribution<double>      dis(0.0, sigma);
     std::uniform_int_distribution<size_t> picker(0, p.size() - 1);

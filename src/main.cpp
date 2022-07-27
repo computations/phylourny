@@ -1,8 +1,8 @@
 #include <algorithm>
 #include <chrono>
+#include <cmath>
 #include <cstdint>
 #include <csv.h>
-#include <cmath>
 #include <fstream>
 #include <iostream>
 #include <json.hpp>
@@ -34,7 +34,7 @@ constexpr char GIT_COMMIT_STRING[] = STRINGIFY(GIT_COMMIT);
 constexpr char BUILD_DATE_STRING[] = STRINGIFY(BUILD_DATE);
 
 using timepoint_t = std::chrono::time_point<std::chrono::high_resolution_clock>;
-using duration_t = std::chrono::duration<double>;
+using duration_t  = std::chrono::duration<double>;
 
 using team_name_map_t = std::unordered_map<std::string, size_t>;
 
@@ -67,7 +67,8 @@ static void print_end_time(timepoint_t start_time, timepoint_t end_time) {
       EMIT_LEVEL_IMPORTANT, "Run Finished, time: %fs", duration.count());
 }
 
-static auto make_dummy_data(size_t team_count, uint64_t seed) -> std::vector<match_t> {
+static auto make_dummy_data(size_t team_count, uint64_t seed)
+    -> std::vector<match_t> {
   std::vector<match_t>                  matches{};
   std::mt19937_64                       gen(seed);
   std::uniform_int_distribution<size_t> team(0, team_count - 1);
@@ -107,7 +108,8 @@ static auto make_dummy_data(size_t team_count, uint64_t seed) -> std::vector<mat
   return matches;
 }
 
-static auto create_name_map(std::vector<std::string> team_names) -> team_name_map_t {
+static auto create_name_map(std::vector<std::string> team_names)
+    -> team_name_map_t {
   team_name_map_t name_map;
 
   for (size_t i = 0; i < team_names.size(); i++) {
@@ -118,7 +120,7 @@ static auto create_name_map(std::vector<std::string> team_names) -> team_name_ma
 }
 
 static auto parse_odds_file(const std::string     &odds_filename,
-                                const team_name_map_t &name_map) -> matrix_t {
+                            const team_name_map_t &name_map) -> matrix_t {
 
   matrix_t odds;
 
@@ -146,8 +148,9 @@ static auto parse_odds_file(const std::string     &odds_filename,
   return odds;
 }
 
-static auto parse_match_file(const std::string &match_filename,
-                                             const team_name_map_t &name_map) -> std::vector<match_t> {
+static auto parse_match_file(const std::string     &match_filename,
+                             const team_name_map_t &name_map)
+    -> std::vector<match_t> {
   std::vector<match_t> match_history;
 
   io::CSVReader<4> match_file(match_filename);
@@ -173,7 +176,7 @@ static auto parse_match_file(const std::string &match_filename,
 }
 
 static auto parse_prob_files(const std::string     &probs_filename,
-                                 const team_name_map_t &name_map) -> matrix_t {
+                             const team_name_map_t &name_map) -> matrix_t {
 
   matrix_t win_probs;
   win_probs.resize(name_map.size());
@@ -214,9 +217,9 @@ static void write_summary(const summary_t   &summary,
   summary.write_mmpp(mmpp_outfile, burnin_samples);
 }
 
-static auto
-get_lh_model(const cli_options_t        &cli_options,
-             const std::vector<match_t> &matches) -> std::tuple<std::unique_ptr<likelihood_model_t>,
+static auto get_lh_model(const cli_options_t        &cli_options,
+                         const std::vector<match_t> &matches)
+    -> std::tuple<std::unique_ptr<likelihood_model_t>,
                   std::function<params_t(const params_t &, random_engine_t &)>,
                   std::function<double(const params_t &)>> {
   if (cli_options["poisson"].value(true)) {
@@ -226,13 +229,13 @@ get_lh_model(const cli_options_t        &cli_options,
             poisson_likelihood_model_t(matches));
     auto update_func = update_poission_model_factory(1.0);
     return std::make_tuple(std::move(lhm), update_func, normal_prior);
-  }     debug_string(EMIT_LEVEL_IMPORTANT, "Using the simple likelihood model");
-    std::unique_ptr<likelihood_model_t> lhm =
-        std::make_unique<simple_likelihood_model_t>(
-            simple_likelihood_model_t(matches));
-    auto update_func = update_win_probs;
-    return std::make_tuple(std::move(lhm), update_func, uniform_prior);
- 
+  }
+  debug_string(EMIT_LEVEL_IMPORTANT, "Using the simple likelihood model");
+  std::unique_ptr<likelihood_model_t> lhm =
+      std::make_unique<simple_likelihood_model_t>(
+          simple_likelihood_model_t(matches));
+  auto update_func = update_win_probs;
+  return std::make_tuple(std::move(lhm), update_func, uniform_prior);
 }
 
 static void mcmc_run(const cli_options_t            &cli_options,
@@ -249,7 +252,7 @@ static void mcmc_run(const cli_options_t            &cli_options,
         make_dummy_data(teams.size(), cli_options["seed"].value<uint64_t>());
   }
 
-  const auto output_prefix = cli_options["prefix"].value<std::string>();
+  const auto        output_prefix = cli_options["prefix"].value<std::string>();
   const std::string output_suffix = ".json";
 
   size_t mcmc_samples   = cli_options["samples"].value(10'000'000LU);
@@ -429,6 +432,7 @@ auto main(int argc, char **argv) -> int {
 
   } catch (cli_option_help &e) {
     (void)e;
+    std::cout << cli_options_t::help();
     return 1;
   } catch (cli_option_exception &e) {
     std::cout << e.what() << std::endl;

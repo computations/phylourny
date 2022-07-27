@@ -7,30 +7,30 @@
 #include <sul/dynamic_bitset.hpp>
 #include <vector>
 
-typedef std::vector<std::vector<double>> matrix_t;
-typedef std::vector<double>              vector_t;
-typedef std::vector<double>              params_t;
-typedef sul::dynamic_bitset<>            tip_bitset_t;
-typedef std::mt19937_64                  random_engine_t;
-typedef size_t                           clock_tick_t;
+using matrix_t        = std::vector<std::vector<double>>;
+using vector_t        = std::vector<double>;
+using params_t        = std::vector<double>;
+using tip_bitset_t    = sul::dynamic_bitset<>;
+using random_engine_t = std::mt19937_64;
+using clock_tick_t    = size_t;
 
 /**
  * TEST INFO FROM HEADER
  */
-matrix_t uniform_matrix_factory(size_t n);
-matrix_t random_matrix_factory(size_t n, uint64_t seed);
+auto uniform_matrix_factory(size_t n) -> matrix_t;
+auto random_matrix_factory(size_t n, uint64_t seed) -> matrix_t;
 
-std::string to_json(const matrix_t &m);
-std::string to_json(const vector_t &m);
-std::string to_json(const std::vector<size_t> &m);
+auto to_json(const matrix_t &m) -> std::string;
+auto to_json(const vector_t &m) -> std::string;
+auto to_json(const std::vector<size_t> &m) -> std::string;
 
-std::string to_string(const matrix_t &m);
-std::string to_string(const vector_t &m);
-std::string to_string(const std::vector<size_t> &m);
+auto to_string(const matrix_t &m) -> std::string;
+auto to_string(const vector_t &m) -> std::string;
+auto to_string(const std::vector<size_t> &m) -> std::string;
 
-vector_t softmax(const vector_t &v);
+auto softmax(const vector_t &v) -> vector_t;
 
-std::string compute_base26(size_t i);
+auto compute_base26(size_t i) -> std::string;
 
 template <typename result_type> class beta_distribution {
 public:
@@ -39,7 +39,8 @@ public:
                     result_type beta,
                     result_type theta = 1.0) :
       g1{alpha, theta}, g2{beta, theta} {}
-  template <class generator_type> result_type operator()(generator_type &gen) {
+  template <class generator_type>
+  auto operator()(generator_type &gen) -> result_type {
     result_type x = g1(gen);
     result_type y = g2(gen);
     return x / (x + y);
@@ -54,21 +55,22 @@ private:
  * Generate an a and b suitable for configuring a beta distrbution. The median
  * of the distrbution will be `median`, and the concentration will be `k`.
  */
-constexpr inline std::pair<double, double> make_ab(double median, double k) {
+constexpr inline auto make_ab(double median, double k)
+    -> std::pair<double, double> {
   double a = median * (k - 2) + 1;
   double b = k - a;
   return std::make_pair(a, b);
 }
 
-params_t update_win_probs(const params_t &params, random_engine_t &gen);
-std::function<params_t(const params_t &, random_engine_t &)>
-update_poission_model_factory(double sigma);
+auto update_win_probs(const params_t &params, random_engine_t &gen) -> params_t;
+auto update_poission_model_factory(double sigma)
+    -> std::function<params_t(const params_t &, random_engine_t &)>;
 
-double skellam_pmf(int k, double u1, double u2);
-double skellam_cmf(int k, double u1, double u2);
+auto skellam_pmf(int k, double u1, double u2) -> double;
+auto skellam_cmf(int k, double u1, double u2) -> double;
 
-double gamma_prior(const params_t &);
-double uniform_prior(const params_t &);
-double normal_prior(const params_t &);
+auto gamma_prior(const params_t &) -> double;
+auto uniform_prior(const params_t &) -> double;
+auto normal_prior(const params_t &) -> double;
 
 #endif // UTIL_HPP

@@ -1,6 +1,5 @@
 #include "dataset.hpp"
 
-#include <cmath>
 #include "debug.h"
 #include "match.hpp"
 #include "util.hpp"
@@ -15,8 +14,9 @@
  * `match_t` type, and encode a match played between the two teams.
  */
 simple_likelihood_model_t::simple_likelihood_model_t(
-    const std::vector<match_t> &matches) : _team_count(count_teams(matches)) {
-  
+    const std::vector<match_t> &matches) :
+    _team_count(count_teams(matches)) {
+
   _win_matrix.reserve(_team_count);
   for (size_t i = 0; i < _team_count; ++i) {
     _win_matrix.emplace_back(_team_count);
@@ -64,8 +64,8 @@ auto simple_likelihood_model_t::log_likelihood(
   return llh;
 }
 
-auto
-poisson_likelihood_model_t::log_likelihood(const params_t &team_strs) const -> double {
+auto poisson_likelihood_model_t::log_likelihood(const params_t &team_strs) const
+    -> double {
   double llh = 0.0;
 
 #ifdef _OPENMP
@@ -74,8 +74,8 @@ poisson_likelihood_model_t::log_likelihood(const params_t &team_strs) const -> d
   for (const auto &m : _matches) {
     double param1 = NAN;
     double param2 = NAN;
-    param1 = team_strs[m.l_team];
-    param2 = team_strs[m.r_team];
+    param1        = team_strs[m.l_team];
+    param2        = team_strs[m.r_team];
 
     double lambda_l = std::exp(param1 - param2);
     double lambda_r = std::exp(param2 - param1);
@@ -96,8 +96,8 @@ poisson_likelihood_model_t::log_likelihood(const params_t &team_strs) const -> d
   return llh;
 }
 
-auto
-simple_likelihood_model_t::generate_win_probs(const params_t &params) const -> matrix_t {
+auto simple_likelihood_model_t::generate_win_probs(const params_t &params) const
+    -> matrix_t {
   matrix_t wp;
   wp.reserve(_team_count);
   for (size_t i = 0; i < _team_count; ++i) { wp.emplace_back(_team_count); }
@@ -113,8 +113,8 @@ simple_likelihood_model_t::generate_win_probs(const params_t &params) const -> m
   return wp;
 }
 
-auto
-poisson_likelihood_model_t::generate_win_probs(const params_t &params) const -> matrix_t {
+auto poisson_likelihood_model_t::generate_win_probs(
+    const params_t &params) const -> matrix_t {
   matrix_t wp;
   wp.reserve(_team_count);
   for (size_t i = 0; i < _team_count; ++i) { wp.emplace_back(_team_count); }

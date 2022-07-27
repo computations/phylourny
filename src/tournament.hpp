@@ -50,7 +50,7 @@ public:
 
   tournament_t(const T &) = delete;
 
-  size_t tip_count() const { return _head->tip_count(); }
+  [[nodiscard]] auto tip_count() const -> size_t { return _head->tip_count(); }
 
   void reset_win_probs(const matrix_t &wp) {
     if (check_matrix_size(wp)) {
@@ -86,7 +86,7 @@ public:
    *
    * @return A map from labels to indices.
    */
-  std::vector<std::pair<std::string, size_t>> label_map() {
+  auto label_map() -> std::vector<std::pair<std::string, size_t>> {
     relabel_indicies();
     std::vector<std::pair<std::string, size_t>> lm;
     _head->label_map(lm);
@@ -98,7 +98,7 @@ public:
    * between calls to this function. So, while computation is memoized during
    * evaluation, that information is discarded once computation is complete.
    */
-  vector_t eval() {
+  auto eval() -> vector_t {
     if (!check_matrix_size(_win_probs)) {
       throw std::runtime_error("Initialize the win probs before calling eval");
     }
@@ -106,7 +106,7 @@ public:
     return _head->eval(_win_probs, tip_count());
   }
 
-  vector_t eval_debug(const std::string &prefix) {
+  auto eval_debug(const std::string &prefix) -> vector_t {
     if (!check_matrix_size(_win_probs)) {
       throw std::runtime_error("Initialize the win probs before calling eval");
     }
@@ -117,7 +117,7 @@ public:
 
   vector_t eval(size_t iters);
 
-  std::string dump_state_graphviz() const {
+  [[nodiscard]] auto dump_state_graphviz() const -> std::string {
     std::ostringstream oss;
     dump_state_graphviz(oss);
     return oss.str();
@@ -215,7 +215,7 @@ public:
   }
 
 private:
-  bool check_matrix_size(const matrix_t &wp) const {
+  [[nodiscard]] auto check_matrix_size(const matrix_t &wp) const -> bool {
     auto tipc = tip_count();
     return tipc == wp.size();
   }

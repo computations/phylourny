@@ -18,10 +18,10 @@ struct match_t {
   match_winner_t winner;
 };
 
-size_t count_teams(const std::vector<match_t> &matches);
+auto count_teams(const std::vector<match_t> &matches) -> size_t;
 
-match_winner_t operator!(match_winner_t mw);
+auto operator!(match_winner_t mw) -> match_winner_t;
 
-std::vector<match_t> generate_bootstrap(const std::vector<match_t> &matches,
-                                        uint64_t                    seed);
+auto generate_bootstrap(const std::vector<match_t> &matches, uint64_t seed)
+    -> std::vector<match_t>;
 #endif

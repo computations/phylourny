@@ -13,7 +13,7 @@ struct result_t {
   double   llh;
 };
 
-std::ostream &operator<<(std::ostream &os, const result_t &r);
+auto operator<<(std::ostream &os, const result_t &r) -> std::ostream &;
 
 class summary_t {
 public:
@@ -25,8 +25,8 @@ public:
   void write_mmpp(std::ostream &os, size_t burnin) const;
 
 private:
-  vector_t compute_mlp(size_t burnin) const;
-  vector_t compute_mmpp(size_t burnin) const;
+  [[nodiscard]] auto compute_mlp(size_t burnin) const -> vector_t;
+  [[nodiscard]] auto compute_mmpp(size_t burnin) const -> vector_t;
 
   std::vector<result_t> _results;
 };

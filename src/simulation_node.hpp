@@ -20,16 +20,16 @@ public:
                              tournament_edge_t::edge_type_e            rt) :
       tournament_node_t{tournament_edge_t{l, lt}, tournament_edge_t{r, rt}} {}
 
-  explicit simulation_node_t(std::string s) : tournament_node_t{std::move(s)} {}
+  explicit simulation_node_t(const std::string &s) : tournament_node_t{s} {}
 
   ~simulation_node_t() override = default;
 
-  size_t winner() const override {
+  [[nodiscard]] auto winner() const -> size_t override {
     if (is_tip()) { return team().index; }
     return _assigned_team;
   }
 
-  size_t loser() const override {
+  [[nodiscard]] auto loser() const -> size_t override {
     if (is_tip()) { throw std::runtime_error{"Called loser on a tip"}; }
 
     if (!is_cherry() && (left_child().winner() == left_child().loser() ||
@@ -43,7 +43,7 @@ public:
     return children().left->winner();
   }
 
-  vector_t eval(const matrix_t &pmat, size_t tip_count, size_t iters) {
+  auto eval(const matrix_t &pmat, size_t tip_count, size_t iters) -> vector_t {
     std::vector<size_t> counts(tip_count, 0);
 
     clock_tick_t clock = 1;
@@ -67,9 +67,9 @@ public:
   }
 
 private:
-  size_t simulation_eval(const matrix_t & pmat,
-                         random_engine_t &random_engine,
-                         clock_tick_t     clock) {
+  auto simulation_eval(const matrix_t  &pmat,
+                       random_engine_t &random_engine,
+                       clock_tick_t     clock) -> size_t {
     if (is_tip()) { return team().index; }
 
     if (clock < _last_eval) { return _assigned_team; }
@@ -91,24 +91,24 @@ private:
     return clock;
   }
 
-  bool is_cherry() const {
+  [[nodiscard]] auto is_cherry() const -> bool {
     if (is_tip()) { return false; }
     return left_child().is_tip() && right_child().is_tip();
   }
 
-  simulation_node_t &left_child() {
+  auto left_child() -> simulation_node_t & {
     return dynamic_cast<simulation_node_t &>(*children().left);
   }
 
-  simulation_node_t &right_child() {
+  auto right_child() -> simulation_node_t & {
     return dynamic_cast<simulation_node_t &>(*children().right);
   }
 
-  const simulation_node_t &left_child() const {
+  [[nodiscard]] auto left_child() const -> const simulation_node_t & {
     return dynamic_cast<const simulation_node_t &>(*children().left);
   }
 
-  const simulation_node_t &right_child() const {
+  [[nodiscard]] auto right_child() const -> const simulation_node_t & {
     return dynamic_cast<const simulation_node_t &>(*children().right);
   }
 

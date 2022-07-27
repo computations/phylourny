@@ -19,18 +19,19 @@
 template <typename T> class sampler_t {
 public:
   sampler_t(std::unique_ptr<likelihood_model_t> &&lhm, tournament_t<T> &&t) :
-      _lh_model{std::move(lhm)},
-      _tournament{std::move(t)},
-      _samples{},
-      _simulation_iterations{0} {}
+      _lh_model{std::move(lhm)}, _tournament{std::move(t)} {}
 
-  std::vector<result_t> report() const { return _samples; }
+  [[nodiscard]] auto report() const -> std::vector<result_t> {
+    return _samples;
+  }
 
   /**
    * Return a summary of the samples. For more information, please see the
    * `summary_t` class.
    */
-  summary_t summary() const { return summary_t{_samples}; }
+  [[nodiscard]] auto summary() const -> summary_t {
+    return summary_t{_samples};
+  }
 
   void run_chain(
       size_t   iters,
@@ -82,7 +83,7 @@ public:
   void set_simulation_iterations(size_t s) { _simulation_iterations = s; }
 
 private:
-  vector_t run_simulation(const params_t &);
+  vector_t run_simulation(const params_t & /*params*/);
 
   void record_sample(const params_t &params, double llh, size_t iters) {
     result_t r{run_simulation(params), params, llh};
@@ -98,11 +99,11 @@ private:
   std::unique_ptr<likelihood_model_t> _lh_model;
   tournament_t<T>                     _tournament;
   std::vector<result_t>               _samples;
-  size_t                              _simulation_iterations;
+  size_t                              _simulation_iterations{0};
 };
 
 template <typename T1>
-vector_t sampler_t<T1>::run_simulation(const params_t &params) {
+auto sampler_t<T1>::run_simulation(const params_t &params) -> vector_t {
   _tournament.reset_win_probs(_lh_model->generate_win_probs(params));
   return _tournament.eval();
 }

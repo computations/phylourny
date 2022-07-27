@@ -4,7 +4,8 @@
 #include <stdexcept>
 #include <string>
 
-auto single_node_t::eval(const matrix_t &pmatrix, size_t tip_count) -> vector_t {
+auto single_node_t::eval(const matrix_t &pmatrix, size_t tip_count)
+    -> vector_t {
   init_assigned_teams();
   vector_t results(tip_count);
   for (tick_result_t tr = tick_result_t::success; tr != tick_result_t::finished;
@@ -14,9 +15,9 @@ auto single_node_t::eval(const matrix_t &pmatrix, size_t tip_count) -> vector_t 
   return results;
 }
 
-auto single_node_t::eval_debug(const matrix_t &   pmatrix,
-                                   size_t             tip_count,
-                                   const std::string &filename_prefix) -> vector_t {
+auto single_node_t::eval_debug(const matrix_t    &pmatrix,
+                               size_t             tip_count,
+                               const std::string &filename_prefix) -> vector_t {
   vector_t results(tip_count);
   size_t   filename_counter = 0;
   for (tick_result_t tr = tick_result_t::success; tr != tick_result_t::finished;
@@ -36,7 +37,8 @@ auto single_node_t::eval_debug(const matrix_t &   pmatrix,
   return results;
 }
 
-auto single_node_t::single_eval(const matrix_t &pmatrix, bool is_winner) -> double {
+auto single_node_t::single_eval(const matrix_t &pmatrix, bool is_winner)
+    -> double {
   if (is_tip()) { return is_winner ? 1.0 : 0.0; }
   if (!is_winner) {
     _saved_val = 1.0;
@@ -119,8 +121,8 @@ auto single_node_t::valid() const -> bool {
 }
 
 void single_node_t::dump_state_graphviz(
-    std::ostream &                                               os,
-    const std::function<std::string(const single_node_t &)> &    node_attr_func,
+    std::ostream                                                &os,
+    const std::function<std::string(const single_node_t &)>     &node_attr_func,
     const std::function<std::string(const tournament_edge_t &)> &edge_attr_func)
     const {
 

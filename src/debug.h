@@ -57,7 +57,7 @@ extern int DEBUG_VERBOSITY_LEVEL;
 #define print_trace()                                                          \
   do {                                                                         \
     if (DEBUG_IF_FLAG) {                                                       \
-      void * callstack[128];                                                   \
+      void  *callstack[128];                                                   \
       int    frames     = backtrace(callstack, 128);                           \
       char **bt_symbols = backtrace_symbols(callstack, frames);                \
       print_clock;                                                             \

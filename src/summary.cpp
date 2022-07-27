@@ -21,8 +21,9 @@ auto operator<<(std::ostream &os, const result_t &r) -> std::ostream & {
  *
  * @param sample_iter Sample ever `sample_iter` results after the burnin.
  */
-void summary_t::write_samples(std::ostream &os, size_t burnin,
-                              size_t sample_iter) const {
+void summary_t::write_samples(std::ostream &os,
+                              size_t        burnin,
+                              size_t        sample_iter) const {
   if (burnin > _results.size()) {
     throw std::runtime_error("Burnin is longer than results");
   }
@@ -90,7 +91,7 @@ auto summary_t::compute_mmpp(size_t burnin) const -> vector_t {
     }
   }
 
-  for (double & avg_prob : avg_probs) {
+  for (double &avg_prob : avg_probs) {
     avg_prob /= static_cast<double>(total_iters);
   }
 

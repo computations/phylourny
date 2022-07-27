@@ -28,19 +28,24 @@ public:
                          tournament_edge_t::edge_type_e        rt) :
       tournament_node_t{tournament_edge_t{l, lt}, tournament_edge_t{r, rt}} {}
 
-  explicit single_node_t(std::string s) : tournament_node_t{std::move(s)} {}
+  explicit single_node_t(const std::string &s) : tournament_node_t{s} {}
 
   ~single_node_t() override = default;
 
-  vector_t eval(const matrix_t &pmatrix, size_t tip_count);
-  vector_t
-  eval_debug(const matrix_t &pmatrix, size_t tip_count, const std::string &);
+  auto eval(const matrix_t &pmatrix, size_t tip_count) -> vector_t;
+  auto eval_debug(const matrix_t &pmatrix,
+                  size_t          tip_count,
+                  const std::string &) -> vector_t;
 
-  size_t winner() const override { return _assigned_team; }
+  [[nodiscard]] auto winner() const -> size_t override {
+    return _assigned_team;
+  }
 
-  size_t loser() const override { return returned_team(false); }
+  [[nodiscard]] auto loser() const -> size_t override {
+    return returned_team(false);
+  }
 
-  size_t returned_team(bool winner) const {
+  [[nodiscard]] auto returned_team(bool winner) const -> size_t {
     if (winner) { return _assigned_team; }
 
     if (is_tip()) { throw std::runtime_error{"Called team on a tip"}; }
@@ -52,13 +57,13 @@ public:
 
   void init_assigned_teams();
 
-  tick_result_t tick();
+  auto tick() -> tick_result_t;
 
-  bool valid() const;
-  bool is_cherry() const;
+  [[nodiscard]] auto valid() const -> bool;
+  [[nodiscard]] auto is_cherry() const -> bool;
 
   void dump_state_graphviz(
-      std::ostream &                                           os,
+      std::ostream                                            &os,
       const std::function<std::string(const single_node_t &)> &node_attr_func,
       const std::function<std::string(const tournament_edge_t &)>
           &edge_attr_func) const;
@@ -66,37 +71,37 @@ public:
   void debug_graphviz(std::ostream &os) const;
 
 private:
-  tick_result_t tick_children();
+  auto tick_children() -> tick_result_t;
 
-  single_node_t &left_child() {
+  auto left_child() -> single_node_t & {
     return dynamic_cast<single_node_t &>(*children().left);
   }
 
-  single_node_t &right_child() {
+  auto right_child() -> single_node_t & {
     return dynamic_cast<single_node_t &>(*children().right);
   }
 
-  const single_node_t &left_child() const {
+  [[nodiscard]] auto left_child() const -> const single_node_t & {
     return dynamic_cast<const single_node_t &>(*children().left);
   }
 
-  const single_node_t &right_child() const {
+  [[nodiscard]] auto right_child() const -> const single_node_t & {
     return dynamic_cast<const single_node_t &>(*children().right);
   }
 
-  size_t left_team() const {
+  [[nodiscard]] auto left_team() const -> size_t {
     return left_child().returned_team(children().left.is_win());
   }
 
-  size_t right_team() const {
+  [[nodiscard]] auto right_team() const -> size_t {
     return right_child().returned_team(children().right.is_win());
   }
 
-  double single_eval(const matrix_t &pmatrix, bool winner);
+  auto single_eval(const matrix_t &pmatrix, bool winner) -> double;
 
-  void   assign_team(size_t t) { _assigned_team = t; }
-  void   assign_team_reset();
-  double internal_eval(const matrix_t &pmatrix, size_t tip_count);
+  void assign_team(size_t t) { _assigned_team = t; }
+  void assign_team_reset();
+  auto internal_eval(const matrix_t &pmatrix, size_t tip_count) -> double;
 
   size_t _assigned_team = 0;
 

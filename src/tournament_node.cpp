@@ -61,7 +61,8 @@ auto tournament_node_t::is_member(size_t index) const -> bool {
          children().right->is_member(index);
 }
 
-auto tournament_node_t::eval(const matrix_t &pmatrix, size_t tip_count) -> vector_t {
+auto tournament_node_t::eval(const matrix_t &pmatrix, size_t tip_count)
+    -> vector_t {
 
   if (is_tip()) {
     vector_t wpv(tip_count);
@@ -107,10 +108,10 @@ auto tournament_node_t::eval(const matrix_t &pmatrix, size_t tip_count) -> vecto
  *
  * @param pmatrix The pairwise win probability matrix.
  */
-vector_t tournament_node_t::fold(const vector_t &x,
-                                 const vector_t &y,
-                                 uint64_t        bestof,
-                                 const matrix_t &pmatrix) {
+auto tournament_node_t::fold(const vector_t &x,
+                             const vector_t &y,
+                             uint64_t        bestof,
+                             const matrix_t &pmatrix) -> vector_t {
   vector_t r(x.size());
   for (size_t m1 = 0; m1 < x.size(); ++m1) {
     if (x[m1] == 0.0) { continue; }
@@ -135,8 +136,8 @@ vector_t tournament_node_t::fold(const vector_t &x,
   return r;
 }
 
-auto tournament_edge_t::eval(const matrix_t &pmatrix,
-                                 size_t          tip_count) const -> vector_t {
+auto tournament_edge_t::eval(const matrix_t &pmatrix, size_t tip_count) const
+    -> vector_t {
   auto r = _node->eval(pmatrix, tip_count);
   return r;
 }

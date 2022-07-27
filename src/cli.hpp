@@ -36,7 +36,9 @@ class cli_option_exception : public std::exception {};
 class cli_option_not_recognized : public cli_option_exception {
 public:
   explicit cli_option_not_recognized(std::string m) : _what{std::move(m)} {}
-  const char *what() const noexcept override { return _what.c_str(); }
+  [[nodiscard]] auto what() const noexcept -> const char * override {
+    return _what.c_str();
+  }
 
 private:
   std::string _what;
@@ -50,7 +52,9 @@ private:
 class cli_option_argument_not_found : public cli_option_exception {
 public:
   explicit cli_option_argument_not_found(std::string m) : _what{std::move(m)} {}
-  const char *what() const noexcept override { return _what.c_str(); }
+  [[nodiscard]] auto what() const noexcept -> const char * override {
+    return _what.c_str();
+  }
 
 private:
   std::string _what;
@@ -64,7 +68,9 @@ private:
 class cli_option_not_initialized : public cli_option_exception {
 public:
   explicit cli_option_not_initialized(std::string m) : _what{std::move(m)} {}
-  const char *what() const noexcept override { return _what.c_str(); }
+  [[nodiscard]] auto what() const noexcept -> const char * override {
+    return _what.c_str();
+  }
 
 private:
   std::string _what;
@@ -77,7 +83,7 @@ private:
  */
 class cli_option_help : public cli_option_exception {
 public:
-  const char *what() const noexcept override {
+  [[nodiscard]] auto what() const noexcept -> const char * override {
     return "Found help on the command line";
   }
 };
@@ -105,14 +111,14 @@ public:
       _required{false},
       _argument{argument} {}
 
-  bool has_argument() const { return _argument; }
+  [[nodiscard]] auto has_argument() const -> bool { return _argument; }
 
-  cli_option_t &required() {
+  auto required() -> cli_option_t & {
     _required = true;
     return *this;
   }
 
-  const char *name() const { return _name; }
+  [[nodiscard]] auto name() const -> const char * { return _name; }
 
   void consume(const char *o) {
     _optarg = o;
@@ -121,13 +127,15 @@ public:
 
   void set_flag() { _opt_val = true; }
 
-  bool initialized() const { return _opt_val.has_value(); }
+  [[nodiscard]] auto initialized() const -> bool {
+    return _opt_val.has_value();
+  }
 
   /**
    * Gets the value from a CLI option. Templated because the type of the
    * argument isn't known at runtime (in this version).
    */
-  template <typename T> T value() {
+  template <typename T> auto value() -> T {
     if (!initialized()) {
       throw cli_option_not_initialized{
           std::string("Did not find a value for ") + _name};
@@ -139,7 +147,7 @@ public:
    * Gets the value from a CLI option, but with a default value. Templated
    * because the type of the value is not known at runtime.
    */
-  template <typename T> T value(const T &default_value) {
+  template <typename T> auto value(const T &default_value) -> T {
     if (!initialized()) { return default_value; }
     return std::any_cast<T>(_opt_val);
   }
@@ -150,7 +158,7 @@ public:
    * @param align Controls the gap between the options and help text. Behaves
    * like a "tab stop".
    */
-  std::string help(size_t align = 20) const {
+  [[nodiscard]] auto help(size_t align = 20) const -> std::string {
     std::stringstream oss;
     oss << "--" << _name;
 
@@ -203,38 +211,42 @@ private:
 };
 
 template <typename T>
-cli_option_t option_with_argument(const char *name, const char *desc) {
+auto option_with_argument(const char *name, const char *desc) -> cli_option_t {
   return cli_option_t{name, desc, true, [](const char *o) -> T { return {o}; }};
 }
 
 template <>
-cli_option_t option_with_argument<std::string>(const char *name,
-                                               const char *desc) {
+auto option_with_argument<std::string>(const char *name, const char *desc)
+    -> cli_option_t {
   return cli_option_t{
       name, desc, true, [](const char *o) -> std::string { return {o}; }};
 }
 
 template <>
-cli_option_t option_with_argument<double>(const char *name, const char *desc) {
+auto option_with_argument<double>(const char *name, const char *desc)
+    -> cli_option_t {
   return cli_option_t{
       name, desc, true, [](const char *o) -> double { return std::stod(o); }};
 }
 
 template <>
-cli_option_t option_with_argument<size_t>(const char *name, const char *desc) {
+auto option_with_argument<size_t>(const char *name, const char *desc)
+    -> cli_option_t {
   return cli_option_t{
       name, desc, true, [](const char *o) -> size_t { return std::stoull(o); }};
 }
 
 template <>
-cli_option_t option_with_argument<unsigned long long>(const char *name,
-                                                      const char *desc) {
+auto option_with_argument<unsigned long long>(const char *name,
+                                              const char *desc)
+    -> cli_option_t {
   return cli_option_t{
       name, desc, true, [](const char *o) -> size_t { return std::stoull(o); }};
 }
 
 template <>
-cli_option_t option_with_argument<bool>(const char *name, const char *desc) {
+auto option_with_argument<bool>(const char *name, const char *desc)
+    -> cli_option_t {
   return cli_option_t{name, desc, true, [](const char *o) -> bool {
                         std::string arg(o);
                         std::transform(arg.begin(),
@@ -248,7 +260,7 @@ cli_option_t option_with_argument<bool>(const char *name, const char *desc) {
                       }};
 }
 
-static cli_option_t option_flag(const char *name, const char *desc) {
+static auto option_flag(const char *name, const char *desc) -> cli_option_t {
   return cli_option_t{
       name,
       desc,
@@ -293,8 +305,9 @@ static cli_option_t args[] = {
 class cli_options_t {
 public:
   cli_options_t() = delete;
-  cli_options_t(int argc, char **argv) {
-    _option_count = sizeof(args) / sizeof(cli_option_t);
+  cli_options_t(int argc, char **argv) :
+      _option_count(sizeof(args) / sizeof(cli_option_t)) {
+
     for (int i = 1; i < argc; ++i) {
       const char *cur_arg = argv[i];
       debug_print(EMIT_LEVEL_DEBUG, "working on argument: %s", cur_arg);
@@ -304,10 +317,7 @@ public:
       }
       cur_arg    = cur_arg + 2;
       bool found = false;
-      if (strcmp(cur_arg, "help") == 0) {
-        std::cout << help();
-        throw cli_option_help{};
-      }
+      if (strcmp(cur_arg, "help") == 0) { throw cli_option_help{}; }
       for (size_t k = 0; k < _option_count; ++k) {
         if (strcmp(cur_arg, args[k].name()) != 0) { continue; }
         found = true;
@@ -339,18 +349,18 @@ public:
    * @param key The CLI option, as a string. No preceding characters (such as
    * '--').
    */
-  cli_option_t &operator[](const std::string &key) {
+  auto operator[](const std::string &key) -> cli_option_t & {
     return *_opt_vals.at(key);
   }
 
-  cli_option_t operator[](const std::string &key) const {
+  auto operator[](const std::string &key) const -> cli_option_t {
     return *_opt_vals.at(key);
   }
 
-  static std::string help() {
+  static auto help() -> std::string {
     std::stringstream oss;
     oss << "Help:\n";
-    for (auto a : args) { oss << "  " << a.help() << std::endl; }
+    for (const auto &a : args) { oss << "  " << a.help() << std::endl; }
     return oss.str();
   }
 

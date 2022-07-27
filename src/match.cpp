@@ -5,8 +5,8 @@
 /**
  * Generate a boostrapped version of the list of matches.
  */
-auto generate_bootstrap(const std::vector<match_t> &matches,
-                                        uint64_t                    seed) -> std::vector<match_t> {
+auto generate_bootstrap(const std::vector<match_t> &matches, uint64_t seed)
+    -> std::vector<match_t> {
   std::vector<match_t> bs_matches;
   bs_matches.reserve(matches.size());
   std::mt19937                          gen(seed);
