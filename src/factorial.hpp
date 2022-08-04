@@ -35,6 +35,15 @@ constexpr inline auto factorial(uint64_t i) -> double {
   return f;
 }
 
+constexpr inline auto log_factorial(size_t i) -> double {
+  if (i < factorial_table_size) { return std::log(factorial_table.at(i)); }
+  double f = std::log(factorial_table[factorial_table_size - 1]);
+  for (size_t k = factorial_table_size; k <= i; ++k) {
+    f += std::log(static_cast<double>(k));
+  }
+  return f;
+}
+
 /**
  * Computes C(n,i) using the accelerated `factorial` function
  */

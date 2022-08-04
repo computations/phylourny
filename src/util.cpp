@@ -225,10 +225,9 @@ auto gamma_prior(const params_t &params) -> double {
   return prob;
 }
 
-auto uniform_prior(const params_t & /*params*/) -> double { return 1.0; }
+auto uniform_prior(const params_t &params) -> double { return 1.0; }
 
 auto normal_prior(const params_t &params) -> double {
-
   constexpr double mu     = 0.0;
   constexpr double sigma  = 1.0;
   const double     denom1 = std::sqrt(2 * 3.14159265359);

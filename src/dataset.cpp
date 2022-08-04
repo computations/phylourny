@@ -1,6 +1,7 @@
 #include "dataset.hpp"
 
 #include "debug.h"
+#include "factorial.hpp"
 #include "match.hpp"
 #include "util.hpp"
 #include <cmath>
@@ -72,6 +73,7 @@ auto poisson_likelihood_model_t::log_likelihood(const params_t &team_strs) const
 #pragma omp parallel for
 #endif
   for (const auto &m : _matches) {
+    /*
     double param1 = NAN;
     double param2 = NAN;
     param1        = team_strs[m.l_team];
@@ -85,11 +87,25 @@ auto poisson_likelihood_model_t::log_likelihood(const params_t &team_strs) const
 
     double term_r = std::pow(lambda_r, m.r_goals) / factorial(m.r_goals) *
                     std::exp(-lambda_r);
+    */
 
+    double param1 = team_strs[m.l_team];
+    double param2 = team_strs[m.r_team];
+
+    double log_lambda_l = param1 - param2;
+    double log_lambda_r = param2 - param1;
+
+    double term_l = log_lambda_l * m.l_goals - log_factorial(m.l_goals) -
+                    std::exp(-log_lambda_l);
+    double term_r = log_lambda_r * m.r_goals - log_factorial(m.r_goals) -
+                    std::exp(log_lambda_r);
+
+    double term = term_l + term_r;
+    assert_string(!std::isnan(term), "Term computed is nan");
 #ifdef _OPENMP
 #pragma omp critical
 #endif
-    llh += std::log(term_r * term_l);
+    llh += term;
   }
 
   assert_string(!std::isnan(llh), "LH computed is NaN");

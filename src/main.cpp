@@ -228,7 +228,7 @@ static auto get_lh_model(const cli_options_t        &cli_options,
         std::make_unique<poisson_likelihood_model_t>(
             poisson_likelihood_model_t(matches));
     auto update_func = update_poission_model_factory(1.0);
-    return std::make_tuple(std::move(lhm), update_func, normal_prior);
+    return std::make_tuple(std::move(lhm), update_func, gamma_prior);
   }
   debug_string(EMIT_LEVEL_IMPORTANT, "Using the simple likelihood model");
   std::unique_ptr<likelihood_model_t> lhm =
