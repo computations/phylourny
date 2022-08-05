@@ -46,7 +46,7 @@ public:
       throw std::runtime_error{"Iters should be greater than 0"};
     }
 
-    params_t params(_lh_model->param_count(), 0.5);
+    params_t params(_lh_model->param_count(), -0.5);
     params_t temp_params{params};
     _samples.clear();
     _samples.reserve(iters);
@@ -54,6 +54,8 @@ public:
     std::uniform_real_distribution<> coin(0.0, 1.0);
 
     // params = update_func(params, gen);
+
+    size_t successes = 0;
 
     double cur_lh = _lh_model->log_likelihood(params);
     for (size_t i = 0; _samples.size() < iters; ++i) {
@@ -63,20 +65,26 @@ public:
       double next_lh = _lh_model->log_likelihood(temp_params);
       debug_print(
           EMIT_LEVEL_DEBUG, "tmp_params: %s", to_string(temp_params).c_str());
-      debug_print(EMIT_LEVEL_DEBUG,
-                  "next_lh : %f, cur_lh:%f, acceptance ratio: %f",
-                  next_lh,
-                  cur_lh,
-                  next_lh / cur_lh);
       if (std::isnan(next_lh)) { throw std::runtime_error("next_lh is nan"); }
 
       double prior_ratio = prior(temp_params) / prior(params);
 
+      debug_print(
+          EMIT_LEVEL_DEBUG,
+          "next_lh : %f, cur_lh:%f, prior ratio: %f, acceptance ratio: %f",
+          next_lh,
+          cur_lh,
+          prior_ratio,
+          std::exp(next_lh - cur_lh) * prior_ratio);
+
       if (coin(gen) < std::exp(next_lh - cur_lh) * prior_ratio) {
         std::swap(next_lh, cur_lh);
         std::swap(temp_params, params);
+        successes += 1;
       }
-      if (coin(gen) < sample_prob) { record_sample(params, cur_lh, iters); }
+      if (coin(gen) < sample_prob) {
+        record_sample(params, cur_lh, successes, i, iters);
+      }
     }
   }
 
@@ -85,13 +93,18 @@ public:
 private:
   vector_t run_simulation(const params_t & /*params*/);
 
-  void record_sample(const params_t &params, double llh, size_t iters) {
+  void record_sample(const params_t &params,
+                     double          llh,
+                     size_t          successes,
+                     size_t          trials,
+                     size_t          iters) {
     result_t r{run_simulation(params), params, llh};
     _samples.emplace_back(r);
     if (_samples.size() % 1000 == 0) {
       debug_print(EMIT_LEVEL_PROGRESS,
-                  "%lu samples, ETC: %.2fh",
+                  "%lu samples, ratio: %f, ETC: %.2fh",
                   _samples.size(),
+                  static_cast<double>(successes) / trials,
                   progress_macro(_samples.size(), iters));
     }
   }

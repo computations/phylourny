@@ -168,18 +168,19 @@ auto update_win_probs(const params_t &params, random_engine_t &gen)
 auto skellam_pmf(int k, double u1, double u2) -> double {
   double           p       = 0.0;
   constexpr double epsilon = std::numeric_limits<double>::epsilon();
+  double           factor  = std::exp(-(u1 + u2));
 
   for (int i = std::max(0, -k);; ++i) {
     double numerator   = std::pow(u1, k + i) * std::pow(u2, i);
     double denominator = factorial(static_cast<uint64_t>(i)) *
                          factorial(static_cast<uint64_t>(k + i));
 
-    double total = numerator / denominator;
+    double total = numerator / denominator * factor;
     p += total;
-    if (total < epsilon) { break; }
+    if (total < epsilon || p >= 1.0) { break; }
+    assert_string(!std::isnan(p), "skellam pmf computation failed");
   }
-  double factor = std::exp(-(u1 + u2));
-  return p * factor;
+  return p;
 }
 
 auto skellam_cmf(int k, double u1, double u2) -> double {
@@ -190,9 +191,11 @@ auto skellam_cmf(int k, double u1, double u2) -> double {
   for (int i = k;; --i) {
     double total = skellam_pmf(i, u1, u2);
     p += total;
-    if (total < epsilon && total < last) { break; }
+    if (total < epsilon && total <= last) { break; }
+    if (p >= 1.0) { break; }
     last = total;
   }
+  p = phylourny_prob_clamp(p);
   return p;
 }
 

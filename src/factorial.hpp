@@ -27,6 +27,7 @@ constexpr std::array<double, factorial_table_size> factorial_table = {
  * Compute a factorial. Uses a lookup table to accelerate computation.
  */
 constexpr inline auto factorial(uint64_t i) -> double {
+  if (i > 170) { return INFINITY; }
   if (i < factorial_table_size) { return factorial_table.at(i); }
   double f = factorial_table[factorial_table_size - 1];
   for (size_t k = factorial_table_size; k <= i; ++k) {
