@@ -11,6 +11,7 @@ add_library(phylourny_lib
     tournament_factory.cpp
     single_node.cpp
     simulation_node.cpp
+    mcmc.cpp
 )
 
 add_executable(phylourny
