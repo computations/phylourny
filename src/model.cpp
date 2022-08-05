@@ -4,7 +4,9 @@
 #include "factorial.hpp"
 #include "match.hpp"
 #include "util.hpp"
+#include <algorithm>
 #include <cmath>
+#include <limits>
 #include <numeric>
 #ifdef _OPENMP
 #include <omp.h>
@@ -96,7 +98,7 @@ auto poisson_likelihood_model_t::log_likelihood(const params_t &team_strs) const
     double log_lambda_r = param2 - param1;
 
     double term_l = log_lambda_l * m.l_goals - log_factorial(m.l_goals) -
-                    std::exp(-log_lambda_l);
+                    std::exp(log_lambda_l);
     double term_r = log_lambda_r * m.r_goals - log_factorial(m.r_goals) -
                     std::exp(log_lambda_r);
 
@@ -108,7 +110,8 @@ auto poisson_likelihood_model_t::log_likelihood(const params_t &team_strs) const
     llh += term;
   }
 
-  assert_string(!std::isnan(llh), "LH computed is NaN");
+  assert_string(!std::isnan(llh), "LLH computed is NaN");
+  assert_string(llh <= 0.0, "LLH is positive");
   return llh;
 }
 
@@ -143,15 +146,18 @@ auto poisson_likelihood_model_t::generate_win_probs(
       double param1 = params[i];
       double param2 = params[j];
 
-      double lamda1 = std::exp(param1 - param2);
-      double lamda2 = std::exp(param2 - param1);
+      double lambda1 = std::exp(param1 - param2);
+      double lambda2 = std::exp(param2 - param1);
 
-      double t1_prob  = skellam_cmf(-1, lamda2, lamda1);
-      double tie_prob = skellam_pmf(0, lamda2, lamda1);
+      double t1_prob  = skellam_cmf(-1, lambda2, lambda1);
+      double tie_prob = skellam_pmf(0, lambda2, lambda1);
       double t2_prob  = 1 - t1_prob - tie_prob;
 
       t1_prob += tie_prob / 2.0;
       t2_prob += tie_prob / 2.0;
+
+      t1_prob = phylourny_prob_clamp(t1_prob);
+      t2_prob = phylourny_prob_clamp(t2_prob);
 
       assert_string(t1_prob <= 1.0,
                     "Generated probabilities are not well formed");

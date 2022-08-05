@@ -69,8 +69,16 @@ auto update_poission_model_factory(double sigma)
 auto skellam_pmf(int k, double u1, double u2) -> double;
 auto skellam_cmf(int k, double u1, double u2) -> double;
 
-auto gamma_prior(const params_t &) -> double;
+auto gamma_prior_factory(double alpha, double beta)
+    -> std::function<double(const params_t &)>;
+auto beta_prior_factory(double alpha, double beta)
+    -> std::function<double(const params_t &)>;
+auto normal_prior_factory(const params_t &)
+    -> std::function<double(const params_t &)>;
+auto invgamma_prior_factory(double alpha, double beta)
+    -> std::function<double(const params_t &)>;
 auto uniform_prior(const params_t &) -> double;
-auto normal_prior(const params_t &) -> double;
+
+auto phylourny_prob_clamp(const double x) -> double;
 
 #endif // UTIL_HPP

@@ -217,32 +217,72 @@ auto update_poission_model_factory(double sigma)
   return l;
 }
 
-auto gamma_prior(const params_t &params) -> double {
-  constexpr double alpha = 1.0;
-  constexpr double beta  = 1.0;
-  double           prob  = 1.0;
-  for (double par : params) {
-    prob *= std::pow(beta, alpha) * std::pow(par, alpha - 1) *
-            std::exp(-beta * par) / std::tgamma(alpha);
-  }
-  return prob;
+auto gamma_prior_factory(double alpha, double beta)
+    -> std::function<double(const params_t &)> {
+  return [alpha, beta](const params_t &params) -> double {
+    double prob = 1.0;
+    for (double par : params) {
+      prob *= std::pow(beta, alpha) * std::pow(par, alpha - 1) *
+              std::exp(-beta * par) / std::tgamma(alpha);
+    }
+    return prob;
+  };
 }
 
-auto uniform_prior(const params_t &params) -> double { return 1.0; }
+auto invgamma_prior_factory(double alpha, double beta)
+    -> std::function<double(const params_t &)> {
+  return [alpha, beta](const params_t &params) -> double {
+    double prob = 1.0;
+    for (double par : params) {
+      prob *= std::pow(beta, alpha) * std::pow(par, -alpha - 1) *
+              std::exp(-beta / par) / std::tgamma(alpha);
+    }
+    return prob;
+  };
+}
 
-auto normal_prior(const params_t &params) -> double {
-  constexpr double mu     = 0.0;
-  constexpr double sigma  = 1.0;
-  const double     denom1 = std::sqrt(2 * 3.14159265359);
+auto uniform_prior(const params_t &params) -> double {
+  (void)params;
+  return 1.0;
+}
 
-  double p = 1.0;
-  for (auto param : params) {
+auto normal_prior_factory(double mu, double sigma)
+    -> std::function<double(const params_t &)> {
 
-    double exponent = ((param - mu) / sigma);
-    exponent *= exponent;
-    exponent *= -0.5;
-    p *= 1 / (sigma * denom1) * std::exp(exponent);
+  return [mu, sigma](const params_t &params) {
+    const double denom1 = std::sqrt(2 * 3.14159265359);
+
+    double p = 1.0;
+    for (auto param : params) {
+
+      double exponent = ((param - mu) / sigma);
+      exponent *= exponent;
+      exponent *= -0.5;
+      p *= 1 / (sigma * denom1) * std::exp(exponent);
+    }
+
+    return p;
+  };
+}
+
+auto beta_prior_factory(double alpha, double beta)
+    -> std::function<double(const params_t &)> {
+  return [alpha, beta](const params_t &params) {
+    double prob = 1.0;
+    for (auto &p : params) {
+      double num = std::pow(p, alpha - 1) * std::pow(1 - p, beta - 1);
+      double den = std::beta(alpha, beta);
+      prob *= num / den;
+    }
+    return prob;
+  };
+}
+
+auto phylourny_prob_clamp(const double x) -> double {
+
+  if (0.0 > x || x > 1.0) {
+    debug_print(
+        EMIT_LEVEL_DEBUG, "Clamping a probability, original value %f", x);
   }
-
-  return p;
+  return std::clamp(x, 0.0, 1.0);
 }

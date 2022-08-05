@@ -39,8 +39,8 @@ TEST_CASE("sampler_t simple case", "[sampler_t]") {
       SECTION("Running the chain") {
         s.run_chain(100,
                     static_cast<uint64_t>(rand() % 3),
-                    update_poission_model_factory(0.5),
-                    gamma_prior);
+                    update_poission_model_factory(0.1),
+                    uniform_prior);
         auto r = s.report();
         CHECK(r.size() > 0);
         CHECK(r.size() <= 100);

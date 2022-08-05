@@ -46,7 +46,7 @@ public:
       throw std::runtime_error{"Iters should be greater than 0"};
     }
 
-    params_t params(_lh_model->param_count(), -0.5);
+    params_t params(_lh_model->param_count(), 0.5);
     params_t temp_params{params};
     _samples.clear();
     _samples.reserve(iters);
