@@ -11,6 +11,7 @@ parser.add_argument("--csv", type=str, required=True)
 parser.add_argument("--field", type=str, required=True)
 parser.add_argument("--output", type=str, required=True)
 parser.add_argument("--percentile", type=float, default=99.9)
+parser.add_argument("--size", nargs="+", default=[9, 5], type=float)
 args = parser.parse_args()
 
 df = pandas.read_csv(args.csv)
@@ -40,7 +41,8 @@ fig = seaborn.boxplot(
     y="team",
     palette="deep",
     order=sorted_teams,
-    showfliers=False,
+    showfliers=True,
+    fliersize=2.5,
 )
-fig.figure.set_size_inches(10, 5)
-fig.figure.savefig(args.output, bbox_inches="tight")
+fig.figure.set_size_inches(*args.size)
+fig.figure.savefig(args.output, bbox_inches="tight", dpi=1000)
