@@ -3,7 +3,7 @@ add_executable(phylourny_test
     main.cpp
     util.cpp
     tournament.cpp
-    dataset.cpp
+    model.cpp
     sampler.cpp
     single.cpp
     simulation.cpp

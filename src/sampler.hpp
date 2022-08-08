@@ -1,7 +1,7 @@
 #ifndef SAMPLER_HPP
 #define SAMPLER_HPP
 
-#include "dataset.hpp"
+#include "model.hpp"
 #include "debug.h"
 #include "summary.hpp"
 #include "tournament_node.hpp"

@@ -1,7 +1,7 @@
 #ifndef SUMMARY_HPP
 #define SUMMARY_HPP
 
-#include "dataset.hpp"
+#include "model.hpp"
 #include "tournament.hpp"
 #include <ostream>
 #include <stdexcept>

@@ -1,6 +1,6 @@
 #include <catch2/catch_all.hpp>
-#include <dataset.hpp>
 #include <debug.h>
+#include <model.hpp>
 
 TEST_CASE("simple cases",
           "[simple_likelihood_model_t][poisson_likelihood_model_t]") {
