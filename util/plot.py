@@ -22,9 +22,25 @@ if reduced_df.empty:
         "Warning, dataframe is empty after reduction, maybe too high of a percentile?"
     )
 
+teams = reduced_df["team"].unique()
+
+sorted_teams = sorted(
+    teams,
+    key=lambda a: reduced_df.loc[reduced_df.team == a, args.field].median(),
+    reverse=True,
+)
+
+
 # seaborn.set(rc={"figure.figsize": (9, 12)})
 seaborn.set_style("ticks")
 
-fig = seaborn.boxplot(data=reduced_df, x=args.field, y="team", palette="deep")
-fig.figure.set_size_inches(8, 5)
+fig = seaborn.boxplot(
+    data=reduced_df,
+    x=args.field,
+    y="team",
+    palette="deep",
+    order=sorted_teams,
+    showfliers=False,
+)
+fig.figure.set_size_inches(10, 5)
 fig.figure.savefig(args.output, bbox_inches="tight")
