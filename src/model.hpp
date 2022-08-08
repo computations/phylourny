@@ -20,7 +20,9 @@ public:
 
   virtual ~likelihood_model_t() = default;
 
-  [[nodiscard]] virtual auto generate_win_probs(const params_t &params) const
+  [[nodiscard]] virtual auto
+  generate_win_probs(const params_t            &params,
+                     const std::vector<size_t> &team_indicies) const
       -> matrix_t = 0;
 };
 
@@ -43,21 +45,23 @@ public:
       -> double override;
 
   [[nodiscard]] auto param_count() const -> size_t override {
-    return (_team_count * (_team_count + 1)) / 2;
+    return (_param_count * (_param_count + 1)) / 2;
   }
 
-  [[nodiscard]] auto generate_win_probs(const params_t &params) const
+  [[nodiscard]] auto
+  generate_win_probs(const params_t            &params,
+                     const std::vector<size_t> &team_indicies) const
       -> matrix_t override;
 
 private:
   std::vector<std::vector<unsigned int>> _win_matrix;
-  size_t                                 _team_count;
+  size_t                                 _param_count;
 };
 
 class poisson_likelihood_model_t final : public likelihood_model_t {
 public:
   explicit poisson_likelihood_model_t(const std::vector<match_t> &matches) :
-      _team_count{count_teams(matches)}, _matches{matches} {}
+      _param_count{count_teams(matches)}, _matches{matches} {}
   ~poisson_likelihood_model_t() override = default;
 
   [[nodiscard]] auto likelihood(const params_t &team_strs) const
@@ -69,14 +73,16 @@ public:
       -> double override;
 
   [[nodiscard]] auto param_count() const -> size_t override {
-    return _team_count;
+    return _param_count;
   }
 
-  [[nodiscard]] auto generate_win_probs(const params_t &params) const
+  [[nodiscard]] auto
+  generate_win_probs(const params_t            &params,
+                     const std::vector<size_t> &team_indicies) const
       -> matrix_t override;
 
 private:
-  size_t               _team_count;
+  size_t               _param_count;
   std::vector<match_t> _matches;
 };
 #endif

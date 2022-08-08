@@ -1,8 +1,8 @@
 #ifndef SAMPLER_HPP
 #define SAMPLER_HPP
 
-#include "model.hpp"
 #include "debug.h"
+#include "model.hpp"
 #include "summary.hpp"
 #include "tournament_node.hpp"
 #include "util.hpp"
@@ -19,7 +19,21 @@
 template <typename T> class sampler_t {
 public:
   sampler_t(std::unique_ptr<likelihood_model_t> &&lhm, tournament_t<T> &&t) :
-      _lh_model{std::move(lhm)}, _tournament{std::move(t)} {}
+      _lh_model{std::move(lhm)}, _tournament{std::move(t)}, _team_indicies{} {}
+
+  void generate_default_team_indicies() {
+    _team_indicies.resize(_tournament.tip_count());
+    for (size_t i = 0; i < _team_indicies.size(); ++i) {
+      _team_indicies[i] = i;
+    }
+  }
+
+  void set_team_indicies(const std::vector<size_t> &ti) {
+    assert_string(
+        ti.size() <= _tournament.tip_count(),
+        "Attempted to team indicies with more entries than tournament tips");
+    _team_indicies = ti;
+  }
 
   [[nodiscard]] auto report() const -> std::vector<result_t> {
     return _samples;
@@ -45,6 +59,8 @@ public:
     if (iters == 0) {
       throw std::runtime_error{"Iters should be greater than 0"};
     }
+
+    if (_team_indicies.empty()) { generate_default_team_indicies(); }
 
     params_t params(_lh_model->param_count(), 0.5);
     params_t temp_params{params};
@@ -112,18 +128,21 @@ private:
   std::unique_ptr<likelihood_model_t> _lh_model;
   tournament_t<T>                     _tournament;
   std::vector<result_t>               _samples;
+  std::vector<size_t>                 _team_indicies;
   size_t                              _simulation_iterations{0};
 };
 
 template <typename T1>
 auto sampler_t<T1>::run_simulation(const params_t &params) -> vector_t {
-  _tournament.reset_win_probs(_lh_model->generate_win_probs(params));
+  _tournament.reset_win_probs(
+      _lh_model->generate_win_probs(params, _team_indicies));
   return _tournament.eval();
 }
 
 template <>
 vector_t sampler_t<simulation_node_t>::run_simulation(const params_t &params) {
-  _tournament.reset_win_probs(_lh_model->generate_win_probs(params));
+  _tournament.reset_win_probs(
+      _lh_model->generate_win_probs(params, _team_indicies));
   return _tournament.eval(_simulation_iterations);
 }
 

@@ -4,8 +4,12 @@
 #include "program_options.hpp"
 #include "sampler.hpp"
 #include "tournament.hpp"
+#include "util.hpp"
 
+#include <algorithm>
 #include <csv.h>
+#include <numeric>
+#include <string>
 #include <vector>
 
 static auto make_dummy_data(size_t team_count, uint64_t seed)
@@ -18,7 +22,6 @@ static auto make_dummy_data(size_t team_count, uint64_t seed)
   std::vector<double> params(team_count);
   std::generate(
       params.begin(), params.end(), [&]() { return team_str_dist(gen); });
-  // for (auto &p : params) { p = team_str_dist(gen); }
 
   debug_print(
       EMIT_LEVEL_IMPORTANT, "Team strengths are %s", to_json(params).c_str());
@@ -88,10 +91,25 @@ static auto parse_odds_file(const std::string     &odds_filename,
   return odds;
 }
 
-static auto parse_match_file(const std::string     &match_filename,
-                             const team_name_map_t &name_map)
+static auto find_or_insert(team_name_map_t   &name_map,
+                           const std::string &team_name,
+                           size_t            &next_index) -> size_t {
+  auto it = name_map.find(team_name);
+  if (it != name_map.end()) { return it->second; }
+
+  name_map[team_name] = next_index;
+  size_t tmp          = next_index;
+  next_index += 1;
+  return tmp;
+}
+
+static auto parse_match_file(const std::string &match_filename,
+                             team_name_map_t   &name_map)
     -> std::vector<match_t> {
   std::vector<match_t> match_history;
+
+  size_t next_index = 0;
+  for (auto &kv : name_map) { next_index = std::max(next_index, kv.second); }
 
   io::CSVReader<4> match_file(match_filename);
   match_file.read_header(
@@ -101,8 +119,8 @@ static auto parse_match_file(const std::string     &match_filename,
   size_t      team1_goals = 0;
   size_t      team2_goals = 0;
   while (match_file.read_row(team1, team2, team1_goals, team2_goals)) {
-    size_t index1 = name_map.at(team1);
-    size_t index2 = name_map.at(team2);
+    size_t index1 = find_or_insert(name_map, team1, next_index);
+    size_t index2 = find_or_insert(name_map, team2, next_index);
     match_history.push_back({index1,
                              index2,
                              team1_goals,
@@ -139,11 +157,13 @@ static auto parse_prob_files(const std::string     &probs_filename,
   return win_probs;
 }
 
-static void write_summary(const summary_t   &summary,
-                          const std::string &output_prefix,
-                          const std::string &output_infix,
-                          const std::string &output_suffix,
-                          size_t             burnin_samples) {
+static void write_summary(const summary_t                &summary,
+                          const team_name_map_t          &name_map,
+                          const std::vector<std::string> &teams,
+                          const std::string              &output_prefix,
+                          const std::string              &output_infix,
+                          const std::string              &output_suffix,
+                          size_t                          burnin_samples) {
   std::ofstream outfile(output_prefix + output_infix + ".samples" +
                         output_suffix);
   summary.write_samples(outfile, 0, 1);
@@ -155,6 +175,39 @@ static void write_summary(const summary_t   &summary,
   std::ofstream mmpp_outfile(output_prefix + output_infix + ".mmpp" +
                              output_suffix);
   summary.write_mmpp(mmpp_outfile, burnin_samples);
+
+  std::ofstream team_map_outfile(output_prefix + output_infix + ".teams" +
+                                 output_suffix);
+
+  team_map_outfile << "{\"team-name-map\":{";
+
+  std::vector<std::string> json_entries;
+  json_entries.resize(name_map.size());
+
+  std::transform(name_map.begin(),
+                 name_map.end(),
+                 json_entries.begin(),
+                 [](const auto &kv) -> std::string {
+                   return "\"" + kv.first + "\":" + std::to_string(kv.second);
+                 });
+
+  std::string name_map_json_array = std::accumulate(
+      std::next(json_entries.begin()),
+      json_entries.end(),
+      *json_entries.begin(),
+      [](const std::string &acc, const std::string &entry) -> std::string {
+        return acc + "," + entry;
+      });
+  team_map_outfile << name_map_json_array;
+  team_map_outfile << "},\n";
+
+  team_map_outfile << "\"tournament-teams\":[";
+  for (size_t i = 0; i < teams.size(); ++i) {
+    team_map_outfile << "\"" << teams[i] << "\"";
+    if (i != teams.size() - 1) { team_map_outfile << ","; }
+    team_map_outfile << "";
+  }
+  team_map_outfile << "]}";
 }
 
 static auto get_lh_model(const program_options_t    &program_options,
@@ -167,8 +220,8 @@ static auto get_lh_model(const program_options_t    &program_options,
     std::unique_ptr<likelihood_model_t> lhm =
         std::make_unique<poisson_likelihood_model_t>(
             poisson_likelihood_model_t(matches));
-    auto update_func = update_poission_model_factory(1.0);
-    return std::make_tuple(std::move(lhm), update_win_probs, uniform_prior);
+    auto update_func = update_win_probs;
+    return std::make_tuple(std::move(lhm), update_func, uniform_prior);
   }
   debug_string(EMIT_LEVEL_IMPORTANT, "Using the simple likelihood model");
   std::unique_ptr<likelihood_model_t> lhm =
@@ -241,10 +294,19 @@ void compute_tournament(const program_options_t &program_options) {
   }
 }
 
+auto make_team_indicies(const team_name_map_t          &name_map,
+                        const std::vector<std::string> &teams)
+    -> std::vector<size_t> {
+  std::vector<size_t> team_indicies;
+  for (const auto &name : teams) { team_indicies.push_back(name_map.at(name)); }
+  return team_indicies;
+}
+
 void mcmc_run(const program_options_t &program_options) {
   auto team_name_map = create_name_map(program_options.teams);
 
   std::vector<match_t> matches;
+  std::vector<size_t>  team_indicies;
   if (program_options.input_formats.matches_filename.has_value()) {
     if (program_options.input_formats.dummy) {
       debug_string(EMIT_LEVEL_IMPORTANT, "Making dummy data");
@@ -254,6 +316,7 @@ void mcmc_run(const program_options_t &program_options) {
       matches = parse_match_file(
           program_options.input_formats.matches_filename.value(),
           team_name_map);
+      team_indicies = make_team_indicies(team_name_map, program_options.teams);
     }
   }
 
@@ -269,6 +332,7 @@ void mcmc_run(const program_options_t &program_options) {
         get_lh_model(program_options, matches);
     sampler_t<single_node_t> sampler{
         std::move(lhm), tournament_factory_single(program_options.teams)};
+    sampler.set_team_indicies(team_indicies);
 
     debug_string(EMIT_LEVEL_PROGRESS, "Running MCMC sampler (Single Mode)");
     sampler.run_chain(
@@ -276,6 +340,8 @@ void mcmc_run(const program_options_t &program_options) {
     auto summary = sampler.summary();
 
     write_summary(summary,
+                  team_name_map,
+                  program_options.teams,
                   output_prefix,
                   std::string{".single"},
                   output_suffix,
@@ -287,6 +353,7 @@ void mcmc_run(const program_options_t &program_options) {
         get_lh_model(program_options, matches);
     sampler_t<tournament_node_t> sampler{
         std::move(lhm), tournament_factory(program_options.teams)};
+    sampler.set_team_indicies(team_indicies);
 
     debug_string(EMIT_LEVEL_PROGRESS, "Running MCMC sampler (Dynamic Mode)");
     sampler.run_chain(
@@ -294,6 +361,8 @@ void mcmc_run(const program_options_t &program_options) {
     auto summary = sampler.summary();
 
     write_summary(summary,
+                  team_name_map,
+                  program_options.teams,
                   output_prefix,
                   std::string{".dynmic"},
                   output_suffix,
@@ -305,6 +374,7 @@ void mcmc_run(const program_options_t &program_options) {
         get_lh_model(program_options, matches);
     sampler_t<simulation_node_t> sampler{
         std::move(lhm), tournament_factory_simulation(program_options.teams)};
+    sampler.set_team_indicies(team_indicies);
 
     sampler.set_simulation_iterations(
         program_options.simulation_options.samples);
@@ -314,6 +384,8 @@ void mcmc_run(const program_options_t &program_options) {
         mcmc_samples, program_options.seed, update_func, prior_func);
     auto summary = sampler.summary();
     write_summary(summary,
+                  team_name_map,
+                  program_options.teams,
                   output_prefix,
                   std::string{".sim"},
                   output_suffix,

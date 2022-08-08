@@ -18,11 +18,11 @@
  */
 simple_likelihood_model_t::simple_likelihood_model_t(
     const std::vector<match_t> &matches) :
-    _team_count(count_teams(matches)) {
+    _param_count(count_teams(matches)) {
 
-  _win_matrix.reserve(_team_count);
-  for (size_t i = 0; i < _team_count; ++i) {
-    _win_matrix.emplace_back(_team_count);
+  _win_matrix.reserve(_param_count);
+  for (size_t i = 0; i < _param_count; ++i) {
+    _win_matrix.emplace_back(_param_count);
   }
 
   for (const auto &m : matches) {
@@ -115,14 +115,20 @@ auto poisson_likelihood_model_t::log_likelihood(const params_t &team_strs) const
   return llh;
 }
 
-auto simple_likelihood_model_t::generate_win_probs(const params_t &params) const
+auto simple_likelihood_model_t::generate_win_probs(
+    const params_t &params, const std::vector<size_t> &team_indicies) const
     -> matrix_t {
   matrix_t wp;
-  wp.reserve(_team_count);
-  for (size_t i = 0; i < _team_count; ++i) { wp.emplace_back(_team_count); }
-  for (size_t i = 0; i < _team_count; ++i) {
-    for (size_t j = i + 1; j < _team_count; ++j) {
-      double w = params[i] / (params[i] + params[j]);
+  wp.reserve(team_indicies.size());
+  for (size_t i = 0; i < team_indicies.size(); ++i) {
+    wp.emplace_back(team_indicies.size());
+  }
+  for (size_t i = 0; i < team_indicies.size(); ++i) {
+    for (size_t j = i + 1; j < team_indicies.size(); ++j) {
+      size_t team1_index = team_indicies[i];
+      size_t team2_index = team_indicies[j];
+      double w =
+          params[team1_index] / (params[team1_index] + params[team2_index]);
       assert_string(w <= 1.0, "Win prob is well formed");
       assert_string(w >= 0.0, "Win prob is well formed");
       wp[i][j] = w;
@@ -133,18 +139,23 @@ auto simple_likelihood_model_t::generate_win_probs(const params_t &params) const
 }
 
 auto poisson_likelihood_model_t::generate_win_probs(
-    const params_t &params) const -> matrix_t {
+    const params_t &params, const std::vector<size_t> &team_indicies) const
+    -> matrix_t {
   matrix_t wp;
-  wp.reserve(_team_count);
-  for (size_t i = 0; i < _team_count; ++i) { wp.emplace_back(_team_count); }
+  wp.reserve(team_indicies.size());
+  for (size_t i = 0; i < team_indicies.size(); ++i) {
+    wp.emplace_back(team_indicies.size());
+  }
 
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-  for (size_t i = 0; i < _team_count; i++) {
-    for (size_t j = i + 1; j < _team_count; j++) {
-      double param1 = params[i];
-      double param2 = params[j];
+  for (size_t i = 0; i < team_indicies.size(); i++) {
+    for (size_t j = i + 1; j < team_indicies.size(); j++) {
+      double team1_index = team_indicies[i];
+      double team2_index = team_indicies[j];
+      double param1      = params[team1_index];
+      double param2      = params[team2_index];
 
       double lambda1 = std::exp(param1 - param2);
       double lambda2 = std::exp(param2 - param1);
