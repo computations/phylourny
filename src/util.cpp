@@ -154,13 +154,33 @@ auto compute_base26(size_t i) -> std::string {
   return ret;
 }
 
-auto update_win_probs(const params_t &params, random_engine_t &gen)
+auto update_win_probs_uniform(const params_t &params, random_engine_t &gen)
     -> params_t {
   params_t temp_params{params};
   for (size_t j = 0; j < params.size(); ++j) {
     auto [a, b] = make_ab(params[j], 5);
     beta_distribution<double> bd(a, b);
     temp_params[j] = bd(gen);
+  }
+  return temp_params;
+}
+
+auto update_win_probs_beta_with_scale(const params_t  &params,
+                                      random_engine_t &gen) -> params_t {
+  std::uniform_int_distribution<size_t> picker(0, params.size() - 1);
+  params_t                              temp_params{params};
+  size_t                                index = picker(gen);
+
+  if (index == temp_params.size() - 1) {
+    constexpr double                 mu    = 0.0;
+    constexpr double                 sigma = 0.1;
+    std::normal_distribution<double> nd(mu, sigma);
+    temp_params[index] += nd(gen);
+  } else {
+    constexpr double          alpha = 1.5;
+    constexpr double          beta  = 1.5;
+    beta_distribution<double> bd(alpha, beta);
+    temp_params[index] = bd(gen);
   }
   return temp_params;
 }

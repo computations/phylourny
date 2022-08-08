@@ -61,7 +61,7 @@ private:
 class poisson_likelihood_model_t final : public likelihood_model_t {
 public:
   explicit poisson_likelihood_model_t(const std::vector<match_t> &matches) :
-      _param_count{count_teams(matches)}, _matches{matches} {}
+      _param_count{count_teams(matches) + 1}, _matches{matches} {}
   ~poisson_likelihood_model_t() override = default;
 
   [[nodiscard]] auto likelihood(const params_t &team_strs) const

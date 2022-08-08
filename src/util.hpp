@@ -62,7 +62,10 @@ constexpr inline auto make_ab(double median, double k)
   return std::make_pair(a, b);
 }
 
-auto update_win_probs(const params_t &params, random_engine_t &gen) -> params_t;
+auto update_win_probs_uniform(const params_t &params, random_engine_t &gen)
+    -> params_t;
+auto update_win_probs_beta_with_scale(const params_t  &params,
+                                      random_engine_t &gen) -> params_t;
 auto update_poission_model_factory(double sigma)
     -> std::function<params_t(const params_t &, random_engine_t &)>;
 

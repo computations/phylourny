@@ -91,11 +91,12 @@ auto poisson_likelihood_model_t::log_likelihood(const params_t &team_strs) const
                     std::exp(-lambda_r);
     */
 
-    double param1 = team_strs[m.l_team];
-    double param2 = team_strs[m.r_team];
+    double param1      = team_strs[m.l_team];
+    double param2      = team_strs[m.r_team];
+    double scale_param = team_strs[team_strs.size() - 1];
 
-    double log_lambda_l = param1 - param2;
-    double log_lambda_r = param2 - param1;
+    double log_lambda_l = param1 - param2 + scale_param;
+    double log_lambda_r = param2 - param1 + scale_param;
 
     double term_l = log_lambda_l * m.l_goals - log_factorial(m.l_goals) -
                     std::exp(log_lambda_l);

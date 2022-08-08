@@ -191,6 +191,8 @@ static void write_summary(const summary_t                &summary,
                    return "\"" + kv.first + "\":" + std::to_string(kv.second);
                  });
 
+  json_entries.push_back("\"scale-param\":" + std::to_string(name_map.size()));
+
   std::string name_map_json_array = std::accumulate(
       std::next(json_entries.begin()),
       json_entries.end(),
@@ -220,14 +222,14 @@ static auto get_lh_model(const program_options_t    &program_options,
     std::unique_ptr<likelihood_model_t> lhm =
         std::make_unique<poisson_likelihood_model_t>(
             poisson_likelihood_model_t(matches));
-    auto update_func = update_win_probs;
+    auto update_func = update_win_probs_beta_with_scale;
     return std::make_tuple(std::move(lhm), update_func, uniform_prior);
   }
   debug_string(EMIT_LEVEL_IMPORTANT, "Using the simple likelihood model");
   std::unique_ptr<likelihood_model_t> lhm =
       std::make_unique<simple_likelihood_model_t>(
           simple_likelihood_model_t(matches));
-  auto update_func = update_win_probs;
+  auto update_func = update_win_probs_uniform;
   return std::make_tuple(std::move(lhm), update_func, uniform_prior);
 }
 
