@@ -3,6 +3,7 @@
 #include <cmath>
 #include <cstdint>
 #include <csv.h>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <json.hpp>
@@ -130,6 +131,25 @@ program_options_t create_program_options(const cli_options_t &cli_options) {
   return prog_opts;
 }
 
+void create_results_path(const std::string &results_prefix) {
+  std::filesystem::path results_path = results_prefix;
+  if (results_path.has_filename()) {
+    results_path = results_path.parent_path();
+  }
+
+  auto results_status = std::filesystem::status(results_path);
+  if (std::filesystem::exists(results_status) &&
+      !std::filesystem::is_directory(results_status)) {
+    throw std::runtime_error{"Results path exists and is not a directory"};
+  }
+
+  debug_print(EMIT_LEVEL_IMPORTANT,
+              "Creating directory %s for prefix",
+              results_path.c_str());
+
+  std::filesystem::create_directories(results_path);
+}
+
 auto main(int argc, char **argv) -> int {
   DEBUG_VERBOSITY_LEVEL = EMIT_LEVEL_PROGRESS;
   auto start_time       = std::chrono::high_resolution_clock::now();
@@ -166,6 +186,8 @@ auto main(int argc, char **argv) -> int {
     }
 
     print_run_info(cli_options);
+
+    create_results_path(program_options.output_prefix);
 
     run(program_options);
 
