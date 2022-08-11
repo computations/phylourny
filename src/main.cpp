@@ -95,7 +95,7 @@ mcmc_options_t create_mcmc_options(const cli_options_t &cli_options) {
                                 ? likelihood_model::poisson
                                 : likelihood_model::simple;
   mcmc_options.burnin     = cli_options["burnin"].value(0.1);
-  mcmc_options.samples    = cli_options["samples"].value(10'000'000ul);
+  mcmc_options.samples    = cli_options["samples"].value(100'000ul);
   return mcmc_options;
 }
 

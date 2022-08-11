@@ -3,6 +3,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <string>
 #include <vector>
 
 enum struct match_winner_t {
@@ -24,4 +25,5 @@ auto operator!(match_winner_t mw) -> match_winner_t;
 
 auto generate_bootstrap(const std::vector<match_t> &matches, uint64_t seed)
     -> std::vector<match_t>;
+
 #endif
