@@ -72,7 +72,7 @@ auto poisson_likelihood_model_t::log_likelihood(const params_t &team_strs) const
   double llh = 0.0;
 
 #ifdef _OPENMP
-#pragma omp parallel for
+#pragma omp parallel for reduction(+ : llh)
 #endif
   for (const auto &m : _matches) {
     /*
@@ -105,9 +105,6 @@ auto poisson_likelihood_model_t::log_likelihood(const params_t &team_strs) const
 
     double term = term_l + term_r;
     assert_string(!std::isnan(term), "Term computed is nan");
-#ifdef _OPENMP
-#pragma omp critical
-#endif
     llh += term;
   }
 
