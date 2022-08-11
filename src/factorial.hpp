@@ -7,9 +7,10 @@
 #include <cstddef>
 #include <cstdint>
 
-constexpr size_t factorial_table_size = 11;
+constexpr size_t factorial_table_size = 14;
 
-constexpr std::array<double, factorial_table_size> factorial_table = {
+// constexpr std::array<double, factorial_table_size> factorial_table = {
+constexpr double factorial_table[] = {
     1,
     1,
     2,
@@ -21,6 +22,9 @@ constexpr std::array<double, factorial_table_size> factorial_table = {
     40320,
     362880,
     3628800,
+    39916800,
+    479001600,
+    6227020800,
 };
 
 /**
@@ -28,7 +32,7 @@ constexpr std::array<double, factorial_table_size> factorial_table = {
  */
 constexpr inline auto factorial(uint64_t i) -> double {
   if (i > 170) { return INFINITY; }
-  if (i < factorial_table_size) { return factorial_table.at(i); }
+  if (i < factorial_table_size) { return factorial_table[i]; }
   double f = factorial_table[factorial_table_size - 1];
   for (size_t k = factorial_table_size; k <= i; ++k) {
     f *= static_cast<double>(k);
@@ -37,7 +41,7 @@ constexpr inline auto factorial(uint64_t i) -> double {
 }
 
 constexpr inline auto log_factorial(size_t i) -> double {
-  if (i < factorial_table_size) { return std::log(factorial_table.at(i)); }
+  if (i < factorial_table_size) { return std::log(factorial_table[i]); }
   double f = std::log(factorial_table[factorial_table_size - 1]);
   for (size_t k = factorial_table_size; k <= i; ++k) {
     f += std::log(static_cast<double>(k));
@@ -55,11 +59,26 @@ constexpr inline auto combinations(uint64_t n, uint64_t i) -> double {
 /**
  * A fast version of pow for integer exponents.
  */
+/*
 constexpr inline auto int_pow(double base, uint64_t k) -> double {
   if (k == 0) { return 1.0; }
+  if (k == 1) { return base; }
   double wpp1 = base;
   for (size_t i = 1; i < k; ++i) { wpp1 *= base; }
   return wpp1;
+}*/
+
+constexpr inline auto int_pow(double base, uint64_t k) -> double {
+  if (k == 0) { return 1.0; }
+  if (k == 1) { return base; }
+  double result = 1.0;
+  for (;;) {
+    if (k & 1) { result *= base; }
+    k >>= 1;
+    if (!k) { break; }
+    base *= base;
+  }
+  return result;
 }
 
 constexpr inline auto bestof_n(double wp1, double wp2, uint64_t n) -> double {
