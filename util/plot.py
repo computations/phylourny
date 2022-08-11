@@ -12,6 +12,9 @@ parser.add_argument("--field", type=str, required=True)
 parser.add_argument("--output", type=str, required=True)
 parser.add_argument("--percentile", type=float, default=99.9)
 parser.add_argument("--size", nargs="+", default=[9, 5], type=float)
+parser.add_argument("--title", type=str)
+parser.add_argument("--x-label", type=str)
+parser.add_argument("--y-label", type=str)
 args = parser.parse_args()
 
 df = pandas.read_csv(args.csv)
@@ -45,4 +48,13 @@ fig = seaborn.boxplot(
     fliersize=2.5,
 )
 fig.figure.set_size_inches(*args.size)
+if not args.title is None:
+    fig.set(title=args.title)
+
+if not args.x_label is None:
+    fig.set(xlabel=args.x_label)
+
+if not args.y_label is None:
+    fig.set(ylabel=args.y_label)
+
 fig.figure.savefig(args.output, bbox_inches="tight", dpi=1000)
