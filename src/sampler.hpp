@@ -47,14 +47,13 @@ public:
     return summary_t{_samples};
   }
 
-  void run_chain(
-      size_t   iters,
-      uint64_t seed,
-      const std::function<params_t(const params_t &, random_engine_t &gen)>
-                                                    &update_func,
-      const std::function<double(const params_t &)> &prior) {
+  void run_chain(size_t                                         iters,
+                 uint64_t                                       seed,
+                 const std::function<std::pair<params_t, double>(
+                     const params_t &, random_engine_t &gen)>  &update_func,
+                 const std::function<double(const params_t &)> &prior) {
 
-    constexpr double sample_prob = 1.0 / 100.0;
+    constexpr size_t waiting_time = 100;
 
     if (iters == 0) {
       throw std::runtime_error{"Iters should be greater than 0"};
@@ -76,7 +75,8 @@ public:
     double cur_lh = _lh_model->log_likelihood(params);
     for (size_t i = 0; _samples.size() < iters; ++i) {
 
-      temp_params = update_func(params, gen);
+      double hastings_ratio;
+      std::tie(temp_params, hastings_ratio) = update_func(params, gen);
 
       double next_lh = _lh_model->log_likelihood(temp_params);
       debug_print(
@@ -85,20 +85,22 @@ public:
 
       double prior_ratio = prior(temp_params) / prior(params);
 
-      debug_print(
-          EMIT_LEVEL_DEBUG,
-          "next_lh : %f, cur_lh:%f, prior ratio: %f, acceptance ratio: %f",
-          next_lh,
-          cur_lh,
-          prior_ratio,
-          std::exp(next_lh - cur_lh) * prior_ratio);
+      debug_print(EMIT_LEVEL_DEBUG,
+                  "next_lh : %f, cur_lh:%f, prior ratio: %f, hastings ratio: "
+                  "%f, acceptance ratio: %f",
+                  next_lh,
+                  cur_lh,
+                  prior_ratio,
+                  hastings_ratio,
+                  std::exp(next_lh - cur_lh) * prior_ratio);
 
-      if (coin(gen) < std::exp(next_lh - cur_lh) * prior_ratio) {
+      if (coin(gen) <
+          std::exp(next_lh - cur_lh) * prior_ratio * hastings_ratio) {
         std::swap(next_lh, cur_lh);
         std::swap(temp_params, params);
         successes += 1;
       }
-      if (coin(gen) < sample_prob) {
+      if (i % waiting_time == 0 && i != 0) {
         record_sample(params, cur_lh, successes, i, iters);
       }
     }

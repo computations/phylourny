@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
 #include <iomanip>
 #include <numeric>
 #include <random>
@@ -154,22 +155,33 @@ auto compute_base26(size_t i) -> std::string {
   return ret;
 }
 
+static inline auto beta_pdf(double alpha, double beta, double x) {
+  double num = std::pow(x, alpha - 1) * std::pow(1 - x, beta - 1);
+  double den = std::beta(alpha, beta);
+  return num / den;
+}
+
 auto update_win_probs_uniform(const params_t &params, random_engine_t &gen)
-    -> params_t {
+    -> std::pair<params_t, double> {
   params_t temp_params{params};
+  double   ratio = 1.0;
   for (size_t j = 0; j < params.size(); ++j) {
     auto [a, b] = make_ab(params[j], 5);
     beta_distribution<double> bd(a, b);
-    temp_params[j] = bd(gen);
+    double                    new_param = bd(gen);
+    temp_params[j]                      = new_param;
+    ratio *= beta_pdf(a, b, new_param);
   }
-  return temp_params;
+  return {temp_params, ratio};
 }
 
 auto update_win_probs_beta_with_scale(const params_t  &params,
-                                      random_engine_t &gen) -> params_t {
+                                      random_engine_t &gen)
+    -> std::pair<params_t, double> {
   std::uniform_int_distribution<size_t> picker(0, params.size() - 1);
   params_t                              temp_params{params};
   size_t                                index = picker(gen);
+  double                                ratio = 1.0;
 
   if (index == temp_params.size() - 1) {
     constexpr double                 mu    = 0.0;
@@ -180,9 +192,19 @@ auto update_win_probs_beta_with_scale(const params_t  &params,
     constexpr double          alpha = 1.5;
     constexpr double          beta  = 1.5;
     beta_distribution<double> bd(alpha, beta);
-    temp_params[index] = bd(gen);
+    double                    old_param = temp_params[index];
+    double                    new_param = bd(gen);
+    temp_params[index]                  = new_param;
+
+    ratio *=
+        beta_pdf(alpha, beta, new_param) / beta_pdf(alpha, beta, old_param);
+    debug_print(EMIT_LEVEL_DEBUG,
+                "old param: %f, new_param: %f, ratio: %f",
+                old_param,
+                new_param,
+                ratio);
   }
-  return temp_params;
+  return {temp_params, ratio};
 }
 
 auto skellam_pmf(int k, double u1, double u2) -> double {
@@ -191,7 +213,8 @@ auto skellam_pmf(int k, double u1, double u2) -> double {
   double           factor  = std::exp(-(u1 + u2));
 
   for (int i = std::max(0, -k);; ++i) {
-    double numerator   = std::pow(u1, k + i) * std::pow(u2, i);
+    double numerator = int_pow(u1, static_cast<uint64_t>(k + i)) *
+                       int_pow(u2, static_cast<double>(i));
     double denominator = factorial(static_cast<uint64_t>(i)) *
                          factorial(static_cast<uint64_t>(k + i));
 
@@ -220,11 +243,14 @@ auto skellam_cmf(int k, double u1, double u2) -> double {
 }
 
 auto update_poission_model_factory(double sigma)
-    -> std::function<params_t(const params_t &, random_engine_t &gen)> {
-  auto l = [sigma](const params_t &p, random_engine_t &gen) -> params_t {
+    -> std::function<std::pair<params_t, double>(const params_t &,
+                                                 random_engine_t &gen)> {
+  auto l = [sigma](const params_t  &p,
+                   random_engine_t &gen) -> std::pair<params_t, double> {
     std::normal_distribution<double>      dis(0.0, sigma);
     std::uniform_int_distribution<size_t> picker(0, p.size() - 1);
     params_t                              tmp(p);
+    constexpr double                      ratio = 1.0;
     /*
     std::transform(tmp.begin(),
                    tmp.end(),
@@ -232,7 +258,7 @@ auto update_poission_model_factory(double sigma)
                    [&](double f) -> double { return f + dis(gen); });
    */
     tmp[picker(gen)] += dis(gen);
-    return tmp;
+    return {tmp, ratio};
   };
   return l;
 }
@@ -289,11 +315,7 @@ auto beta_prior_factory(double alpha, double beta)
     -> std::function<double(const params_t &)> {
   return [alpha, beta](const params_t &params) {
     double prob = 1.0;
-    for (auto &p : params) {
-      double num = std::pow(p, alpha - 1) * std::pow(1 - p, beta - 1);
-      double den = std::beta(alpha, beta);
-      prob *= num / den;
-    }
+    for (auto &p : params) { prob *= beta_pdf(alpha, beta, p); }
     return prob;
   };
 }

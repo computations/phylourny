@@ -1,4 +1,5 @@
 #include "debug.h"
+#include "match.hpp"
 #include "mcmc.hpp"
 #include "model.hpp"
 #include "program_options.hpp"
@@ -9,6 +10,7 @@
 #include <algorithm>
 #include <csv.h>
 #include <numeric>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -215,7 +217,8 @@ static void write_summary(const summary_t                &summary,
 static auto get_lh_model(const program_options_t    &program_options,
                          const std::vector<match_t> &matches)
     -> std::tuple<std::unique_ptr<likelihood_model_t>,
-                  std::function<params_t(const params_t &, random_engine_t &)>,
+                  std::function<std::pair<params_t, double>(const params_t &,
+                                                            random_engine_t &)>,
                   std::function<double(const params_t &)>> {
   if (program_options.mcmc_options.model_type == likelihood_model::poisson) {
     debug_string(EMIT_LEVEL_IMPORTANT, "Using a Poisson likelihood model");
@@ -225,7 +228,7 @@ static auto get_lh_model(const program_options_t    &program_options,
     auto update_func = update_win_probs_beta_with_scale;
     return std::make_tuple(std::move(lhm), update_func, uniform_prior);
   }
-  debug_string(EMIT_LEVEL_IMPORTANT, "Using the simple likelihood model");
+  debug_string(EMIT_LEVEL_IMPORTANT, "Using a simple likelihood model");
   std::unique_ptr<likelihood_model_t> lhm =
       std::make_unique<simple_likelihood_model_t>(
           simple_likelihood_model_t(matches));
@@ -296,8 +299,29 @@ void compute_tournament(const program_options_t &program_options) {
   }
 }
 
-auto make_team_indicies(const team_name_map_t          &name_map,
-                        const std::vector<std::string> &teams)
+static auto verify_teams(const std::vector<match_t>     &matches,
+                         const std::vector<std::string> &teams,
+                         const team_name_map_t          &name_map) -> bool {
+  for (const auto &team : teams) {
+    auto team_index = name_map.at(team);
+    bool found      = false;
+    for (const auto &match : matches) {
+      if (match.l_team == team_index || match.r_team == team_index) {
+        found = true;
+        break;
+      }
+    }
+    if (!found) {
+      debug_print(
+          EMIT_LEVEL_WARNING, "Team '%s' has no match data", team.c_str());
+      return false;
+    }
+  }
+  return true;
+}
+
+[[nodiscard]] auto make_team_indicies(const team_name_map_t          &name_map,
+                                      const std::vector<std::string> &teams)
     -> std::vector<size_t> {
   std::vector<size_t> team_indicies;
   for (const auto &name : teams) { team_indicies.push_back(name_map.at(name)); }
@@ -318,6 +342,13 @@ void mcmc_run(const program_options_t &program_options) {
       matches = parse_match_file(
           program_options.input_formats.matches_filename.value(),
           team_name_map);
+      verify_teams(matches, program_options.teams, team_name_map);
+      /*
+      if (!verify_teams(matches, program_options.teams, team_name_map)) {
+        throw std::runtime_error{
+            "Some teams in the tournament have zero matches in the history"};
+      }
+      */
       team_indicies = make_team_indicies(team_name_map, program_options.teams);
     }
   }
