@@ -28,10 +28,12 @@ endif()
 set_target_properties(phylourny_lib PROPERTIES
     CXX_STANDARD 17
     CXX_STANDARD_REQUIRED YES
+    INTERPROCEDURAL_OPTIMIZATION TRUE
 )
 
 target_compile_options(phylourny_lib PRIVATE -Wall -Wextra -Wshadow
-    -Wdouble-promotion -Wmissing-include-dirs -pedantic -Wsign-conversion)
+    -Wdouble-promotion -Wmissing-include-dirs -pedantic -Wsign-conversion
+    -fno-omit-frame-pointer)
 
 set_target_properties(phylourny PROPERTIES
     CXX_STANDARD 17
@@ -46,7 +48,8 @@ if(NOT OpenMP_CXX_FOUND)
 endif()
 
 target_compile_options(phylourny PRIVATE -Wall -Wextra -Wshadow
-    -Wdouble-promotion -Wmissing-include-dirs -pedantic -Wsign-conversion)
+    -Wdouble-promotion -Wmissing-include-dirs -pedantic -Wsign-conversion
+    -fno-omit-frame-pointer)
 target_compile_definitions(phylourny PRIVATE
     GIT_REV=${BUILD_VERSION}
     GIT_COMMIT=${BUILD_COMMIT}
