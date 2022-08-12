@@ -91,6 +91,11 @@ auto poisson_likelihood_model_t::log_likelihood(const params_t &team_strs) const
                     std::exp(-lambda_r);
     */
 
+    assert_string(m.l_team < team_strs.size(),
+                  "Team strength index out of bounds");
+    assert_string(m.r_team < team_strs.size(),
+                  "Team strength index out of bounds");
+
     double param1      = team_strs[m.l_team];
     double param2      = team_strs[m.r_team];
     double scale_param = team_strs[team_strs.size() - 1];

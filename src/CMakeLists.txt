@@ -41,6 +41,13 @@ set_target_properties(phylourny PROPERTIES
     INTERPROCEDURAL_OPTIMIZATION TRUE
 )
 
+find_program(DDATE "ddate")
+
+if(DDATE)
+  exec_program("ddate +'%{%A, the %e of %B%}, %Y.'"
+    OUTPUT_VARIABLE BUILD_DDATE)
+endif()
+
 target_link_libraries(phylourny ${LINK_LIBS} phylourny_lib)
 
 if(NOT OpenMP_CXX_FOUND)
@@ -53,4 +60,6 @@ target_compile_options(phylourny PRIVATE -Wall -Wextra -Wshadow
 target_compile_definitions(phylourny PRIVATE
     GIT_REV=${BUILD_VERSION}
     GIT_COMMIT=${BUILD_COMMIT}
-    BUILD_DATE=${BUILD_DATE})
+    BUILD_DATE=${BUILD_DATE}
+    BUILD_DDATE=${BUILD_DDATE}
+  )

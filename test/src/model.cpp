@@ -22,13 +22,13 @@ TEST_CASE("simple cases",
     SECTION("default constructor") {
       poisson_likelihood_model_t lhm(matches);
       SECTION("likelihood") {
-        params_t params{0.0};
+        params_t params(lhm.param_count());
         double   lh = lhm.likelihood(params);
         CHECK(!std::isnan(lh));
         CHECK(lh == Catch::Approx(0.01831563888873418));
       }
       SECTION("Win probs") {
-        params_t params{0.0};
+        params_t params(lhm.param_count());
         auto     wp = lhm.generate_win_probs(params, {0, 1});
         CHECK(wp[0][1] == Catch::Approx(0.5));
         CHECK(wp[1][0] == Catch::Approx(0.5));

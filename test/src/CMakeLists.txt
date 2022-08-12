@@ -29,7 +29,7 @@ FetchContent_MakeAvailable(Catch2)
 set(TEST_LINK_LIBS Catch2::Catch2WithMain asan)
 target_compile_options(phylourny_test PRIVATE -Wall -Wextra -pedantic
     -fno-omit-frame-pointer
-    -fsanitize=address)
+    -fsanitize=address -g)
 target_include_directories(phylourny_test PRIVATE ${CMAKE_SOURCE_DIR}/src)
 target_include_directories(phylourny_test PRIVATE
     ${CMAKE_SOURCE_DIR}/test/lib/)
