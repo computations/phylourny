@@ -37,8 +37,11 @@ static void print_version() {
   debug_string(EMIT_LEVEL_IMPORTANT, "Running Phylourny");
   debug_print(EMIT_LEVEL_IMPORTANT, "Version: %s", GIT_REV_STRING);
   debug_print(EMIT_LEVEL_IMPORTANT, "Build Commit: %s", GIT_COMMIT_STRING);
+#ifdef JOKE_BUILD
+  debug_print(EMIT_LEVEL_IMPORTANT, "Build Date: %s", BUILD_DDATE_STRING);
+#else
   debug_print(EMIT_LEVEL_IMPORTANT, "Build Date: %s", BUILD_DATE_STRING);
-  debug_print(EMIT_LEVEL_IMPORTANT, "Build DDate: %s", BUILD_DDATE_STRING);
+#endif
 }
 
 static void print_run_info(const cli_options_t &cli_options) {

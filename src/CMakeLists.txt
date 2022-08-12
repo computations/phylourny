@@ -41,6 +41,8 @@ set_target_properties(phylourny PROPERTIES
     INTERPROCEDURAL_OPTIMIZATION TRUE
 )
 
+option(PHYLOURNY_JOKE_BUILD ON "Turn on jokes")
+
 find_program(DDATE "ddate")
 
 if(DDATE)
@@ -63,3 +65,8 @@ target_compile_definitions(phylourny PRIVATE
     BUILD_DATE=${BUILD_DATE}
     BUILD_DDATE=${BUILD_DDATE}
   )
+if(PHYLOURNY_JOKE_BUILD)
+target_compile_definitions(phylourny PRIVATE
+  JOKE_BUILD=true
+    )
+  endif()
