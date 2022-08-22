@@ -149,11 +149,13 @@ void create_results_path(const std::string &results_prefix) {
     throw std::runtime_error{"Results path exists and is not a directory"};
   }
 
-  debug_print(EMIT_LEVEL_IMPORTANT,
-              "Creating directory %s for prefix",
-              results_path.c_str());
+  if (!results_path.empty()) {
+    debug_print(EMIT_LEVEL_IMPORTANT,
+                "Creating directory %s for prefix",
+                results_path.c_str());
 
-  std::filesystem::create_directories(results_path);
+    std::filesystem::create_directories(results_path);
+  }
 }
 
 auto main(int argc, char **argv) -> int {
