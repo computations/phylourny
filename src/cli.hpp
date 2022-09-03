@@ -298,6 +298,7 @@ static cli_option_t args[] = {
     option_flag("dummy", "Make dummy data"),
     option_flag("verbose", "Enable more output"),
     option_flag("debug", "Enable debug output"),
+    option_flag("silly", "Make output silly"),
 };
 
 /**
