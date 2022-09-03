@@ -15,12 +15,6 @@ extern int DEBUG_VERBOSITY_LEVEL;
 
 #define DEBUG_IF_FLAG 1
 
-#ifdef RD_DEBUG
-#define RD_DEBUG_ASSERT_FLAG 1
-#else
-#define RD_DEBUG_ASSERT_FLAG 0
-#endif
-
 #define EMIT_LEVEL_IMPORTANT 0
 #define EMIT_LEVEL_ERROR 1
 #define EMIT_LEVEL_WARNING 2
