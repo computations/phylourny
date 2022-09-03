@@ -61,24 +61,22 @@ static void print_run_info(const cli_options_t &cli_options) {
 #endif
 }
 
-static void print_end_time(const cli_options_t &cli_options,
-                           timepoint_t          start_time,
-                           timepoint_t          end_time) {
+static void print_end_time(timepoint_t start_time, timepoint_t end_time) {
   duration_t duration = end_time - start_time;
-  if (!cli_options["silly"].value(false)) {
-    debug_print(
-        EMIT_LEVEL_IMPORTANT, "Run Finished, time: %fs", duration.count());
-  } else {
-    using microfortnights = std::chrono::duration<
-        float,
-        std::ratio_multiply<
-            std::ratio_multiply<std::ratio<2>, std::ratio<604800>>,
-            std::micro>>;
-    microfortnights mf_duration(duration);
-    debug_print(EMIT_LEVEL_IMPORTANT,
-                "Run Finished, time: %f microfortnights",
-                mf_duration.count());
-  }
+#ifndef JOKE_BUILD
+  debug_print(
+      EMIT_LEVEL_IMPORTANT, "Run Finished, time: %fs", duration.count());
+#else
+  using microfortnights = std::chrono::duration<
+      double,
+      std::ratio_multiply<
+          std::ratio_multiply<std::ratio<2>, std::ratio<604800>>,
+          std::micro>>;
+  microfortnights mf_duration(duration);
+  debug_print(EMIT_LEVEL_IMPORTANT,
+              "Run Finished, time: %f microfortnights",
+              mf_duration.count());
+#endif
 }
 
 input_format_options_t
@@ -224,7 +222,7 @@ auto main(int argc, char **argv) -> int {
     run(program_options);
 
     auto end_time = std::chrono::high_resolution_clock::now();
-    print_end_time(cli_options, start_time, end_time);
+    print_end_time(start_time, end_time);
 
   } catch (cli_option_help &e) {
     (void)e;
