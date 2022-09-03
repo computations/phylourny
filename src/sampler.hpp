@@ -131,11 +131,19 @@ private:
 
     _samples.emplace_back(r);
     if (_samples.size() % 1000 == 0) {
+#ifndef JOKE_BUILD
       debug_print(EMIT_LEVEL_PROGRESS,
-                  "%lu samples, ratio: %f, ETC: %.2fh",
+                  "%lu samples, ratio: %f, ETC: %.2f hours",
                   _samples.size(),
                   static_cast<double>(successes) / trials,
                   progress_macro(_samples.size(), iters));
+#else
+      debug_print(EMIT_LEVEL_PROGRESS,
+                  "%lu samples, ratio: %f, ETC: %.10f millifortnights",
+                  _samples.size(),
+                  static_cast<double>(successes) / trials,
+                  progress_macro(_samples.size(), iters));
+#endif
     }
   }
 

@@ -28,10 +28,13 @@ extern int DEBUG_VERBOSITY_LEVEL;
 #define EMIT_LEVEL_INFO 4
 #define EMIT_LEVEL_DEBUG 5
 
+#ifndef JOKE_BUILD
 #define progress_macro(i, k)                                                   \
-  (((std::chrono::high_resolution_clock::now() - CLOCK_START).count() /        \
-    static_cast<double>(i)) *                                                  \
-   (static_cast<double>((k) - (i))) / 1e9 / 3600.0)
+  (((std::chrono::duration<double, std::ratio<3600>>(                          \
+         std::chrono::high_resolution_clock::now() - CLOCK_START) /            \
+     static_cast<double>(i)) *                                                 \
+    (static_cast<double>((k) - (i))))                                          \
+       .count())
 
 #define print_clock                                                            \
   do {                                                                         \
@@ -39,6 +42,31 @@ extern int DEBUG_VERBOSITY_LEVEL;
         std::chrono::high_resolution_clock::now() - CLOCK_START;               \
     printf("[%.2f] ", diff.count());                                           \
   } while (0)
+#else
+
+using millifortnights = std::chrono::duration<
+    double,
+    std::ratio_multiply<std::ratio_multiply<std::ratio<2>, std::ratio<604800>>,
+                        std::milli>>;
+
+#define progress_macro(i, k)                                                   \
+  (((millifortnights(std::chrono::high_resolution_clock::now() -               \
+                     CLOCK_START) /                                            \
+     static_cast<double>(i)) *                                                 \
+    (static_cast<double>((k) - (i))))                                          \
+       .count())
+
+using microfortnights = std::chrono::duration<
+    double,
+    std::ratio_multiply<std::ratio_multiply<std::ratio<2>, std::ratio<604800>>,
+                        std::micro>>;
+#define print_clock                                                            \
+  do {                                                                         \
+    microfortnights diff =                                                     \
+        std::chrono::high_resolution_clock::now() - CLOCK_START;               \
+    printf("[%.2f] ", diff.count());                                           \
+  } while (0)
+#endif
 
 #define debug_print(level, fmt, ...)                                           \
   do {                                                                         \

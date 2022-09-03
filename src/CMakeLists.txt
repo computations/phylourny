@@ -68,6 +68,7 @@ target_compile_definitions(phylourny PRIVATE
   )
 
 if(PHYLOURNY_JOKE_BUILD)
+  target_compile_definitions(phylourny_lib PRIVATE JOKE_BUILD=true)
   target_compile_definitions(phylourny PRIVATE JOKE_BUILD=true)
 endif()
 

@@ -67,11 +67,6 @@ static void print_end_time(timepoint_t start_time, timepoint_t end_time) {
   debug_print(
       EMIT_LEVEL_IMPORTANT, "Run Finished, time: %fs", duration.count());
 #else
-  using microfortnights = std::chrono::duration<
-      double,
-      std::ratio_multiply<
-          std::ratio_multiply<std::ratio<2>, std::ratio<604800>>,
-          std::micro>>;
   microfortnights mf_duration(duration);
   debug_print(EMIT_LEVEL_IMPORTANT,
               "Run Finished, time: %f microfortnights",
