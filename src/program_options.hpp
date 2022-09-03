@@ -27,6 +27,7 @@ struct simulation_mode_options_t {
 struct mcmc_options_t {
   size_t           samples;
   double           burnin;
+  bool             sample_matrix;
   likelihood_model model_type;
 };
 

@@ -1,3 +1,4 @@
+#include "summary.hpp"
 #include <algorithm>
 #include <chrono>
 #include <cmath>
@@ -73,10 +74,10 @@ create_input_format_options(const cli_options_t &cli_options) {
     ret.matches_filename = cli_options["matches"].value<std::string>();
   }
   if (cli_options["probs"].initialized()) {
-    ret.matches_filename = cli_options["probs"].value<std::string>();
+    ret.probs_filename = cli_options["probs"].value<std::string>();
   }
   if (cli_options["odds"].initialized()) {
-    ret.matches_filename = cli_options["odds"].value<std::string>();
+    ret.odds_filename = cli_options["odds"].value<std::string>();
   }
   ret.dummy = cli_options["dummy"].value(false);
   return ret;
@@ -92,16 +93,19 @@ run_mode_t create_run_mode_type(const cli_options_t &cli_options) {
 
 simulation_mode_options_t
 create_simulation_mode_options(const cli_options_t &cli_options) {
-  return {cli_options["sim-iters"].value(1'000'000lu)};
+  simulation_mode_options_t sim_opts;
+  sim_opts.samples = cli_options["sim-iters"].value(1'000'000lu);
+  return sim_opts;
 }
 
 mcmc_options_t create_mcmc_options(const cli_options_t &cli_options) {
   mcmc_options_t mcmc_options;
-  mcmc_options.model_type = cli_options["poisson"].value(true)
-                                ? likelihood_model::poisson
-                                : likelihood_model::simple;
-  mcmc_options.burnin     = cli_options["burnin"].value(0.1);
-  mcmc_options.samples    = cli_options["samples"].value(100'000ul);
+  mcmc_options.model_type    = cli_options["poisson"].value(true)
+                                   ? likelihood_model::poisson
+                                   : likelihood_model::simple;
+  mcmc_options.burnin        = cli_options["burnin"].value(0.1);
+  mcmc_options.samples       = cli_options["samples"].value(100'000ul);
+  mcmc_options.sample_matrix = cli_options["sample-matrix"].value(false);
   return mcmc_options;
 }
 
@@ -120,9 +124,10 @@ std::vector<std::string> read_teams_file(const std::string &teams_filename) {
 
 program_options_t create_program_options(const cli_options_t &cli_options) {
   program_options_t prog_opts;
-  prog_opts.input_formats = create_input_format_options(cli_options);
-  prog_opts.run_modes     = create_run_mode_type(cli_options);
-  prog_opts.mcmc_options  = create_mcmc_options(cli_options);
+  prog_opts.input_formats      = create_input_format_options(cli_options);
+  prog_opts.run_modes          = create_run_mode_type(cli_options);
+  prog_opts.mcmc_options       = create_mcmc_options(cli_options);
+  prog_opts.simulation_options = create_simulation_mode_options(cli_options);
 
   prog_opts.teams = read_teams_file(cli_options["teams"].value<std::string>());
   if (cli_options["seed"].initialized()) {
@@ -164,6 +169,11 @@ auto main(int argc, char **argv) -> int {
   print_version();
   try {
     cli_options_t cli_options{argc, argv};
+
+    if (cli_options["verbose"].value(false)) {
+      DEBUG_VERBOSITY_LEVEL = EMIT_LEVEL_INFO;
+      debug_string(EMIT_LEVEL_INFO, "Enabling info messages");
+    }
 
     if (cli_options["debug"].value<bool>(false)) {
       DEBUG_VERBOSITY_LEVEL = EMIT_LEVEL_DEBUG;

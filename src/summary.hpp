@@ -3,14 +3,17 @@
 
 #include "model.hpp"
 #include "tournament.hpp"
+#include "util.hpp"
+#include <optional>
 #include <ostream>
 #include <stdexcept>
 #include <vector>
 
 struct result_t {
-  vector_t win_prob;
-  params_t params;
-  double   llh;
+  vector_t                win_prob;
+  params_t                params;
+  std::optional<matrix_t> prob_matrix;
+  double                  llh;
 };
 
 auto operator<<(std::ostream &os, const result_t &r) -> std::ostream &;

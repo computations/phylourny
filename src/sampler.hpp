@@ -8,6 +8,7 @@
 #include "util.hpp"
 #include <functional>
 #include <memory>
+#include <optional>
 #include <random>
 #include <stdexcept>
 #include <utility>
@@ -51,7 +52,8 @@ public:
                  uint64_t                                       seed,
                  const std::function<std::pair<params_t, double>(
                      const params_t &, random_engine_t &gen)>  &update_func,
-                 const std::function<double(const params_t &)> &prior) {
+                 const std::function<double(const params_t &)> &prior,
+                 bool sample_matrix = false) {
 
     constexpr size_t waiting_time = 100;
 
@@ -101,7 +103,7 @@ public:
         successes += 1;
       }
       if (i % waiting_time == 0 && i != 0) {
-        record_sample(params, cur_lh, successes, i, iters);
+        record_sample(params, cur_lh, successes, i, iters, sample_matrix);
       }
     }
   }
@@ -109,14 +111,24 @@ public:
   void set_simulation_iterations(size_t s) { _simulation_iterations = s; }
 
 private:
-  vector_t run_simulation(const params_t & /*params*/);
+  vector_t run_simulation(const matrix_t & /*params*/);
+  matrix_t compute_win_probs(const params_t &params) {
+    return _lh_model->generate_win_probs(params, _team_indicies);
+  }
 
   void record_sample(const params_t &params,
                      double          llh,
                      size_t          successes,
                      size_t          trials,
-                     size_t          iters) {
-    result_t r{run_simulation(params), params, llh};
+                     size_t          iters,
+                     bool            sample_matrix = false) {
+    auto prob_matrix = compute_win_probs(params);
+
+    result_t r{run_simulation(prob_matrix),
+               params,
+               sample_matrix ? prob_matrix : std::optional<matrix_t>(),
+               llh};
+
     _samples.emplace_back(r);
     if (_samples.size() % 1000 == 0) {
       debug_print(EMIT_LEVEL_PROGRESS,
@@ -135,16 +147,15 @@ private:
 };
 
 template <typename T1>
-auto sampler_t<T1>::run_simulation(const params_t &params) -> vector_t {
-  _tournament.reset_win_probs(
-      _lh_model->generate_win_probs(params, _team_indicies));
+auto sampler_t<T1>::run_simulation(const matrix_t &prob_matrix) -> vector_t {
+  _tournament.reset_win_probs(prob_matrix);
   return _tournament.eval();
 }
 
 template <>
-vector_t sampler_t<simulation_node_t>::run_simulation(const params_t &params) {
-  _tournament.reset_win_probs(
-      _lh_model->generate_win_probs(params, _team_indicies));
+vector_t
+sampler_t<simulation_node_t>::run_simulation(const matrix_t &prob_matrix) {
+  _tournament.reset_win_probs(prob_matrix);
   return _tournament.eval(_simulation_iterations);
 }
 

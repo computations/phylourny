@@ -1,5 +1,6 @@
 #include "summary.hpp"
 #include "tournament.hpp"
+#include "util.hpp"
 #include <cmath>
 #include <cstddef>
 #include <limits>
@@ -7,7 +8,12 @@
 auto operator<<(std::ostream &os, const result_t &r) -> std::ostream & {
   os << "{\"win_prob\": " << to_json(r.win_prob) << ", ";
   os << "\"params\": " << to_json(r.params) << ", ";
-  os << "\"llh\": " << std::to_string(r.llh) << "}";
+  os << "\"llh\": " << std::to_string(r.llh);
+  if (r.prob_matrix.has_value()) {
+    os << ", ";
+    os << "\"matrix\": " << to_json(r.prob_matrix.value());
+  }
+  os << "}";
   return os;
 }
 

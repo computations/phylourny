@@ -42,6 +42,7 @@ set_target_properties(phylourny PROPERTIES
 )
 
 option(PHYLOURNY_JOKE_BUILD ON "Turn on jokes")
+option(PHYLOURNY_TIME_EVALS OFF "Enable timing of the tournament evaluations")
 
 find_program(DDATE "ddate")
 
@@ -58,15 +59,19 @@ endif()
 
 target_compile_options(phylourny PRIVATE -Wall -Wextra -Wshadow
     -Wdouble-promotion -Wmissing-include-dirs -pedantic -Wsign-conversion
-    -fno-omit-frame-pointer -O3)
+    -fno-omit-frame-pointer)
 target_compile_definitions(phylourny PRIVATE
     GIT_REV=${BUILD_VERSION}
     GIT_COMMIT=${BUILD_COMMIT}
     BUILD_DATE=${BUILD_DATE}
     BUILD_DDATE=${BUILD_DDATE}
   )
+
 if(PHYLOURNY_JOKE_BUILD)
-target_compile_definitions(phylourny PRIVATE
-  JOKE_BUILD=true
-    )
-  endif()
+  target_compile_definitions(phylourny PRIVATE JOKE_BUILD=true)
+endif()
+
+if(PHYLOURNY_TIME_EVALS)
+  target_compile_definitions(phylourny_lib PRIVATE PHYLOURNY_TIME_EVALS)
+  target_compile_definitions(phylourny PRIVATE PHYLOURNY_TIME_EVALS)
+endif()

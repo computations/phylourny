@@ -368,8 +368,11 @@ void mcmc_run(const program_options_t &program_options) {
     sampler.set_team_indicies(team_indicies);
 
     debug_string(EMIT_LEVEL_PROGRESS, "Running MCMC sampler (Single Mode)");
-    sampler.run_chain(
-        mcmc_samples, program_options.seed, update_func, prior_func);
+    sampler.run_chain(mcmc_samples,
+                      program_options.seed,
+                      update_func,
+                      prior_func,
+                      program_options.mcmc_options.sample_matrix);
     auto summary = sampler.summary();
 
     write_summary(summary,
@@ -389,15 +392,18 @@ void mcmc_run(const program_options_t &program_options) {
     sampler.set_team_indicies(team_indicies);
 
     debug_string(EMIT_LEVEL_PROGRESS, "Running MCMC sampler (Dynamic Mode)");
-    sampler.run_chain(
-        mcmc_samples, program_options.seed, update_func, prior_func);
+    sampler.run_chain(mcmc_samples,
+                      program_options.seed,
+                      update_func,
+                      prior_func,
+                      program_options.mcmc_options.sample_matrix);
     auto summary = sampler.summary();
 
     write_summary(summary,
                   team_name_map,
                   program_options.teams,
                   output_prefix,
-                  std::string{".dynmic"},
+                  std::string{".dynamic"},
                   output_suffix,
                   burnin_samples);
   }
@@ -413,8 +419,11 @@ void mcmc_run(const program_options_t &program_options) {
         program_options.simulation_options.samples);
 
     debug_string(EMIT_LEVEL_PROGRESS, "Running MCMC sampler (Simulation Mode)");
-    sampler.run_chain(
-        mcmc_samples, program_options.seed, update_func, prior_func);
+    sampler.run_chain(mcmc_samples,
+                      program_options.seed,
+                      update_func,
+                      prior_func,
+                      program_options.mcmc_options.sample_matrix);
     auto summary = sampler.summary();
     write_summary(summary,
                   team_name_map,

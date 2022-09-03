@@ -33,7 +33,23 @@ auto tournament_t<simulation_node_t>::eval(size_t iters) -> vector_t {
   if (!check_matrix_size(_win_probs)) {
     throw std::runtime_error("Initialize the win probs before calling eval");
   }
-  return _head->eval(_win_probs, tip_count(), iters);
+#ifdef PHYLOURNY_EVAL_TIMES
+  auto start_time = std::chrono::high_resolution_clock::now();
+#endif
+
+  auto ret = _head->eval(_win_probs, tip_count(), iters);
+
+#ifdef PHYLOURNY_EVAL_TIMES
+  auto end_time = std::chrono::high_resolution_clock::now();
+
+  std::chrono::duration<double, std::micro> dur = end_time - start_time;
+  debug_print(EMIT_LEVEL_INFO,
+              "Simulation Eval (iters: %lu) took: %f microseconds",
+              iters,
+              dur.count());
+#endif
+
+  return ret;
 }
 
 extern template class tournament_t<tournament_node_t>;

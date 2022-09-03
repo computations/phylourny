@@ -294,7 +294,9 @@ static cli_option_t args[] = {
         "burnin", "Number of samples to discard for MCMC burnin"),
     option_with_argument<bool>(
         "poisson", "Use a Poisson based liklihood model for the MCMC search"),
+    option_flag("sample-matrix", "Sample the matrix during the MCMC search"),
     option_flag("dummy", "Make dummy data"),
+    option_flag("verbose", "Enable more output"),
     option_flag("debug", "Enable debug output"),
 };
 

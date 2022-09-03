@@ -14,6 +14,7 @@
 #include <limits>
 #include <memory>
 #include <random>
+#include <ratio>
 #include <sstream>
 #include <stdexcept>
 #include <string>
@@ -102,8 +103,28 @@ public:
     if (!check_matrix_size(_win_probs)) {
       throw std::runtime_error("Initialize the win probs before calling eval");
     }
+
+#ifdef PHYLOURNY_EVAL_TIMES
+    auto start_time = std::chrono::high_resolution_clock::now();
+#endif
+
     _head->reset_saved_evals();
-    return _head->eval(_win_probs, tip_count());
+    auto ret = _head->eval(_win_probs, tip_count());
+
+#ifdef PHYLOURNY_EVAL_TIMES
+    auto end_time = std::chrono::high_resolution_clock::now();
+
+    std::chrono::duration<double, std::micro> dur = end_time - start_time;
+    if (std::is_same<T, tournament_node_t>::value) {
+      debug_print(
+          EMIT_LEVEL_INFO, "Dynamic Eval took: %f microseconds", dur.count());
+    }
+    if (std::is_same<T, single_node_t>::value) {
+      debug_print(
+          EMIT_LEVEL_INFO, "Single Eval took: %f microseconds", dur.count());
+    }
+#endif
+    return ret;
   }
 
   auto eval_debug(const std::string &prefix) -> vector_t {

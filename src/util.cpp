@@ -51,17 +51,18 @@ auto random_matrix_factory(size_t n, uint64_t seed) -> matrix_t {
 auto to_json(const matrix_t &m) -> std::string {
   std::ostringstream out;
   out << std::setprecision(JSON_PRECISION);
+  out << "[";
   for (const auto &i : m) {
     out << "[";
     for (const auto &j : i) {
       out << std::setw(3);
       out << std::fixed << j << ", ";
     }
-    out.seekp(-1, std::ostringstream::cur);
-    out << "],\n";
+    out.seekp(-2, std::ostringstream::cur);
+    out << "],";
   }
-  out.seekp(-2, std::ostringstream::cur);
-  out << "\n";
+  out.seekp(-1, std::ostringstream::cur);
+  out << "]\n";
   auto ret_str = out.str();
   ret_str.resize(ret_str.size() - 1);
   return ret_str;
