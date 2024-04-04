@@ -19,7 +19,7 @@ jobs:
           destination: phylourny.osx
   build-linux:
     machine:
-      image: ubuntu-2004:202010-01
+      image: default
     steps:
       - checkout
       - run:
