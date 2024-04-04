@@ -1,7 +1,6 @@
 #include "single_node.hpp"
 #include "util.hpp"
 #include <fstream>
-#include <stdexcept>
 #include <string>
 
 auto single_node_t::eval(const matrix_t &pmatrix, size_t tip_count)

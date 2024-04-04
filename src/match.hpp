@@ -3,7 +3,6 @@
 
 #include <cstddef>
 #include <cstdint>
-#include <string>
 #include <vector>
 
 enum struct match_winner_t {

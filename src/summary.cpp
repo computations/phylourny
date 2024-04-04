@@ -1,8 +1,6 @@
 #include "summary.hpp"
 #include "mcmc.hpp"
-#include "tournament.hpp"
 #include "util.hpp"
-#include <cmath>
 #include <cstddef>
 #include <limits>
 
@@ -45,7 +43,8 @@ void summary_t::write_samples(std::ostream &os,
 template <typename T>
 void write_csv_line(std::ostream              &os,
                     const std::vector<size_t> &team_index_map,
-                    const T                   &res) {
+                    const T                   &res,
+                    double                     llh) {
   os << std::accumulate(
             std::next(team_index_map.begin()),
             team_index_map.end(),
@@ -53,7 +52,7 @@ void write_csv_line(std::ostream              &os,
             [&res](const std::string &acc, size_t entry) -> std::string {
               return std::move(acc) + "," + std::to_string(res[entry]);
             })
-     << "\n";
+     << "," << llh << "\n";
 }
 
 void write_csv_header_win_prob(std::ostream                   &os,
@@ -63,7 +62,7 @@ void write_csv_header_win_prob(std::ostream                   &os,
                         *team_list.begin(),
                         [](const std::string &acc, const std::string &entry)
                             -> std::string { return acc + "," + entry; })
-     << "\n";
+     << ",llh\n";
 }
 
 void summary_t::write_samples_csv_win_probs(
@@ -83,7 +82,7 @@ void summary_t::write_samples_csv_win_probs(
   }
 
   for (size_t i = burnin; i < _results.size(); i += sample_iter) {
-    write_csv_line(os, team_index_map, _results[i].win_prob);
+    write_csv_line(os, team_index_map, _results[i].win_prob, _results[i].llh);
   }
 }
 
@@ -106,7 +105,7 @@ void summary_t::write_samples_csv_params(std::ostream          &os,
   }
 
   for (size_t i = burnin; i < _results.size(); i += sample_iter) {
-    write_csv_line(os, team_index_map, _results[i].params);
+    write_csv_line(os, team_index_map, _results[i].params, _results[i].llh);
   }
 }
 

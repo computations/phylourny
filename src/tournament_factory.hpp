@@ -6,7 +6,6 @@
 #include "tournament.hpp"
 #include "tournament_node.hpp"
 #include <cstddef>
-#include <cstdint>
 #include <memory>
 #include <string>
 #include <vector>

@@ -7,7 +7,6 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
-#include <sul/dynamic_bitset.hpp>
 #include <variant>
 #include <vector>
 

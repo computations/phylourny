@@ -2,15 +2,12 @@ add_library(phylourny_lib
     STATIC
     tournament.cpp
     model.cpp
-    sampler.cpp
     summary.cpp
     match.cpp
-    cli.cpp
     util.cpp
     tournament_node.cpp
     tournament_factory.cpp
     single_node.cpp
-    simulation_node.cpp
     mcmc.cpp
     program_options.cpp
 )

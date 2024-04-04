@@ -4,7 +4,7 @@
 #include "debug.h"
 #include "model.hpp"
 #include "summary.hpp"
-#include "tournament_node.hpp"
+#include "tournament.hpp"
 #include "util.hpp"
 #include <functional>
 #include <memory>

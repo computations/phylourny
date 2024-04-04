@@ -1,27 +1,18 @@
 #ifndef TOURNAMENT_HPP
 #define TOURNAMENT_HPP
 
-#include "debug.h"
-#include "factorial.hpp"
-#include "single_node.hpp"
-#include "tournament_factory.hpp"
 #include "tournament_node.hpp"
+#include "simulation_node.hpp"
 #include "util.hpp"
 #include <cstddef>
-#include <exception>
-#include <fstream>
 #include <ios>
-#include <limits>
 #include <memory>
-#include <random>
-#include <ratio>
 #include <sstream>
 #include <stdexcept>
 #include <string>
 #include <sul/dynamic_bitset.hpp>
 #include <type_traits>
 #include <utility>
-#include <variant>
 #include <vector>
 
 /**

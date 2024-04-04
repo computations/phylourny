@@ -1,13 +1,10 @@
 #ifndef PHYLOURNY_DEBUG
 #define PHYLOURNY_DEBUG
 
-#include <cassert>
 #include <chrono>
 #include <cstdio>
-#include <cstdlib>
 #include <execinfo.h>
 #include <sys/ioctl.h>
-#include <time.h>
 #include <unistd.h>
 
 const auto CLOCK_START = std::chrono::high_resolution_clock::now();

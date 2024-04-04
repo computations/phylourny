@@ -2,12 +2,9 @@
 #define SUMMARY_HPP
 
 #include "mcmc.hpp"
-#include "model.hpp"
-#include "tournament.hpp"
 #include "util.hpp"
 #include <optional>
 #include <ostream>
-#include <stdexcept>
 #include <vector>
 
 struct result_t {

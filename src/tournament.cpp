@@ -1,12 +1,9 @@
-#include "debug.h"
 #include "simulation_node.hpp"
 #include "single_node.hpp"
 #include "tournament.hpp"
 #include "tournament_factory.hpp"
 #include "tournament_node.hpp"
 #include "util.hpp"
-#include <algorithm>
-#include <cstdint>
 #include <cstdlib>
 
 template <> void tournament_t<tournament_node_t>::relabel_indicies() {

@@ -2,7 +2,6 @@
 #define FACTORIAL_HPP
 
 #include "debug.h"
-#include <array>
 #include <cmath>
 #include <cstddef>
 #include <cstdint>

@@ -2,12 +2,7 @@
 #include "factorial.hpp"
 #include "tournament_node.hpp"
 #include "util.hpp"
-#include <exception>
-#include <fstream>
-#include <numeric>
-#include <stdexcept>
 #include <string>
-#include <sul/dynamic_bitset.hpp>
 
 auto tournament_node_t::is_tip() const -> bool {
   return std::holds_alternative<team_t>(_children);

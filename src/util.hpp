@@ -4,7 +4,7 @@
 #include <functional>
 #include <random>
 #include <string>
-#include <sul/dynamic_bitset.hpp>
+#include "sul/dynamic_bitset.hpp"
 #include <vector>
 
 using matrix_t        = std::vector<std::vector<double>>;

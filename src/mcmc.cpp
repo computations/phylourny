@@ -4,13 +4,13 @@
 #include "model.hpp"
 #include "program_options.hpp"
 #include "sampler.hpp"
-#include "tournament.hpp"
+#include "tournament_factory.hpp"
 #include "util.hpp"
 
 #include <algorithm>
 #include <csv.h>
 #include <numeric>
-#include <stdexcept>
+#include <fstream>
 #include <string>
 #include <vector>
 

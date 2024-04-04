@@ -1,18 +1,13 @@
-#include "summary.hpp"
-#include <algorithm>
 #include <chrono>
-#include <cmath>
 #include <cstdint>
 #include <csv.h>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <json.hpp>
-#include <memory>
 #include <random>
 #include <stdexcept>
 #include <string>
-#include <unordered_map>
 
 #ifdef _OPENMP
 #include <omp.h>

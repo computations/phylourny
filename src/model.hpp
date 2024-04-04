@@ -1,11 +1,8 @@
 #ifndef DATASET_HPP
 #define DATASET_HPP
 
-#include "debug.h"
 #include "match.hpp"
-#include "tournament.hpp"
 #include "util.hpp"
-#include <random>
 #include <vector>
 
 class likelihood_model_t {
