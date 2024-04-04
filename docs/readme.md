@@ -49,3 +49,8 @@ option `PHYLOURNY_BUILD_TESTS` is set, which it is by default. To disable buildi
 
 Benchmarks will be built if the flag `PHYLOURNY_BUILD_BENCH` is set on, which it is by default. To disable building the
 benchmark suite, set `PHYLOURNY_BUILD_BENCH` to `OFF`.
+
+# Examples
+
+There are example datasets in the `experiments` directory. These are a good
+place to start if you want to stary using the tool.
