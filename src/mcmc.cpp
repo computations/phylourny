@@ -1,6 +1,6 @@
+#include "mcmc.hpp"
 #include "debug.h"
 #include "match.hpp"
-#include "mcmc.hpp"
 #include "model.hpp"
 #include "program_options.hpp"
 #include "sampler.hpp"
@@ -166,18 +166,32 @@ static void write_summary(const summary_t                &summary,
                           const std::string              &output_infix,
                           const std::string              &output_suffix,
                           size_t                          burnin_samples) {
+  debug_string(EMIT_LEVEL_PROGRESS, "Writing JSON sample file");
   std::ofstream outfile(output_prefix + output_infix + ".samples" +
                         output_suffix);
   summary.write_samples(outfile, 0, 1);
 
+  debug_string(EMIT_LEVEL_PROGRESS, "Writing CSV win probs sample file");
+  std::ofstream csv_probs_outfile(output_prefix + output_infix +
+                                  ".samples.win_probs" + ".csv");
+  summary.write_samples_csv_win_probs(csv_probs_outfile, teams, name_map, 0, 1);
+
+  debug_string(EMIT_LEVEL_PROGRESS, "Writing CSV params sample file");
+  std::ofstream csv_params_outfile(output_prefix + output_infix +
+                                   ".samples.params" + ".csv");
+  summary.write_samples_csv_params(csv_params_outfile, name_map, 0, 1);
+
+  debug_string(EMIT_LEVEL_PROGRESS, "Writing MLP file");
   std::ofstream mlp_outfile(output_prefix + output_infix + ".mlp" +
                             output_suffix);
   summary.write_mlp(mlp_outfile, burnin_samples);
 
+  debug_string(EMIT_LEVEL_PROGRESS, "Writing MMPP file");
   std::ofstream mmpp_outfile(output_prefix + output_infix + ".mmpp" +
                              output_suffix);
   summary.write_mmpp(mmpp_outfile, burnin_samples);
 
+  debug_string(EMIT_LEVEL_PROGRESS, "Writing JSON teams file");
   std::ofstream team_map_outfile(output_prefix + output_infix + ".teams" +
                                  output_suffix);
 

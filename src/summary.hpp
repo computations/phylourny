@@ -1,6 +1,7 @@
 #ifndef SUMMARY_HPP
 #define SUMMARY_HPP
 
+#include "mcmc.hpp"
 #include "model.hpp"
 #include "tournament.hpp"
 #include "util.hpp"
@@ -24,6 +25,15 @@ public:
   explicit summary_t(std::vector<result_t> &&r) : _results{std::move(r)} {}
 
   void write_samples(std::ostream &os, size_t burnin, size_t sample_iter) const;
+  void write_samples_csv_win_probs(std::ostream                   &os,
+                                   const std::vector<std::string> &team_list,
+                                   const team_name_map_t          &name_map,
+                                   size_t                          burnin,
+                                   size_t sample_iter) const;
+  void write_samples_csv_params(std::ostream          &os,
+                                const team_name_map_t &name_map,
+                                size_t                 burnin,
+                                size_t                 sample_iter) const;
   void write_mlp(std::ostream &os, size_t burnin) const;
   void write_mmpp(std::ostream &os, size_t burnin) const;
 
