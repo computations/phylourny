@@ -8,11 +8,25 @@
 #include "util.hpp"
 
 #include <algorithm>
+#include <cmath>
 #include <csv.h>
-#include <numeric>
 #include <fstream>
+#include <numeric>
 #include <string>
 #include <vector>
+
+std::vector<size_t> get_bestofs(const std::string &filename) {
+  std::vector<size_t> bestofs;
+
+  std::ifstream infile(filename);
+  while (infile.good()) {
+    size_t tmp;
+    infile >> tmp;
+    bestofs.push_back(tmp);
+  }
+
+  return bestofs;
+}
 
 static auto make_dummy_data(size_t team_count, uint64_t seed)
     -> std::vector<match_t> {
@@ -404,6 +418,10 @@ void mcmc_run(const program_options_t &program_options) {
     sampler_t<tournament_node_t> sampler{
         std::move(lhm), tournament_factory(program_options.teams)};
     sampler.set_team_indicies(team_indicies);
+    if (program_options.input_formats.bestofs_filename.has_value()) {
+      sampler.set_bestofs(
+          get_bestofs(program_options.input_formats.bestofs_filename.value()));
+    }
 
     debug_string(EMIT_LEVEL_PROGRESS, "Running MCMC sampler (Dynamic Mode)");
     sampler.run_chain(mcmc_samples,

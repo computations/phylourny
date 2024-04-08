@@ -60,7 +60,7 @@ public:
   auto operator*() const -> const tournament_node_t & { return *_node; }
   auto operator->() -> tournament_node_t * { return _node.get(); }
   auto operator->() const -> const tournament_node_t * { return _node.get(); }
-       operator bool() const { return _node != nullptr; }
+  operator bool() const { return _node != nullptr; }
 
   [[nodiscard]] auto        empty() const -> bool { return _node == nullptr; }
   [[nodiscard]] inline auto is_win() const -> bool {
@@ -286,6 +286,15 @@ public:
 
   [[nodiscard]] auto internal_label() const -> const std::string & {
     return _internal_label;
+  }
+
+  size_t count_tips() const { return count_tips(0); }
+
+  size_t count_tips(size_t cur) const {
+    if (is_tip()) { return cur + 1; }
+    cur = children().left->count_tips(cur);
+    cur = children().right->count_tips(cur);
+    return cur;
   }
 
 protected:

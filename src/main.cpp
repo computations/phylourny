@@ -81,6 +81,9 @@ create_input_format_options(const cli_options_t &cli_options) {
   if (cli_options["odds"].initialized()) {
     ret.odds_filename = cli_options["odds"].value<std::string>();
   }
+  if (cli_options["bestofs"].initialized()) {
+    ret.bestofs_filename = cli_options["bestofs"].value<std::string>();
+  }
   ret.dummy = cli_options["dummy"].value(false);
   return ret;
 }

@@ -6,6 +6,7 @@
 #include "summary.hpp"
 #include "tournament.hpp"
 #include "util.hpp"
+#include <fstream>
 #include <functional>
 #include <memory>
 #include <optional>
@@ -109,6 +110,15 @@ public:
   }
 
   void set_simulation_iterations(size_t s) { _simulation_iterations = s; }
+
+  void set_bestofs(const std::vector<size_t> &bestofs) {
+    auto tips = _tournament.tip_count();
+    if (tips != std::pow(2, bestofs.size())) {
+      debug_string(EMIT_LEVEL_ERROR,
+                   "Mismatch in the bestof size vs tournament size");
+    }
+    _tournament.set_bestof(bestofs);
+  }
 
 private:
   vector_t run_simulation(const matrix_t & /*params*/);

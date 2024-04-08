@@ -1,8 +1,8 @@
 #ifndef TOURNAMENT_HPP
 #define TOURNAMENT_HPP
 
-#include "tournament_node.hpp"
 #include "simulation_node.hpp"
+#include "tournament_node.hpp"
 #include "util.hpp"
 #include <cstddef>
 #include <ios>
@@ -224,6 +224,11 @@ public:
     os << "node [shape=record]\n";
     _head->dump_state_graphviz(os, node_attr_func, edge_attr_func);
     os << "}";
+  }
+
+  void set_bestof(const std::vector<size_t> &bestof) {
+    auto depthfun = [bestof](size_t d) -> size_t { return bestof.at(d); };
+    _head->set_bestof(depthfun, 0);
   }
 
 private:

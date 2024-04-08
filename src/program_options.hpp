@@ -11,6 +11,7 @@ struct input_format_options_t {
   std::optional<std::string> odds_filename;
   std::optional<std::string> probs_filename;
   std::optional<std::string> matches_filename;
+  std::optional<std::string> bestofs_filename;
   bool                       dummy;
 };
 
