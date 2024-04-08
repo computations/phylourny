@@ -231,6 +231,10 @@ public:
     _head->set_bestof(depthfun, 0);
   }
 
+  size_t count_tips() const {
+    return _head->count_tips();
+  }
+
 private:
   [[nodiscard]] auto check_matrix_size(const matrix_t &wp) const -> bool {
     auto tipc = tip_count();

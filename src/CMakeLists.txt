@@ -1,5 +1,4 @@
 add_library(phylourny_lib
-    STATIC
     tournament.cpp
     model.cpp
     summary.cpp
