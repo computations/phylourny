@@ -12,14 +12,19 @@ add_library(phylourny_lib
     program_options.cpp
 )
 
+target_include_directories(phylourny_lib SYSTEM PUBLIC ${CMAKE_SOURCE_DIR}/lib/csv
+  ${CMAKE_SOURCE_DIR}/lib/json/single_include/nlohmann
+  )
+
 add_executable(phylourny
     main.cpp
 )
 
 find_package(OpenMP)
 
+target_link_libraries(phylourny_lib PUBLIC sul::dynamic_bitset)
 if(OpenMP_CXX_FOUND)
-  target_link_libraries(phylourny_lib pthread $<$<CONFIG:Release>:OpenMP::OpenMP_CXX>)
+  target_link_libraries(phylourny_lib PUBLIC pthread $<$<CONFIG:Release>:OpenMP::OpenMP_CXX>)
 endif()
 
 set_target_properties(phylourny_lib PROPERTIES

@@ -1,4 +1,2 @@
-
-target_include_directories(phylourny_lib SYSTEM PUBLIC json/single_include/nlohmann)
-target_include_directories(phylourny_lib SYSTEM PUBLIC csv)
-target_include_directories(phylourny_lib SYSTEM PUBLIC dynamic_bitset/include)
+add_subdirectory(json EXCLUDE_FROM_ALL)
+add_subdirectory(dynamic_bitset EXCLUDE_FROM_ALL)

@@ -63,8 +63,8 @@ set(CMAKE_C_FLAGS_RELEASE "-fno-omit-frame-pointer" CACHE INTERNAL "")
 set(CMAKE_CXX_STANDARD 17)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/../bin)
-add_subdirectory(src)
 add_subdirectory(lib)
+add_subdirectory(src)
 
 find_library(ASAN_FOUND asan)
 if(ASAN_FOUND AND PHYLOURNY_BUILD_TESTS)
