@@ -126,6 +126,7 @@ static auto parse_match_file(const std::string &match_filename,
 
   size_t next_index = 0;
   for (auto &kv : name_map) { next_index = std::max(next_index, kv.second); }
+  next_index += 1;
 
   io::CSVReader<4> match_file(match_filename);
   match_file.read_header(
@@ -221,7 +222,8 @@ static void write_summary(const summary_t                &summary,
                    return "\"" + kv.first + "\":" + std::to_string(kv.second);
                  });
 
-  json_entries.push_back("\"scale-param\":" + std::to_string(name_map.size()));
+  json_entries.push_back("\"scale-param\":" +
+                         std::to_string(name_map.size()));
 
   std::string name_map_json_array = std::accumulate(
       std::next(json_entries.begin()),

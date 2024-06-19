@@ -54,3 +54,7 @@ benchmark suite, set `PHYLOURNY_BUILD_BENCH` to `OFF`.
 
 There are example datasets in the `experiments` directory. These are a good
 place to start if you want to stary using the tool.
+
+# How to run
+
+
