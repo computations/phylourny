@@ -3,7 +3,6 @@
 import numpy
 import seaborn
 import pandas
-import ijson
 import argparse
 
 parser = argparse.ArgumentParser()
@@ -34,7 +33,6 @@ sorted_teams = sorted(
     reverse=True,
 )
 
-
 # seaborn.set(rc={"figure.figsize": (9, 12)})
 seaborn.set_style("ticks")
 
@@ -48,13 +46,13 @@ fig = seaborn.boxplot(
     fliersize=2.5,
 )
 fig.figure.set_size_inches(*args.size)
-if not args.title is None:
+if args.title is not None:
     fig.set(title=args.title)
 
-if not args.x_label is None:
+if args.x_label is not None:
     fig.set(xlabel=args.x_label)
 
-if not args.y_label is None:
+if args.y_label is not None:
     fig.set(ylabel=args.y_label)
 
 fig.figure.savefig(args.output, bbox_inches="tight", dpi=1000)
