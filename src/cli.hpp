@@ -283,14 +283,13 @@ static cli_option_t args[] = {
         "probs", "Pairwise win probabilities as a csv file"),
     option_flag("single", "Compute the tournament in single mode."),
     option_flag("sim", "Compute the tournament in simulation mode."),
+    option_flag("dynamic", "Enable or disable dynamic computation"),
     option_with_argument<size_t>("sim-iters",
                                  "Number of simulation iterations to run"),
-    option_with_argument<bool>("dynamic",
-                               "Enable or disable dynamic computation"),
     option_with_argument<size_t>(
         "samples", "Number of samples to take for the MCMC exploration"),
     option_with_argument<double>(
-        "burnin", "Number of samples to discard for MCMC burnin"),
+        "burnin", "Proportion of samples to discard for MCMC burnin"),
     option_with_argument<bool>(
         "poisson", "Use a Poisson based liklihood model for the MCMC search"),
     option_with_argument<std::string>("bestofs", ""),
