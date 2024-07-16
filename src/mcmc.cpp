@@ -28,8 +28,8 @@ std::vector<size_t> get_bestofs(const std::string &filename) {
   return bestofs;
 }
 
-static auto make_dummy_data(size_t team_count, uint64_t seed)
-    -> std::vector<match_t> {
+static auto make_dummy_data(size_t   team_count,
+                            uint64_t seed) -> std::vector<match_t> {
   std::vector<match_t>                  matches{};
   std::mt19937_64                       gen(seed);
   std::uniform_int_distribution<size_t> team(0, team_count - 1);
@@ -119,11 +119,12 @@ static auto find_or_insert(team_name_map_t   &name_map,
   return tmp;
 }
 
-static auto parse_match_file(const std::string &match_filename,
-                             team_name_map_t   &name_map)
-    -> std::vector<match_t> {
+static auto
+parse_match_file(const std::string &match_filename,
+                 team_name_map_t   &name_map) -> std::vector<match_t> {
   std::vector<match_t> match_history;
 
+  assert(name_map.size() != 0);
   size_t next_index = 0;
   for (auto &kv : name_map) { next_index = std::max(next_index, kv.second); }
   next_index += 1;
@@ -222,8 +223,7 @@ static void write_summary(const summary_t                &summary,
                    return "\"" + kv.first + "\":" + std::to_string(kv.second);
                  });
 
-  json_entries.push_back("\"scale-param\":" +
-                         std::to_string(name_map.size()));
+  json_entries.push_back("\"scale-param\":" + std::to_string(name_map.size()));
 
   std::string name_map_json_array = std::accumulate(
       std::next(json_entries.begin()),
@@ -250,6 +250,7 @@ static auto get_lh_model(const program_options_t    &program_options,
                   std::function<std::pair<params_t, double>(const params_t &,
                                                             random_engine_t &)>,
                   std::function<double(const params_t &)>> {
+
   if (program_options.mcmc_options.model_type == likelihood_model::poisson) {
     debug_string(EMIT_LEVEL_IMPORTANT, "Using a Poisson likelihood model");
     std::unique_ptr<likelihood_model_t> lhm =
@@ -258,6 +259,7 @@ static auto get_lh_model(const program_options_t    &program_options,
     auto update_func = update_win_probs_beta_with_scale;
     return std::make_tuple(std::move(lhm), update_func, uniform_prior);
   }
+
   debug_string(EMIT_LEVEL_IMPORTANT, "Using a simple likelihood model");
   std::unique_ptr<likelihood_model_t> lhm =
       std::make_unique<simple_likelihood_model_t>(
