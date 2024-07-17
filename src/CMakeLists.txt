@@ -9,6 +9,8 @@ add_library(phylourny_lib
     mcmc.cpp
     program_options.cpp
     results.cpp
+    sampler.cpp
+    cli.cpp
 )
 
 target_include_directories(phylourny_lib SYSTEM PUBLIC ${CMAKE_SOURCE_DIR}/lib/csv
