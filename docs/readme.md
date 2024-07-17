@@ -107,3 +107,5 @@ With these files, the command to generate a list of samples is
 
 which will generate everything and place the results in a set of files labeled
 `results`. To visualize these results, please use the scrips in `util`.
+
+For more information about program options, please run `phylourny --help`.
