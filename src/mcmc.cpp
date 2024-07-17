@@ -175,6 +175,18 @@ static auto parse_prob_files(const std::string     &probs_filename,
   return win_probs;
 }
 
+template <typename T>
+void write_graph_files(const tournament_t<T> &tournament,
+                       const std::string     &output_prefix,
+                       const std::string     &output_infix) {
+
+  debug_string(EMIT_LEVEL_PROGRESS, "Writing tournament graph file");
+  std::ofstream graph_outfile(output_prefix + "." + output_infix +
+                              ".graph.dot");
+
+  graph_outfile << tournament.graphviz();
+}
+
 static void write_team_files(const team_name_map_t          &name_map,
                              const std::vector<std::string> &teams,
                              const std::string              &output_prefix,
@@ -363,6 +375,10 @@ void mcmc_run(const program_options_t &program_options) {
       .add_file_output(program_options.output_prefix)
       .enable_memory_save();
 
+  if (program_options.mcmc_options.node_probabilites) {
+    results.add_node_probs_output(program_options.output_prefix);
+  }
+
   size_t mcmc_samples = program_options.mcmc_options.samples;
   size_t burnin_samples =
       static_cast<double>(mcmc_samples) * program_options.mcmc_options.burnin;
@@ -381,7 +397,11 @@ void mcmc_run(const program_options_t &program_options) {
                       program_options.seed,
                       update_func,
                       prior_func,
-                      program_options.mcmc_options.sample_matrix);
+                      program_options.mcmc_options.sample_matrix,
+                      program_options.mcmc_options.node_probabilites);
+    write_graph_files(sampler.get_tournament(),
+                      program_options.output_prefix,
+                      std::string{describe_run_type(program_options.run_mode)});
   }
 
   if (program_options.run_mode == run_mode_e::dynamic) {
@@ -402,7 +422,11 @@ void mcmc_run(const program_options_t &program_options) {
                       program_options.seed,
                       update_func,
                       prior_func,
-                      program_options.mcmc_options.sample_matrix);
+                      program_options.mcmc_options.sample_matrix,
+                      program_options.mcmc_options.node_probabilites);
+    write_graph_files(sampler.get_tournament(),
+                      program_options.output_prefix,
+                      std::string{describe_run_type(program_options.run_mode)});
   }
 
   if (program_options.run_mode == run_mode_e::simulation) {
@@ -422,7 +446,11 @@ void mcmc_run(const program_options_t &program_options) {
                       program_options.seed,
                       update_func,
                       prior_func,
-                      program_options.mcmc_options.sample_matrix);
+                      program_options.mcmc_options.sample_matrix,
+                      program_options.mcmc_options.node_probabilites);
+    write_graph_files(sampler.get_tournament(),
+                      program_options.output_prefix,
+                      std::string{describe_run_type(program_options.run_mode)});
   }
   write_team_files(team_name_map,
                    program_options.teams,

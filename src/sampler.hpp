@@ -11,6 +11,8 @@
 #include <optional>
 #include <random>
 #include <stdexcept>
+#include <string>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -43,7 +45,8 @@ public:
                  const std::function<std::pair<params_t, double>(
                      const params_t &, random_engine_t &gen)>  &update_func,
                  const std::function<double(const params_t &)> &prior,
-                 bool sample_matrix = false) {
+                 bool sample_matrix = false,
+                 bool node_probs    = false) {
 
     constexpr size_t waiting_time = 100;
 
@@ -98,7 +101,8 @@ public:
                       i,
                       iters,
                       burnin_iters,
-                      sample_matrix);
+                      sample_matrix,
+                      node_probs);
       }
     }
   }
@@ -114,6 +118,10 @@ public:
     _tournament.set_bestof(bestofs);
   }
 
+  auto get_tournament() const -> tournament_t<T> const&{
+    return _tournament;
+  }
+
 private:
   vector_t run_simulation(const matrix_t & /*params*/);
   matrix_t compute_win_probs(const params_t &params) {
@@ -127,7 +135,8 @@ private:
                      size_t          trials,
                      size_t          iters,
                      size_t          burnin_iters,
-                     bool            sample_matrix = false) {
+                     bool            sample_matrix = false,
+                     bool            node_probs    = false) {
 
     if (iters < burnin_iters) { return; }
     if (iters == burnin_iters && iters != 0) {
@@ -135,10 +144,14 @@ private:
       return;
     }
     auto prob_matrix = compute_win_probs(params);
+    auto sim_results = run_simulation(prob_matrix);
 
-    result_t r{run_simulation(prob_matrix),
+    result_t r{sim_results,
                params,
                sample_matrix ? prob_matrix : std::optional<matrix_t>(),
+               node_probs
+                   ? _tournament.get_node_results()
+                   : std::optional<std::unordered_map<std::string, vector_t>>(),
                llh};
 
     results.add_result(std::move(r));

@@ -6,12 +6,14 @@
 #include <filesystem>
 #include <fstream>
 #include <optional>
+#include <unordered_map>
 
 struct result_t {
-  vector_t                win_prob;
-  params_t                params;
-  std::optional<matrix_t> prob_matrix;
-  double                  llh;
+  vector_t                                                 win_prob;
+  params_t                                                 params;
+  std::optional<matrix_t>                                  prob_matrix;
+  std::optional<std::unordered_map<std::string, vector_t>> node_probs;
+  double                                                   llh;
 };
 auto operator<<(std::ostream &os, const result_t &r) -> std::ostream &;
 
@@ -29,6 +31,7 @@ public:
   }
   results_t &add_file_output(const std::filesystem::path &prefix);
   results_t &enable_memory_save();
+  results_t &add_node_probs_output(const std::filesystem::path & prefix);
 
   void   add_result(result_t &&r);
   size_t sample_count() const { return _sample_count; }
@@ -37,6 +40,7 @@ private:
   void write_result_to_outfiles(const result_t &r);
   void write_params_line(const result_t &r);
   void write_probs_line(const result_t &r);
+  void write_node_probs_line(const result_t &r);
 
   inline std::filesystem::path
   params_filename(const std::filesystem::path &prefix) {
@@ -53,6 +57,15 @@ private:
     tmp += ".";
     tmp += describe_run_type(_run_type.value());
     tmp += ".samples.win_probs.csv";
+    return tmp;
+  }
+
+  inline std::filesystem::path
+  node_probs_filename(const std::filesystem::path &prefix) {
+    auto tmp = prefix;
+    tmp += ".";
+    tmp += describe_run_type(_run_type.value());
+    tmp += ".samples.node_probs.csv";
     return tmp;
   }
 
@@ -79,6 +92,8 @@ private:
 
   std::optional<std::ofstream> _params_outfile;
   std::optional<std::ofstream> _probs_outfile;
+
+  std::optional<std::ofstream> _node_probs_outfile;
 
   std::vector<std::string> _bracket_teams;
   std::vector<std::string> _all_teams;

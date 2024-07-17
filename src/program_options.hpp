@@ -44,6 +44,7 @@ struct mcmc_options_t {
   double           burnin;
   bool             sample_matrix;
   likelihood_model model_type;
+  bool             node_probabilites;
 };
 
 struct program_options_t {

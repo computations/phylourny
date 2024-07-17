@@ -6,7 +6,6 @@
 #define CLI_HPP
 
 #include "debug.h"
-#include <algorithm>
 #include <any>
 #include <cctype>
 #include <cstring>
@@ -268,6 +267,9 @@ static cli_option_t args[] = {
     option_with_argument<bool>(
         "poisson", "Use a Poisson based liklihood model for the MCMC search"),
     option_with_argument<std::string>("bestofs", ""),
+    option_flag(
+        "node-probs",
+        "Record node probabilities in addition to tournament probabilities"),
     option_flag("sample-matrix", "Sample the matrix during the MCMC search"),
     option_flag("dummy", "Make dummy data"),
     option_flag("verbose", "Enable more output"),

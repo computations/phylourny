@@ -12,6 +12,7 @@
 #include <string>
 #include <sul/dynamic_bitset.hpp>
 #include <type_traits>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -127,6 +128,12 @@ public:
     return _head->eval_debug(_win_probs, tip_count(), prefix);
   }
 
+  std::unordered_map<std::string, vector_t> get_node_results() {
+    std::unordered_map<std::string, vector_t> tmp;
+    _head->store_node_results(tmp);
+    return tmp;
+  }
+
   vector_t eval(size_t iters);
 
   [[nodiscard]] auto dump_state_graphviz() const -> std::string {
@@ -226,14 +233,52 @@ public:
     os << "}";
   }
 
+  auto graphviz() const -> std::string {
+    std::ostringstream oss;
+    graphviz(oss);
+    return oss.str();
+  }
+
+  void graphviz(std::ostream &os) const {
+    auto node_attr_func = [](const tournament_node_t &n) -> std::string {
+      std::ostringstream oss;
+      oss << "[label=";
+      if (n.is_tip()) {
+        oss << n.get_display_label();
+      } else {
+        oss << n.internal_label();
+      }
+      oss << "]";
+      return oss.str();
+    };
+
+    auto edge_attr_func = [](const tournament_edge_t &e) -> std::string {
+      std::ostringstream oss;
+      oss << "[";
+
+      if (e.is_win()) {
+        oss << "style = solid ";
+      } else {
+        oss << "style = dashed ";
+      }
+
+      oss.seekp(-1, std::ios_base::end);
+      oss << "]";
+      return oss.str();
+    };
+
+    os << "digraph {\n";
+    os << "node [shape=record]\n";
+    _head->dump_state_graphviz(os, node_attr_func, edge_attr_func);
+    os << "}";
+  }
+
   void set_bestof(const std::vector<size_t> &bestof) {
     auto depthfun = [bestof](size_t d) -> size_t { return bestof.at(d); };
     _head->set_bestof(depthfun, 0);
   }
 
-  size_t count_tips() const {
-    return _head->count_tips();
-  }
+  size_t count_tips() const { return _head->count_tips(); }
 
 private:
   [[nodiscard]] auto check_matrix_size(const matrix_t &wp) const -> bool {

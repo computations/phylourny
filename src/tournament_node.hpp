@@ -7,6 +7,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <unordered_map>
 #include <variant>
 #include <vector>
 
@@ -150,6 +151,8 @@ public:
    * Determines if the current node can be computed using a simple method.
    */
   [[nodiscard]] auto is_simple() const -> bool;
+
+  void store_node_results(std::unordered_map<std::string, vector_t>& res_map);
 
   void reset_saved_evals();
 

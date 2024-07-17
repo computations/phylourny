@@ -131,6 +131,7 @@ mcmc_options_t create_mcmc_options(const cli_options_t &cli_options) {
   mcmc_options.burnin        = cli_options["burnin"].value(0.1);
   mcmc_options.samples       = cli_options["samples"].value(100'000ul);
   mcmc_options.sample_matrix = cli_options["sample-matrix"].value(false);
+  mcmc_options.node_probabilites = cli_options["node-probs"].value(false);
   return mcmc_options;
 }
 

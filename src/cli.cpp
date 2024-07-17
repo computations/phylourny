@@ -1,4 +1,5 @@
 #include "cli.hpp"
+#include <algorithm>
 
 template <>
 auto option_with_argument<std::string>(const char *name,

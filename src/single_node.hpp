@@ -36,6 +36,10 @@ public:
   auto eval_debug(const matrix_t &pmatrix,
                   size_t          tip_count,
                   const std::string &) -> vector_t;
+  void store_node_results(std::unordered_map<std::string, vector_t> &res_map) {
+    (void)(res_map);
+    throw std::runtime_error{"Unimplemneted function"};
+  }
 
   [[nodiscard]] auto winner() const -> size_t override {
     return _assigned_team;

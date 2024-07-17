@@ -1,7 +1,8 @@
+#include "tournament_node.hpp"
 #include "debug.h"
 #include "factorial.hpp"
-#include "tournament_node.hpp"
 #include "util.hpp"
+#include <stdexcept>
 #include <string>
 
 auto tournament_node_t::is_tip() const -> bool {
@@ -31,6 +32,22 @@ auto tournament_node_t::relabel_indicies(size_t index) -> size_t {
   return index;
 }
 
+void tournament_node_t::store_node_results(
+    std::unordered_map<std::string, vector_t> &res_map) {
+  if (is_tip()) { return; }
+  if (!eval_saved()) {
+    throw std::runtime_error{"Tried to store uncalculated results"};
+  }
+  res_map[internal_label()] = _memoized_values;
+
+  if (children().left.is_win()) {
+    children().left->store_node_results(res_map);
+  }
+  if (children().right.is_win()) {
+    children().right->store_node_results(res_map);
+  }
+}
+
 void tournament_node_t::label_map(
     std::vector<std::pair<std::string, size_t>> &lm) const {
   if (is_tip()) {
@@ -56,8 +73,8 @@ auto tournament_node_t::is_member(size_t index) const -> bool {
          children().right->is_member(index);
 }
 
-auto tournament_node_t::eval(const matrix_t &pmatrix, size_t tip_count)
-    -> vector_t {
+auto tournament_node_t::eval(const matrix_t &pmatrix,
+                             size_t          tip_count) -> vector_t {
 
   if (is_tip()) {
     vector_t wpv(tip_count);
@@ -131,8 +148,8 @@ auto tournament_node_t::fold(const vector_t &x,
   return r;
 }
 
-auto tournament_edge_t::eval(const matrix_t &pmatrix, size_t tip_count) const
-    -> vector_t {
+auto tournament_edge_t::eval(const matrix_t &pmatrix,
+                             size_t          tip_count) const -> vector_t {
   auto r = _node->eval(pmatrix, tip_count);
   return r;
 }
