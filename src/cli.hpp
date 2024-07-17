@@ -266,7 +266,10 @@ static cli_option_t args[] = {
         "burnin", "Proportion of samples to discard for MCMC burnin"),
     option_with_argument<bool>(
         "poisson", "Use a Poisson based liklihood model for the MCMC search"),
-    option_with_argument<std::string>("bestofs", ""),
+    option_with_argument<std::string>(
+        "bestofs",
+        "Set the number of best ofs for the tournament. Given as a comma "
+        "separated list."),
     option_flag(
         "node-probs",
         "Record node probabilities in addition to tournament probabilities"),
