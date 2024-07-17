@@ -3,6 +3,7 @@
 
 #include <optional>
 #include <string>
+#include <string_view>
 #include <vector>
 
 enum class likelihood_model { simple, poisson };
@@ -15,11 +16,24 @@ struct input_format_options_t {
   bool                       dummy;
 };
 
-struct run_mode_t {
-  bool single;
-  bool dynamic;
-  bool simulation;
+enum class run_mode_e {
+  single,
+  dynamic,
+  simulation,
 };
+
+constexpr inline std::string_view describe_run_type(run_mode_e rt) {
+  switch (rt) {
+  case run_mode_e::single:
+    return "single";
+  case run_mode_e::dynamic:
+    return "dynamic";
+  case run_mode_e::simulation:
+    return "simulation";
+  default:
+    return "unknown";
+  }
+}
 
 struct simulation_mode_options_t {
   size_t samples;
@@ -39,7 +53,7 @@ struct program_options_t {
   size_t seed;
 
   input_format_options_t input_formats;
-  run_mode_t             run_modes;
+  run_mode_e             run_mode;
 
   simulation_mode_options_t simulation_options;
   mcmc_options_t            mcmc_options;

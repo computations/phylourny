@@ -3,10 +3,9 @@
 
 #include "debug.h"
 #include "model.hpp"
-#include "summary.hpp"
+#include "results.hpp"
 #include "tournament.hpp"
 #include "util.hpp"
-#include <fstream>
 #include <functional>
 #include <memory>
 #include <optional>
@@ -37,19 +36,9 @@ public:
     _team_indicies = ti;
   }
 
-  [[nodiscard]] auto report() const -> std::vector<result_t> {
-    return _samples;
-  }
-
-  /**
-   * Return a summary of the samples. For more information, please see the
-   * `summary_t` class.
-   */
-  [[nodiscard]] auto summary() const -> summary_t {
-    return summary_t{_samples};
-  }
-
-  void run_chain(size_t                                         iters,
+  void run_chain(results_t                                     &results,
+                 size_t                                         iters,
+                 size_t                                         burnin_iters,
                  uint64_t                                       seed,
                  const std::function<std::pair<params_t, double>(
                      const params_t &, random_engine_t &gen)>  &update_func,
@@ -64,10 +53,8 @@ public:
 
     if (_team_indicies.empty()) { generate_default_team_indicies(); }
 
-    params_t params(_lh_model->param_count(), 0.5);
-    params_t temp_params{params};
-    _samples.clear();
-    _samples.reserve(iters);
+    params_t                         params(_lh_model->param_count(), 0.5);
+    params_t                         temp_params{params};
     random_engine_t                  gen(seed);
     std::uniform_real_distribution<> coin(0.0, 1.0);
 
@@ -76,7 +63,7 @@ public:
     size_t successes = 0;
 
     double cur_lh = _lh_model->log_likelihood(params);
-    for (size_t i = 0; _samples.size() < iters; ++i) {
+    for (size_t i = 0; results.sample_count() < iters; ++i) {
 
       double hastings_ratio;
       std::tie(temp_params, hastings_ratio) = update_func(params, gen);
@@ -104,7 +91,14 @@ public:
         successes += 1;
       }
       if (i % waiting_time == 0 && i != 0) {
-        record_sample(params, cur_lh, successes, i, iters, sample_matrix);
+        record_sample(results,
+                      params,
+                      cur_lh,
+                      successes,
+                      i,
+                      iters,
+                      burnin_iters,
+                      sample_matrix);
       }
     }
   }
@@ -126,12 +120,20 @@ private:
     return _lh_model->generate_win_probs(params, _team_indicies);
   }
 
-  void record_sample(const params_t &params,
+  void record_sample(results_t      &results,
+                     const params_t &params,
                      double          llh,
                      size_t          successes,
                      size_t          trials,
                      size_t          iters,
+                     size_t          burnin_iters,
                      bool            sample_matrix = false) {
+
+    if (iters < burnin_iters) { return; }
+    if (iters == burnin_iters && iters != 0) {
+      debug_string(EMIT_LEVEL_PROGRESS, "Burnin Complete");
+      return;
+    }
     auto prob_matrix = compute_win_probs(params);
 
     result_t r{run_simulation(prob_matrix),
@@ -139,27 +141,26 @@ private:
                sample_matrix ? prob_matrix : std::optional<matrix_t>(),
                llh};
 
-    _samples.emplace_back(r);
-    if (_samples.size() % 1000 == 0) {
+    results.add_result(std::move(r));
+    if (results.sample_count() % 1000 == 0) {
 #ifndef JOKE_BUILD
       debug_print(EMIT_LEVEL_PROGRESS,
                   "%lu samples, ratio: %f, ETC: %.2f hours",
-                  _samples.size(),
+                  results.sample_count(),
                   static_cast<double>(successes) / trials,
-                  progress_macro(_samples.size(), iters));
+                  progress_macro(results.sample_count(), iters));
 #else
       debug_print(EMIT_LEVEL_PROGRESS,
                   "%lu samples, ratio: %f, ETC: %.10f millifortnights",
-                  _samples.size(),
+                  results.sample_count(),
                   static_cast<double>(successes) / trials,
-                  progress_macro(_samples.size(), iters));
+                  progress_macro(results.sample_count(), iters));
 #endif
     }
   }
 
   std::unique_ptr<likelihood_model_t> _lh_model;
   tournament_t<T>                     _tournament;
-  std::vector<result_t>               _samples;
   std::vector<size_t>                 _team_indicies;
   size_t                              _simulation_iterations{0};
 };

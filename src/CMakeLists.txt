@@ -1,7 +1,6 @@
 add_library(phylourny_lib
     tournament.cpp
     model.cpp
-    summary.cpp
     match.cpp
     util.cpp
     tournament_node.cpp
@@ -9,6 +8,7 @@ add_library(phylourny_lib
     single_node.cpp
     mcmc.cpp
     program_options.cpp
+    results.cpp
 )
 
 target_include_directories(phylourny_lib SYSTEM PUBLIC ${CMAKE_SOURCE_DIR}/lib/csv

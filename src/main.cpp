@@ -88,11 +88,31 @@ create_input_format_options(const cli_options_t &cli_options) {
   return ret;
 }
 
-run_mode_t create_run_mode_type(const cli_options_t &cli_options) {
-  run_mode_t ret;
-  ret.dynamic    = cli_options["dynamic"].value(true);
-  ret.single     = cli_options["single"].value(false);
-  ret.simulation = cli_options["sim"].value(false);
+std::optional<run_mode_e>
+create_run_mode_type(const cli_options_t &cli_options) {
+  std::optional<run_mode_e> ret;
+  if (cli_options["single"].value(false)) { ret = run_mode_e::single; }
+
+  if (cli_options["sim"].value(false)) {
+    if (ret.has_value()) {
+      debug_string(EMIT_LEVEL_ERROR,
+                   "Multiple run mode flags specified, please select one");
+      return {};
+    }
+    ret = run_mode_e::simulation;
+  }
+
+  if (cli_options["dynamic"].value<bool>(true)) {
+    if (ret.has_value()) {
+      debug_string(EMIT_LEVEL_ERROR,
+                   "Multiple run mode flags specified, please select one");
+      return {};
+    }
+    ret = run_mode_e::dynamic;
+  }
+
+  if (!ret.has_value()) { ret = run_mode_e::dynamic; }
+
   return ret;
 }
 
@@ -130,7 +150,7 @@ std::vector<std::string> read_teams_file(const std::string &teams_filename) {
 program_options_t create_program_options(const cli_options_t &cli_options) {
   program_options_t prog_opts;
   prog_opts.input_formats      = create_input_format_options(cli_options);
-  prog_opts.run_modes          = create_run_mode_type(cli_options);
+  prog_opts.run_mode           = create_run_mode_type(cli_options).value();
   prog_opts.mcmc_options       = create_mcmc_options(cli_options);
   prog_opts.simulation_options = create_simulation_mode_options(cli_options);
 

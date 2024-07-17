@@ -175,40 +175,13 @@ static auto parse_prob_files(const std::string     &probs_filename,
   return win_probs;
 }
 
-static void write_summary(const summary_t                &summary,
-                          const team_name_map_t          &name_map,
-                          const std::vector<std::string> &teams,
-                          const std::string              &output_prefix,
-                          const std::string              &output_infix,
-                          const std::string              &output_suffix,
-                          size_t                          burnin_samples) {
-  debug_string(EMIT_LEVEL_PROGRESS, "Writing JSON sample file");
-  std::ofstream outfile(output_prefix + output_infix + ".samples" +
-                        output_suffix);
-  summary.write_samples(outfile, 0, 1);
-
-  debug_string(EMIT_LEVEL_PROGRESS, "Writing CSV win probs sample file");
-  std::ofstream csv_probs_outfile(output_prefix + output_infix +
-                                  ".samples.win_probs" + ".csv");
-  summary.write_samples_csv_win_probs(csv_probs_outfile, teams, name_map, 0, 1);
-
-  debug_string(EMIT_LEVEL_PROGRESS, "Writing CSV params sample file");
-  std::ofstream csv_params_outfile(output_prefix + output_infix +
-                                   ".samples.params" + ".csv");
-  summary.write_samples_csv_params(csv_params_outfile, name_map, 0, 1);
-
-  debug_string(EMIT_LEVEL_PROGRESS, "Writing MLP file");
-  std::ofstream mlp_outfile(output_prefix + output_infix + ".mlp" +
-                            output_suffix);
-  summary.write_mlp(mlp_outfile, burnin_samples);
-
-  debug_string(EMIT_LEVEL_PROGRESS, "Writing MMPP file");
-  std::ofstream mmpp_outfile(output_prefix + output_infix + ".mmpp" +
-                             output_suffix);
-  summary.write_mmpp(mmpp_outfile, burnin_samples);
-
+static void write_team_files(const team_name_map_t          &name_map,
+                             const std::vector<std::string> &teams,
+                             const std::string              &output_prefix,
+                             const std::string              &output_infix,
+                             const std::string              &output_suffix) {
   debug_string(EMIT_LEVEL_PROGRESS, "Writing JSON teams file");
-  std::ofstream team_map_outfile(output_prefix + output_infix + ".teams" +
+  std::ofstream team_map_outfile(output_prefix + "." + output_infix + ".teams" +
                                  output_suffix);
 
   team_map_outfile << "{\"team-name-map\":{";
@@ -278,21 +251,20 @@ void compute_tournament(const program_options_t &program_options) {
     odds = parse_odds_file(program_options.input_formats.odds_filename.value(),
                            team_name_map);
     const std::string output_suffix = ".odds.json";
-    if (program_options.run_modes.single) {
+    if (program_options.run_mode == run_mode_e::single) {
       std::ofstream odds_outfile(output_prefix + ".single" + output_suffix);
       auto          t = tournament_factory_single(program_options.teams);
       t.reset_win_probs(odds);
       auto wp = t.eval();
       odds_outfile << to_json(wp) << std::endl;
-    }
-    if (program_options.run_modes.dynamic) {
+    } else if (program_options.run_mode == run_mode_e::dynamic) {
       std::ofstream odds_outfile(output_prefix + ".dynamic" + output_suffix);
       auto          t = tournament_factory(program_options.teams);
       t.reset_win_probs(odds);
       auto wp = t.eval();
       odds_outfile << to_json(wp) << std::endl;
     }
-    if (program_options.run_modes.simulation) {
+    if (program_options.run_mode == run_mode_e::simulation) {
       std::ofstream odds_outfile(output_prefix + ".sim" + output_suffix);
       auto          t = tournament_factory_simulation(program_options.teams);
       t.reset_win_probs(odds);
@@ -306,21 +278,21 @@ void compute_tournament(const program_options_t &program_options) {
     matrix_t probs = parse_prob_files(
         program_options.input_formats.probs_filename.value(), team_name_map);
     const std::string output_suffix = ".probs.json";
-    if (program_options.run_modes.single) {
+    if (program_options.run_mode == run_mode_e::single) {
       std::ofstream probs_outfile(output_prefix + ".single" + output_suffix);
       auto          t = tournament_factory_single(program_options.teams);
       t.reset_win_probs(probs);
       auto wp = t.eval();
       probs_outfile << to_json(wp) << std::endl;
     }
-    if (program_options.run_modes.dynamic) {
+    if (program_options.run_mode == run_mode_e::dynamic) {
       std::ofstream probs_outfile(output_prefix + ".dynamic" + output_suffix);
       auto          t = tournament_factory(program_options.teams);
       t.reset_win_probs(probs);
       auto wp = t.eval();
       probs_outfile << to_json(wp) << std::endl;
     }
-    if (program_options.run_modes.simulation) {
+    if (program_options.run_mode == run_mode_e::simulation) {
       std::ofstream probs_outfile(output_prefix + ".sim" + output_suffix);
       auto          t = tournament_factory_simulation(program_options.teams);
       t.reset_win_probs(probs);
@@ -363,6 +335,8 @@ static auto verify_teams(const std::vector<match_t>     &matches,
 void mcmc_run(const program_options_t &program_options) {
   auto team_name_map = create_name_map(program_options.teams);
 
+  results_t results(program_options.teams, team_name_map);
+
   std::vector<match_t> matches;
   std::vector<size_t>  team_indicies;
   if (program_options.input_formats.matches_filename.has_value()) {
@@ -385,14 +359,15 @@ void mcmc_run(const program_options_t &program_options) {
     }
   }
 
-  const auto       &output_prefix = program_options.output_prefix;
-  const std::string output_suffix = ".json";
+  results.set_run_type(program_options.run_mode)
+      .add_file_output(program_options.output_prefix)
+      .enable_memory_save();
 
   size_t mcmc_samples = program_options.mcmc_options.samples;
   size_t burnin_samples =
       static_cast<double>(mcmc_samples) * program_options.mcmc_options.burnin;
 
-  if (program_options.run_modes.single) {
+  if (program_options.run_mode == run_mode_e::single) {
     auto [lhm, update_func, prior_func] =
         get_lh_model(program_options, matches);
     sampler_t<single_node_t> sampler{
@@ -400,23 +375,16 @@ void mcmc_run(const program_options_t &program_options) {
     sampler.set_team_indicies(team_indicies);
 
     debug_string(EMIT_LEVEL_PROGRESS, "Running MCMC sampler (Single Mode)");
-    sampler.run_chain(mcmc_samples,
+    sampler.run_chain(results,
+                      mcmc_samples,
+                      burnin_samples,
                       program_options.seed,
                       update_func,
                       prior_func,
                       program_options.mcmc_options.sample_matrix);
-    auto summary = sampler.summary();
-
-    write_summary(summary,
-                  team_name_map,
-                  program_options.teams,
-                  output_prefix,
-                  std::string{".single"},
-                  output_suffix,
-                  burnin_samples);
   }
 
-  if (program_options.run_modes.dynamic) {
+  if (program_options.run_mode == run_mode_e::dynamic) {
     auto [lhm, update_func, prior_func] =
         get_lh_model(program_options, matches);
     sampler_t<tournament_node_t> sampler{
@@ -428,23 +396,16 @@ void mcmc_run(const program_options_t &program_options) {
     }
 
     debug_string(EMIT_LEVEL_PROGRESS, "Running MCMC sampler (Dynamic Mode)");
-    sampler.run_chain(mcmc_samples,
+    sampler.run_chain(results,
+                      mcmc_samples,
+                      burnin_samples,
                       program_options.seed,
                       update_func,
                       prior_func,
                       program_options.mcmc_options.sample_matrix);
-    auto summary = sampler.summary();
-
-    write_summary(summary,
-                  team_name_map,
-                  program_options.teams,
-                  output_prefix,
-                  std::string{".dynamic"},
-                  output_suffix,
-                  burnin_samples);
   }
 
-  if (program_options.run_modes.simulation) {
+  if (program_options.run_mode == run_mode_e::simulation) {
     auto [lhm, update_func, prior_func] =
         get_lh_model(program_options, matches);
     sampler_t<simulation_node_t> sampler{
@@ -455,18 +416,17 @@ void mcmc_run(const program_options_t &program_options) {
         program_options.simulation_options.samples);
 
     debug_string(EMIT_LEVEL_PROGRESS, "Running MCMC sampler (Simulation Mode)");
-    sampler.run_chain(mcmc_samples,
+    sampler.run_chain(results,
+                      mcmc_samples,
+                      burnin_samples,
                       program_options.seed,
                       update_func,
                       prior_func,
                       program_options.mcmc_options.sample_matrix);
-    auto summary = sampler.summary();
-    write_summary(summary,
-                  team_name_map,
-                  program_options.teams,
-                  output_prefix,
-                  std::string{".sim"},
-                  output_suffix,
-                  burnin_samples);
   }
+  write_team_files(team_name_map,
+                   program_options.teams,
+                   program_options.output_prefix,
+                   std::string{describe_run_type(program_options.run_mode)},
+                   ".json");
 }
