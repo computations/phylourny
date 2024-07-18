@@ -78,7 +78,7 @@ private:
       _all_team_index_map.push_back(kv.second);
     }
 
-    _bracket_team_index_map.resize(_bracket_teams.size());
+    _bracket_team_index_map.reserve(_bracket_teams.size());
     for (const auto &t : _bracket_teams) {
       _bracket_team_index_map.push_back(_team_name_map.at(t));
     }
