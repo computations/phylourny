@@ -109,3 +109,28 @@ which will generate everything and place the results in a set of files labeled
 `results`. To visualize these results, please use the scrips in `util`.
 
 For more information about program options, please run `phylourny --help`.
+
+## Run modes
+
+There are 3 run modes for `phylourny`: dynamic, single and simulation. 
+
+- **Dynamic** is the default run mode, where Horner's method is used to
+  accelerate computation.
+- **Single** is an alternative to dynamic which will explicitly evaluate every
+  possibility, in the slow way. This really only should be used for _small_
+  multi-elimination tournaments.
+- **Simulation** mode will compute the results approximately using simulations.
+  That is, it will run the tournament stochastically a number of times, and use
+  that to approximate the true WPV. The number of simulations used to
+  approximate the WPV can be controlled with the option `--sim-iters`. This mode
+  should only be used for multi-elimination tournaments.
+
+## Threading
+
+By default, `phylourny` will spawn a number of threads equal to the number of
+_logical_ cores available on the system. If you want to run `phylourny` with
+fewer threads, run the program as
+
+```
+OMP_NUM_THREADS=<THREAD COUNT> ./phylourny ...
+```
