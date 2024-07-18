@@ -1,10 +1,12 @@
-#include "tournament_node.hpp"
-#include "util.hpp"
 #include <catch2/catch_all.hpp>
 #include <debug.h>
+#include <factorial.hpp>
 #include <numeric>
 #include <random>
 #include <tournament.hpp>
+#include <tournament_factory.hpp>
+#include <tournament_node.hpp>
+#include <util.hpp>
 
 const std::string graphiz_result_long =
     R"(digraph {
@@ -439,7 +441,8 @@ TEST_CASE("Best tests", "[bestof_n]") {
         double p = static_cast<double>(i) /
                    (static_cast<double>(i) + static_cast<double>(j));
         for (size_t n = 1; n < 16; ++n) {
-          CHECK(bestof_n(p, 1 - p, n) == Catch::Approx(1 - bestof_n(1 - p, p, n)));
+          CHECK(bestof_n(p, 1 - p, n) ==
+                Catch::Approx(1 - bestof_n(1 - p, p, n)));
         }
       }
     }
@@ -452,7 +455,8 @@ TEST_CASE("Best tests", "[bestof_n]") {
     for (size_t i = 0; i < 1e4; ++i) {
       double p = uni_dist(gen);
       for (size_t n = 1; n < 16; n += 2) {
-        CHECK((bestof_n(p, 1 - p, n) + bestof_n(1 - p, p, n)) == Catch::Approx(1.0));
+        CHECK((bestof_n(p, 1 - p, n) + bestof_n(1 - p, p, n)) ==
+              Catch::Approx(1.0));
       }
     }
   }

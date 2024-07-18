@@ -1,18 +1,27 @@
-#include "util.hpp"
 #include <algorithm>
 #include <catch2/catch_all.hpp>
 #include <cmath>
 #include <debug.h>
 #include <math.h>
+#include <mcmc.hpp>
 #include <memory>
 #include <numeric>
 #include <sampler.hpp>
+#include <tournament_factory.hpp>
+#include <util.hpp>
 
 TEST_CASE("sampler_t simple case", "[sampler_t]") {
   std::vector<match_t> matches;
   matches.push_back({0, 1, 1, 0, match_winner_t::left});
   matches.push_back({0, 1, 0, 1, match_winner_t::right});
   matches.push_back({0, 1, 0, 1, match_winner_t::right});
+
+  std::vector<std::string> teams{"a", "b"};
+  team_name_map_t          team_name_map{
+               {"a", 0},
+               {"b", 1},
+  };
+
   SECTION("Simple likelihood model") {
     SECTION("constructor") {
       auto      t = tournament_factory(2);
@@ -20,13 +29,15 @@ TEST_CASE("sampler_t simple case", "[sampler_t]") {
                       simple_likelihood_model_t(matches)),
                   std::move(t)};
       SECTION("Running the chain") {
-        s.run_chain(100,
-                    static_cast<uint64_t>(rand() % 3),
+        results_t r{teams, team_name_map};
+        s.run_chain(r,
+                    100,
+                    0,
+                    Catch::rngSeed(),
                     update_win_probs_uniform,
                     uniform_prior);
-        auto r = s.report();
-        CHECK(r.size() > 0);
-        CHECK(r.size() <= 100);
+        CHECK(r.sample_count() > 0);
+        CHECK(r.sample_count() <= 100);
       }
     }
   }
@@ -37,13 +48,15 @@ TEST_CASE("sampler_t simple case", "[sampler_t]") {
                       poisson_likelihood_model_t(matches)),
                   std::move(t)};
       SECTION("Running the chain") {
-        s.run_chain(100,
-                    static_cast<uint64_t>(rand() % 3),
+        results_t r{teams, team_name_map};
+        s.run_chain(r,
+                    100,
+                    0,
+                    Catch::rngSeed(),
                     update_poission_model_factory(0.1),
                     uniform_prior);
-        auto r = s.report();
-        CHECK(r.size() > 0);
-        CHECK(r.size() <= 100);
+        CHECK(r.sample_count() > 0);
+        CHECK(r.sample_count() <= 100);
       }
     }
   }
