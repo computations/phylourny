@@ -4,3 +4,5 @@ compile_commands.json
 tags
 .clangd
 .cache/*
+.zig-cache/*
+zig-out/*

@@ -1,0 +1,22 @@
+.{
+    .name = "phylourny",
+    .version = "1.2.1",
+    .paths = .{
+        "src",
+        "build.zig",
+        "build.zig.zon",
+    },
+    .dependencies = .{
+        .json = .{
+            .url = "https://github.com/nlohmann/json/releases/download/v3.11.3/include.zip",
+            .hash = "12204a5ff1537933c3619e81684e6af6cb35903f35017a8ad8593bb90255519f6507",
+        },
+        .dynamic_bitset = .{
+            .url = "https://github.com/pinam45/dynamic_bitset/archive/refs/tags/v1.3.1.zip",
+            .hash = "12208cb65c12b6522a2640a95890b1d723ce2f47e81263e491d79948925a15866b8f",
+        },
+        .csv = .{
+            .path = "lib/csv",
+        },
+    },
+}

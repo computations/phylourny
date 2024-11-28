@@ -1,5 +1,3 @@
-#include <chrono>
-#include <cstdint>
 #include <csv.h>
 #include <filesystem>
 #include <fstream>
@@ -32,11 +30,15 @@ using duration_t  = std::chrono::duration<double>;
 static void print_version() {
   debug_string(EMIT_LEVEL_IMPORTANT, "Running Phylourny");
   debug_print(EMIT_LEVEL_IMPORTANT, "Version: %s", GIT_REV_STRING);
+#ifdef GIT_COMMIT
   debug_print(EMIT_LEVEL_IMPORTANT, "Build Commit: %s", GIT_COMMIT_STRING);
+#endif
+#if defined BUILD_DATE || defined BUILD_DDATE
 #ifdef JOKE_BUILD
   debug_print(EMIT_LEVEL_IMPORTANT, "Build Date: %s", BUILD_DDATE_STRING);
 #else
   debug_print(EMIT_LEVEL_IMPORTANT, "Build Date: %s", BUILD_DATE_STRING);
+#endif
 #endif
 }
 
@@ -125,12 +127,12 @@ create_simulation_mode_options(const cli_options_t &cli_options) {
 
 mcmc_options_t create_mcmc_options(const cli_options_t &cli_options) {
   mcmc_options_t mcmc_options;
-  mcmc_options.model_type    = cli_options["poisson"].value(true)
-                                   ? likelihood_model::poisson
-                                   : likelihood_model::simple;
-  mcmc_options.burnin        = cli_options["burnin"].value(0.1);
-  mcmc_options.samples       = cli_options["samples"].value(100'000ul);
-  mcmc_options.sample_matrix = cli_options["sample-matrix"].value(false);
+  mcmc_options.model_type        = cli_options["poisson"].value(true)
+                                       ? likelihood_model::poisson
+                                       : likelihood_model::simple;
+  mcmc_options.burnin            = cli_options["burnin"].value(0.1);
+  mcmc_options.samples           = cli_options["samples"].value(100'000ul);
+  mcmc_options.sample_matrix     = cli_options["sample-matrix"].value(false);
   mcmc_options.node_probabilites = cli_options["node-probs"].value(false);
   return mcmc_options;
 }

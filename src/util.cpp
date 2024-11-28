@@ -157,12 +157,8 @@ auto compute_base26(size_t i) -> std::string {
 
 static inline auto beta_pdf(double alpha, double beta, double x) {
   double num = std::pow(x, alpha - 1) * std::pow(1 - x, beta - 1);
-#ifndef __APPLE__
-  double den = std::beta(alpha, beta);
-#else
   double den =
       (std::tgamma(alpha) * std::tgamma(beta)) / (std::tgamma(alpha + beta));
-#endif
   return num / den;
 }
 
